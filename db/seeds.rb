@@ -16,7 +16,8 @@ SizeCopy.delete_all
 
 
 
-diameter_array = ["12", '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '12c','13c','14c','15c','16c','17c']
+diameter_array = ["12", '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23',
+                  '12c','13c','14c','15c','16c','17c']
 diameter_array.each do |el|
   Diameter.create(name: el, url: "r-#{el.downcase}")
 end
@@ -25,13 +26,18 @@ season_array = [
                 {name: "зимние", url: 'zimnie'}, {name: "зима", url: 'zimnie'},
                 {name: "зимові", url: 'zimnie'}, {name: "на зиму", url: 'zimnie'},
                 {name: "шипованные", url: 'zimnie'}, {name: "шиповані", url: 'zimnie'},
+                {name: "не шипованные", url: 'zimnie'}, {name: "нешиповані", url: 'zimnie'},
                 {name: "с шипами", url: 'zimnie'}, {name: "липучка", url: 'zimnie'},
+                {name: "для снега", url: 'zimnie'}, {name: "для снігу", url: 'zimnie'},
 
                 {name: "всесезонные", url: 'vsesezonie'},  {name: "всесезонні", url: 'vsesezonie'},
                 {name: "универсальные", url: 'vsesezonie'},  {name: "всепогодные", url: 'vsesezonie'},
 
                 {name: "летние", url: 'letnie'},  {name: "літні", url: 'letnie'},
                 {name: "літо", url: 'letnie'}, {name: "на літо", url: 'letnie'},
+                {name: "для дождя", url: 'letnie'}, {name: "для дощу", url: 'letnie'},
+                {name: "дождевая", url: 'letnie'}, {name: "дощева", url: 'letnie'},
+
                 {name: "лето", url: 'letnie'}, {name: "на лето", url: 'letnie'}]
 
 season_array.each do |el|
