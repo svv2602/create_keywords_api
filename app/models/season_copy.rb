@@ -1,0 +1,2 @@
+class SeasonCopy < ApplicationRecord
+end

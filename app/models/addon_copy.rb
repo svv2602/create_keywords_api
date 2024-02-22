@@ -1,0 +1,2 @@
+class AddonCopy < ApplicationRecord
+end

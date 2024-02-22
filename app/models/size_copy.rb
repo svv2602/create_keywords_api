@@ -1,0 +1,2 @@
+class SizeCopy < ApplicationRecord
+end

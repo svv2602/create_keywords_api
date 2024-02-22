@@ -1,0 +1,2 @@
+class DiameterCopy < ApplicationRecord
+end

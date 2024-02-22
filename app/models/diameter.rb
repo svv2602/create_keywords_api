@@ -1,0 +1,2 @@
+class Diameter < ApplicationRecord
+end
