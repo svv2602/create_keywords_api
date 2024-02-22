@@ -1,12 +1,4 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+require 'roo'
 
 Diameter.delete_all
 Brand.delete_all
@@ -22,54 +14,102 @@ SeasonCopy.delete_all
 AddonCopy.delete_all
 SizeCopy.delete_all
 
-brands_array = [
-  "Michelin", "Bridgestone", "Goodyear", "Continental", "Pirelli",
-  "Dunlop", "Yokohama", "Firestone", "Hankook", "Toyo", "Kumho", "Falken",
-  "Nokian", "Cooper", "Sumitomo", "MRF", "Apollo", "Maxxis", "Ceat"
-]
 
-brands_array.each do |el|
-  Brand.create(name: el, url: el.downcase)
-end
 
 diameter_array = ["12", '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '12c','13c','14c','15c','16c','17c']
 diameter_array.each do |el|
   Diameter.create(name: el, url: "r-#{el.downcase}")
 end
 
-season_array = [{name: "летние", url: 'letnie'},
+season_array = [
                 {name: "зимние", url: 'zimnie'}, {name: "зима", url: 'zimnie'},
+                {name: "зимові", url: 'zimnie'}, {name: "на зиму", url: 'zimnie'},
+                {name: "шипованные", url: 'zimnie'}, {name: "шиповані", url: 'zimnie'},
+                {name: "с шипами", url: 'zimnie'}, {name: "липучка", url: 'zimnie'},
+
+                {name: "всесезонные", url: 'vsesezonie'},  {name: "всесезонні", url: 'vsesezonie'},
+                {name: "универсальные", url: 'vsesezonie'},  {name: "всепогодные", url: 'vsesezonie'},
+
+                {name: "летние", url: 'letnie'},  {name: "літні", url: 'letnie'},
+                {name: "літо", url: 'letnie'}, {name: "на літо", url: 'letnie'},
                 {name: "лето", url: 'letnie'}, {name: "на лето", url: 'letnie'}]
+
 season_array.each do |el|
   Season.create(name: el[:name], url: el[:url].downcase)
 end
 
-addon_array = [{name: "шины", url: ''},
-                {name: "шына", url: ''}, {name: "шыны", url: ''},
-               {name: "колеса", url: ''}, {name: "покрышки", url: ''},
-                {name: "резина", url: ''}, {name: "колесо", url: ''}]
-addon_array.each do |el|
-  Addon.create(name: el[:name], url: el[:url].downcase)
-end
-
 
 # City
-city_array = [{name: "киев", url: ''},
-               {name: "харьков", url: ''}, {name: "в днепре", url: ''},
-               {name: "одесса", url: ''}, {name: "житомир", url: ''},
-               {name: "в кривом рогу", url: ''}, {name: "львов", url: ''}]
-city_array.each do |el|
-  City.create(name: el[:name], url: el[:url].downcase)
+# city_array = [{name: "киев", url: ''},
+#                {name: "харьков", url: ''}, {name: "в днепре", url: ''},
+#                {name: "одесса", url: ''}, {name: "житомир", url: ''},
+#                {name: "в кривом рогу", url: ''}, {name: "львов", url: ''}]
+# city_array.each do |el|
+#   City.create(name: el[:name], url: el[:url].downcase)
+# end
+
+excel_file = "lib/cities.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+4.times do |i|
+  excel.each_row_streaming(pad_cells: true) do |row|
+    name = row[i]&.value
+    url = ''
+    City.create(name: name, url: url) if name.present?
+  end
 end
 
-size_array = [{ww: "175", hh: '70', rr:'13', url: 'w-175/h-70/r-13'},
-              {ww: "185", hh: '65', rr:'14', url: 'w-185/h-65/r-14'},
-              {ww: "195", hh: '55', rr:'15', url: 'w-195/h-55/r-15'},
-              {ww: "205", hh: '55', rr:'16', url: 'w-205/h-55/r-16'},
-              {ww: "215", hh: '55', rr:'17', url: 'w-215/h-55/r-17'},
-              {ww: "205", hh: '65', rr:'15', url: 'w-205/h-65/r-15'},
-              {ww: "175", hh: '65', rr:'14', url: 'w-175/h-65/r-14'}
-]
-size_array.each do |el|
-  Size.create(ww: el[:ww], hh: el[:hh], rr: el[:rr],url: el[:url].downcase)
+
+
+# =========================================================
+# Загрузка размеров
+# size_array = [{ww: "175", hh: '70', rr:'13', url: 'w-175/h-70/r-13'},
+#               {ww: "175", hh: '65', rr:'14', url: 'w-175/h-65/r-14'}
+# ]
+# size_array.each do |el|
+#   Size.create(ww: el[:ww], hh: el[:hh], rr: el[:rr],url: el[:url].downcase)
+# end
+
+
+excel_file = "lib/sizes_link.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  url = row[4]&.value
+  Size.create(ww: row[1]&.value, hh: row[2]&.value, rr: row[3]&.value, url: url) if url.present?
+end
+
+# =========================================================
+# Загрузка Брендов
+# brands_array = [
+#   "Michelin", "Bridgestone", "Goodyear", "Continental", "Pirelli"
+# ]
+#
+# brands_array.each do |el|
+#   Brand.create(name: el, url: el.downcase)
+# end
+
+excel_file = "lib/brands.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+3.times do |i|
+  excel.each_row_streaming(pad_cells: true) do |row|
+    name = row[i+1]&.value
+    url = row[0]&.value
+    Brand.create(name: name, url: url) if name.present?
+  end
+end
+
+# attribute
+# addon_array = [{name: "шины", url: ''},{name: "шына", url: ''}, {name: "шыны", url: ''},]
+# addon_array.each do |el|
+#   Addon.create(name: el[:name], url: el[:url].downcase)
+# end
+
+excel_file = "lib/addons.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  name = row[0]&.value
+  Addon.create(name: name, url: '') if name.present?
 end
