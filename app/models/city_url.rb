@@ -1,0 +1,2 @@
+class CityUrl < ApplicationRecord
+end

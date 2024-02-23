@@ -1,0 +1,2 @@
+class CityUrlCopy < ApplicationRecord
+end

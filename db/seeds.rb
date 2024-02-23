@@ -3,6 +3,7 @@ require 'roo'
 Diameter.delete_all
 Brand.delete_all
 City.delete_all
+CityUrl.delete_all
 Season.delete_all
 Addon.delete_all
 Size.delete_all
@@ -10,9 +11,14 @@ Size.delete_all
 DiameterCopy.delete_all
 BrandCopy.delete_all
 CityCopy.delete_all
+CityUrlCopy.delete_all
 SeasonCopy.delete_all
 AddonCopy.delete_all
 SizeCopy.delete_all
+
+
+
+
 
 
 
@@ -44,6 +50,29 @@ season_array.each do |el|
   Season.create(name: el[:name], url: el[:url].downcase)
 end
 
+#===========Заменить==============================
+# CityUrl
+# city_array = [{name: "киев", url: 'shiny-kiev'},
+#               {name: "в днепре", url: 'shiny-dnepr'},
+#               {name: "одесса", url: 'shiny-odessa'},
+#               {name: "львов", url: 'shiny-lvov'}]
+# city_array.each do |el|
+#   CityUrl.create(name: el[:name], url: el[:url].downcase)
+# end
+
+
+excel_file = "lib/cities_url.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+4.times do |i|
+  excel.each_row_streaming(pad_cells: true) do |row|
+    name = row[i+1]&.value
+    url = row[0]&.value
+    CityUrl.create(name: name, url: url) if name.present?
+  end
+end
+
+
 
 # City
 # city_array = [{name: "киев", url: ''},
@@ -64,6 +93,9 @@ excel = Roo::Excelx.new(excel_file)
     City.create(name: name, url: url) if name.present?
   end
 end
+
+
+
 
 
 

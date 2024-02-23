@@ -8,12 +8,16 @@ class Api::V1::KeysController < ApplicationController
     arr2 = [["Season", 1], ["Brand", 2], ['Size', 3], ["Addon", 4], ['City', 5]]   # 29 элементов
     arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]                               # 6 элементов
 
-
     arr4 = []
     5.times do
       arr4 << ["Season", "Brand", "Size", "Addon"]
       arr4 << ["Season", "Size", "Addon"]
     end
+    # добавить города
+    arr4 << ["CityUrl", "Season", "Addon"]
+    arr4 << ["CityUrl", "Size", "Addon"]
+    arr4 << ["CityUrl", "Diameter", "Addon"]
+
 
     # arr1 = []
     # arr2 = []
@@ -97,7 +101,7 @@ class Api::V1::KeysController < ApplicationController
   def extract_random_records(tables)
     rez = {}
     result = []
-
+    city_url = ""
     random_number = rand(1..100)
 
     # Проверяем, делится ли случайное число на 2
@@ -116,12 +120,23 @@ class Api::V1::KeysController < ApplicationController
 
       record = partial_name(table_name, record)
       table_name == "SizeCopy" ? result = result.concat(record) : result << record
+      city_url = partial_url(table_name, received_record[:url]) if table_name == "CityUrlCopy"
 
     end
-    p url_new
-    result.shuffle.join(" ")
+
+    if city_url.present?
+      if random_number % 2 == 0
+        city_url = "https://prokoleso.ua/#{city_url}"
+      else
+        city_url = "https://prokoleso.ua/ua/#{city_url}"
+      end
+      url_new = city_url
+    end
+
+    # result.shuffle.join(" ")
     rez = { keywords: result.shuffle.join(" "),
             url: url_new }
+
   end
 
   def partial_url(table_name, record_url)
