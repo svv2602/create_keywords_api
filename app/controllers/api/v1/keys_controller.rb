@@ -11,13 +11,13 @@ class Api::V1::KeysController < ApplicationController
     # используется с combinations_with_sorted_ratings, в коментах кол- во элементов
     # arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]
     arr1 = [['Size', 3], ["Addon", 4], ['City', 5]]
-    arr2 = [["Season", 1], ['Size', 3], ["Addon", 4], ['City', 5]]   # 29 элементов
+    arr2 = [["Season", 1], ['Size', 3], ["Addon", 4]]   # 29 элементов
     arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]
 
     arr4 = []
     2.times do
       arr4 << ["Brand", "Size", "Addon"]
-      arr4 << ["Season", "Size", "City"]
+      arr4 << ["Season", "Size", "Addon"]
     end
 
     4.times do
@@ -27,10 +27,10 @@ class Api::V1::KeysController < ApplicationController
     arr4 << ["Size"]
     arr4 << ["Size", "City"]
     arr4 << ["Size", "Addon", "City"]
-    arr4 << ["Season", "Brand", "Size", "Addon", "City"]
+    arr4 << ["Season", "Brand", "Size", "Addon"]
     arr4 << ["Season", "Diameter", "Addon"]
     arr4 << ["Season", "Brand", "Diameter"]
-    arr4 << ["Brand", "Diameter", "Addon","City"]
+    arr4 << ["Brand", "Diameter", "Addon"]
 
     # добавить города
     rand(10)%2 == 0 ?  arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
