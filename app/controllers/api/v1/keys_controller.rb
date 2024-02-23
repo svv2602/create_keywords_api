@@ -18,6 +18,9 @@ class Api::V1::KeysController < ApplicationController
     2.times do
       arr4 << ["Brand", "Size", "Addon"]
       arr4 << ["Season", "Size", "Addon"]
+      arr4 << ["Season","Brand", "Size", "Addon"]
+      arr4 << ["Season","Brand", "Diameter", "Addon"]
+      arr4 << ["Season","Brand", "Diameter", "City"]
     end
 
     4.times do
@@ -31,6 +34,7 @@ class Api::V1::KeysController < ApplicationController
     arr4 << ["Season", "Diameter", "Addon"]
     arr4 << ["Season", "Brand", "Diameter"]
     arr4 << ["Brand", "Diameter", "Addon"]
+    arr4 << ["Diameter", "Addon", "City"]
 
     # добавить города
     rand(10)%2 == 0 ?  arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
@@ -187,7 +191,7 @@ class Api::V1::KeysController < ApplicationController
       result << "#{ww} #{hh}R#{rr}"
     when 31..40, 301..330
       # 205 55р16
-      result << "#{ww} #{hh}р#{rr}"
+      result << "#{ww} #{hh}P#{rr}"
     when 41..50, 331..350
       # 205 5516
       result << "#{ww} #{hh}#{rr}"
@@ -197,7 +201,7 @@ class Api::V1::KeysController < ApplicationController
       result << "#{rr}"
     when 61..70, 371..380
       result << "#{ww} #{hh}"
-      result << "р#{rr}"
+      result << "Р#{rr}"
     when 81..90, 381..450
       result << "#{ww} #{hh}"
       result << "R#{rr}"
@@ -206,7 +210,7 @@ class Api::V1::KeysController < ApplicationController
       result << "#{rr}"
     when 101..110
       result << "#{ww}/#{hh}"
-      result << "р#{rr}"
+      result << "Р#{rr}"
     when 121..130, 471..490
       result << "#{ww}/#{hh}"
       result << "R#{rr}"
@@ -216,7 +220,7 @@ class Api::V1::KeysController < ApplicationController
       result << "#{rr}"
     when 141..150
       result << "#{ww}х#{hh}"
-      result << "р#{rr}"
+      result << "Р#{rr}"
     when 161..170
       result << "#{ww}x#{hh}"
       result << "R#{rr}"
@@ -224,15 +228,11 @@ class Api::V1::KeysController < ApplicationController
     when 171..180
       result << "#{ww}х#{hh}"
       result << "на #{rr}"
-    when 181..190
-      result << "#{ww}х#{hh}"
-      result << "Р#{rr}"
+
     when 191..200
       result << "#{ww}/#{hh}"
-      result << "Р#{rr}"
-    when 201..210
-      result << "#{ww} #{hh}"
-      result << "Р#{rr}"
+      result << "R#{rr}"
+
     else
       result << "#{ww}/#{hh}R#{rr}"
     end
