@@ -3,20 +3,32 @@ class Api::V1::KeysController < ApplicationController
   def show
     i = 0
     h = []
-    arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]
-    arr2 = [["Season", 1], ["Brand", 2], ['Size', 3], ["Addon", 4], ['City', 5]]
-    arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]
+    # используется с combinations_with_sorted_ratings, в коментах кол- во элементов
+    arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]            # 14 элементов
+    arr2 = [["Season", 1], ["Brand", 2], ['Size', 3], ["Addon", 4], ['City', 5]]   # 29 элементов
+    arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]                               # 6 элементов
+
+
+    arr4 = []
+    5.times do
+      arr4 << ["Season", "Brand", "Size", "Addon"]
+      arr4 << ["Season", "Size", "Addon"]
+    end
+
     # arr1 = []
     # arr2 = []
     # arr3 = []
+    # arr4 = []
+
     merged_array = combinations_with_sorted_ratings(arr1) + combinations_with_sorted_ratings(arr2)
-    unique_values = merged_array.uniq + combinations_with_sorted_ratings(arr3)
+
+    unique_values = merged_array.uniq + combinations_with_sorted_ratings(arr3) + arr4
     unique_values.each do |arr|
       record = str_hash(arr)
       h << {keywords: normal_str(record[:keywords]),url: record[:url]}
       i +=1
     end
-
+    puts "===================== #{unique_values.inspect}"
     puts "Количество элементов: #{i}"
 
     render json: {
@@ -137,7 +149,7 @@ class Api::V1::KeysController < ApplicationController
   # обработка вариантов написания размеров
   def size_name(ww, hh, rr)
     result = []
-    case rand(1..500)
+    case rand(1..520)
     when 1..10, 210..215
       # 2055516
       result << "#{ww}#{hh}#{rr}"
@@ -160,9 +172,6 @@ class Api::V1::KeysController < ApplicationController
     when 61..70, 371..380
       result << "#{ww} #{hh}"
       result << "р#{rr}"
-    when 71..80, 381..410
-      result << "#{ww} #{hh}"
-      result << "r#{rr}"
     when 81..90, 381..450
       result << "#{ww} #{hh}"
       result << "R#{rr}"
@@ -172,9 +181,6 @@ class Api::V1::KeysController < ApplicationController
     when 101..110
       result << "#{ww}/#{hh}"
       result << "р#{rr}"
-    when 111..120, 451..470
-      result << "#{ww}/#{hh}"
-      result << "r#{rr}"
     when 121..130, 471..490
       result << "#{ww}/#{hh}"
       result << "R#{rr}"
@@ -185,9 +191,6 @@ class Api::V1::KeysController < ApplicationController
     when 141..150
       result << "#{ww}х#{hh}"
       result << "р#{rr}"
-    when 151..160
-      result << "#{ww}x#{hh}"
-      result << "r#{rr}"
     when 161..170
       result << "#{ww}x#{hh}"
       result << "R#{rr}"
