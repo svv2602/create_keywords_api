@@ -1,32 +1,43 @@
 class Api::V1::KeysController < ApplicationController
 
   def show
+    #  curl http://localhost:3000/api/v1/show
     i = 0
     h = []
+    arr1 = []
+    arr2 = []
+    arr3 = []
+    arr4 = []
     # используется с combinations_with_sorted_ratings, в коментах кол- во элементов
-    arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]            # 14 элементов
-    arr2 = [["Season", 1], ["Brand", 2], ['Size', 3], ["Addon", 4], ['City', 5]]   # 29 элементов
-    arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]                               # 6 элементов
+    # arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]
+    arr1 = [['Size', 3], ["Addon", 4], ['City', 5]]
+    arr2 = [["Season", 1], ['Size', 3], ["Addon", 4], ['City', 5]]   # 29 элементов
+    arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]
 
     arr4 = []
-    5.times do
-      arr4 << ["Season", "Brand", "Size", "Addon"]
-      arr4 << ["Season", "Size", "Addon"]
+    2.times do
+      arr4 << ["Brand", "Size", "Addon"]
+      arr4 << ["Season", "Size", "City"]
     end
+
+    4.times do
+      arr4 << ["Size", "Addon"]
+    end
+
+    arr4 << ["Size"]
+    arr4 << ["Size", "City"]
+    arr4 << ["Size", "Addon", "City"]
+    arr4 << ["Season", "Brand", "Size", "Addon", "City"]
+    arr4 << ["Season", "Diameter", "Addon"]
+    arr4 << ["Season", "Brand", "Diameter"]
+    arr4 << ["Brand", "Diameter", "Addon","City"]
+
     # добавить города
-    arr4 << ["CityUrl", "Season", "Addon"]
-    arr4 << ["CityUrl", "Size", "Addon"]
-    arr4 << ["CityUrl", "Diameter", "Addon"]
+    rand(10)%2 == 0 ?  arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
 
-
-    # arr1 = []
-    # arr2 = []
-    # arr3 = []
-    # arr4 = []
 
     merged_array = combinations_with_sorted_ratings(arr1) + combinations_with_sorted_ratings(arr2)
-
-    unique_values = merged_array.uniq + combinations_with_sorted_ratings(arr3) + arr4
+    unique_values = merged_array + combinations_with_sorted_ratings(arr3) + arr4
     unique_values.each do |arr|
       record = str_hash(arr)
       h << {keywords: normal_str(record[:keywords]),url: record[:url]}
