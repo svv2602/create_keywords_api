@@ -51,5 +51,5 @@ gem "roo", "~> 2.10"
 
 # gem 'openai', '0.3.0'
 
-gem 'dotenv-rails', groups: [:development, :test]
+gem 'dotenv-rails'
 gem "ruby-openai", "~> 6.3"

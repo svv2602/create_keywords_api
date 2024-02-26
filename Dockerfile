@@ -1,4 +1,7 @@
 FROM ruby:3.2.2
+# В параметрах сборки укажите API-ключ
+ARG OPENAI_API_KEY
+ENV OPENAI_API_KEY=$OPENAI_API_KEY
 
 RUN apt-get update && apt-get install -y build-essential
 
@@ -25,5 +28,9 @@ EXPOSE 3000
 CMD ["rails", "server", "-b", "0.0.0.0"]
 
 # Запуск
-# sudo docker build -t my-rails-app .
+# =====================sudo docker build -t my-rails-app . ======- это не работает с модулем OpenAI
+#
+# sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
+# где your_openai_api_key - реальный ключ
+
 # sudo docker run --rm -p 3000:3000 my-rails-app
