@@ -47,3 +47,9 @@ end
 
 
 gem "roo", "~> 2.10"
+
+
+# gem 'openai', '0.3.0'
+
+gem 'dotenv-rails', groups: [:development, :test]
+gem "ruby-openai", "~> 6.3"
