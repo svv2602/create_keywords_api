@@ -34,16 +34,17 @@ season_array = [
                 {name: "шипованные", url: 'zimnie'}, {name: "шиповані", url: 'zimnie'},
                 {name: "не шипованные", url: 'zimnie'}, {name: "нешиповані", url: 'zimnie'},
                 {name: "с шипами", url: 'zimnie'}, {name: "липучка", url: 'zimnie'},
+                {name: "з шипами", url: 'zimnie'}, {name: "ліпучка", url: 'zimnie'},
                 {name: "для снега", url: 'zimnie'}, {name: "для снігу", url: 'zimnie'},
 
                 {name: "всесезонные", url: 'vsesezonie'},  {name: "всесезонні", url: 'vsesezonie'},
                 {name: "универсальные", url: 'vsesezonie'},  {name: "всепогодные", url: 'vsesezonie'},
+                {name: "універсальні", url: 'vsesezonie'},  {name: "всепогодні", url: 'vsesezonie'},
 
                 {name: "летние", url: 'letnie'},  {name: "літні", url: 'letnie'},
                 {name: "літо", url: 'letnie'}, {name: "на літо", url: 'letnie'},
                 {name: "для дождя", url: 'letnie'}, {name: "для дощу", url: 'letnie'},
                 {name: "дождевая", url: 'letnie'}, {name: "дощева", url: 'letnie'},
-
                 {name: "лето", url: 'letnie'}, {name: "на лето", url: 'letnie'}]
 
 season_array.each do |el|
