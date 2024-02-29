@@ -18,6 +18,7 @@ RUN bundle install
 
 COPY . ./
 
+
 RUN bundle exec rails db:setup
 
 # Установка часового пояса внутри контейнера

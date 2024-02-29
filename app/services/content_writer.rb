@@ -7,8 +7,8 @@ class ContentWriter
     @client = OpenAI::Client.new
   end
 
-  def write_draft_post(title, max_tokens)
-    prompt = "Write a 1000 word blogpost about '#{title}'."
+  def write_draft_post(prompt, max_tokens)
+    # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
     @client.chat(
       parameters: {
         model: MODEL,
@@ -25,7 +25,7 @@ class ContentWriter
           },
           { role: "user", content: prompt }
         ],
-        temperature: 0.7,
+        temperature: 0.8,
         # Temperature (температура): Можно установить значение около 0.5-0.7, чтобы получить
         # более консервативные и ожидаемые ответы. Это поможет избежать слишком экспрессивных
         # или неожиданных фраз.
@@ -34,17 +34,19 @@ class ContentWriter
         #Top p: Рекомендуется использовать значение около 0.9, чтобы модель могла выбирать
         # наиболее вероятные следующие слова, исходя из распределения вероятностей,
         # что способствует генерации более качественного текста.
-        frequency_penalty: 0.5,
+        frequency_penalty: 0.4,
         # Frequency Penalty (штраф за частоту): Можно установить значение около 0.2-0.5,
         # чтобы умеренно контролировать повторяемость ключевых слов или фраз в тексте.
         # Это поможет избежать пересыщения текста ключевыми словами и обеспечит его естественность.
-        presence_penalty: 0.5
+        presence_penalty: 0.3
         # Presence Penalty (штраф за присутствие):
         # Также можно установить значение около 0.2-0.5, чтобы стимулировать разнообразие лексики
         # в тексте и избежать излишнего повторения слов или фраз.
       }
     )
   end
+
+
 
 
 end

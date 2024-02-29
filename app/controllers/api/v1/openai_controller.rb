@@ -1,32 +1,74 @@
 # app/controllers/api/openai_controller.rb
 
 class Api::V1::OpenaiController < ApplicationController
-#   PROMPT1 = "Напиши блок FAQs на странцу ЛЕТНИЕ ШИНЫ 175/65 R14
-# Задай по одному вопросу на каждую из нижеуказанных тем
-# Законодательство о зимних шинахё
-# Законодательство о зимних шинахё
-# Рекомендации по вождению зимой
-# Советы по уходу за зимними шинами
-# Ответы на распространенные мифы о зимних шинах
-# Глоссарий терминов, связанных с зимними шинами
-# Маркировка шин
-# Ответы на вопросы должны быть краткими, но содержательными
-# Блок отформатируй, используй заголовки <h3> для вопроса
-# Текст оберни в HTML - теги, с учетом микроразметки"
-
-
+  #   PROMPT1 = "Напиши блок FAQs на странцу ЛЕТНИЕ ШИНЫ 175/65 R14
+  # Задай по одному вопросу на каждую из нижеуказанных тем
+  # Законодательство о зимних шинахё
+  # Законодательство о зимних шинахё
+  # Рекомендации по вождению зимой
+  # Советы по уходу за зимними шинами
+  # Ответы на распространенные мифы о зимних шинах
+  # Глоссарий терминов, связанных с зимними шинами
+  # Маркировка шин
+  # Ответы на вопросы должны быть краткими, но содержательными
+  # Блок отформатируй, используй заголовки <h3> для вопроса
+  # Текст оберни в HTML - теги, с учетом микроразметки"
 
   def generate_completion
     # Определите массив тем.
-    topics = ["Туризм во Франции", "Преимущества электрокаров", "Биологическое разнообразие Амазонки", "Будущее космической технологии", "Похудение через йогу"]
-
+    сity = "Белая Церковь"
+    topics1 = [
+      "Летние, Зимние и Всесезонные шины для легковых автомобилей",
+      "Шины для разных типов езды (спортивная, комфортная, экономичная)",
+      "Большой ассортимент шин разных типоразмеров",
+      "Подбор шин по автомобилю в интернет-магазине prokoleso.ua",
+      "Новые модели шин всегда в наличии на складе"
+    ]
+    topics2 = [
+      "Советы по выбору и эксплуатации шин",
+      "Как выбрать шины для своего автомобиля",
+      "Как правильно хранить шины",
+      "Как безопасно ездить на шинах",
+      "Как подбирать шины для разных сезонов",
+      "Особенности эксплуатации шин в городских условиях (Климат, Состояние дорог, Популярные маршруты)",
+      "Какие шины лучше всего подходят для данного климата и дорожных условий",
+      "Какие шины пользуются наибольшей популярностью у городских жителей"
+    ]
+    topics3 = [
+      "Почему покупатели выбирают prokoleso.ua",
+      "Самая удобная покупка - купи шины в prokoleso.ua",
+      "prokoleso.ua - покупай только качественные шины"
+    ]
     # Используйте метод 'sample' для выбора случайной темы.
-    prompt = topics.sample
 
-    result = ContentWriter.new.write_draft_post(prompt, 2500)
+    result1 = ContentWriter.new.write_draft_post(query_сity(topics1.sample, сity), 500)
+    result2 = ContentWriter.new.write_draft_post(query_сity(topics2.sample, сity), 500)
+    result3 = ContentWriter.new.write_draft_post(query_сity(topics3.sample, сity), 500)
 
-    render json: { result: result['choices'][0]['message']['content'].strip }
-    puts result['choices'][0]['message']['content'].strip
+    result = result1['choices'][0]['message']['content'].strip +
+      result2['choices'][0]['message']['content'].strip +
+      result3['choices'][0]['message']['content'].strip
+
+    result =  ContentWriter.new.write_draft_post(format_query(result), 2000)
+
+    # puts "prompt =========  #{prompt}"
+    render json: { result: result }
+    puts result
+  end
+
+  def query_сity(topic, сity)
+    prompt = "напиши для интернет магазина prokoleso.ua сео текст раздела '#{topic}' для страницы 'Купить шины | #{сity}' "
+    prompt += "Текст должен содержать заголовок, а также быть содержательным и интересным для пользователя. "
+    prompt += "Текст должен быть оптимизирован под поисковые запросы 'шины #{сity} ', 'резина', 'купить шины в #{сity}'. "
+
+  end
+
+  def format_query(prompt)
+    message = ''
+    message += "Есть текст: ' #{prompt} '"
+    message += "Текст отформатируй и оберни в html - теги. "
+    message += "В тексте должен быть только первый заголовок с тегом <h1>, остальные маркировать <h2> или <h3> "
+    message += "В ответ вывести только содержание раздела <body> (теги <body>  и </body>  - не выводить ) "
   end
 
   def write1
@@ -47,7 +89,8 @@ class Api::V1::OpenaiController < ApplicationController
 
     query << if params[:volume].zero? # short
                "#{params[:topic].capitalize} должно быть написано в пределах 30-50 слов."
-             else # long
+             else
+               # long
                "#{params[:topic].capitalize} должно быть написано в пределах 50-70 слов."
              end
 
@@ -71,7 +114,5 @@ class Api::V1::OpenaiController < ApplicationController
     # The API would response with success status is response is valid,
     # Otherwise it will response with error status saying a that error occured.
   end
-
-
 
 end
