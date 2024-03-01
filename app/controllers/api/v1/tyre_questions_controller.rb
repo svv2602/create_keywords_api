@@ -2,42 +2,13 @@
 
 class Api::V1::TyreQuestionsController < ApplicationController
   include ServiceTable
+
   def generate_questions
     # Определите массив тем.
-    сity = "Белая Церковь"
-    topics1 = [
-      "Летние, Зимние и Всесезонные шины для легковых автомобилей",
-      "Шины для разных типов езды (спортивная, комфортная, экономичная)",
-      "Большой ассортимент шин разных типоразмеров",
-      "Подбор шин по автомобилю в интернет-магазине prokoleso.ua",
-      "Новые модели шин всегда в наличии на складе"
-    ]
-    topics2 = [
-      "Советы по выбору и эксплуатации шин",
-      "Как выбрать шины для своего автомобиля",
-      "Как правильно хранить шины",
-      "Как безопасно ездить на шинах",
-      "Как подбирать шины для разных сезонов",
-      "Особенности эксплуатации шин в городских условиях (Климат, Состояние дорог, Популярные маршруты)",
-      "Какие шины лучше всего подходят для данного климата и дорожных условий",
-      "Какие шины пользуются наибольшей популярностью у городских жителей"
-    ]
-    topics3 = [
-      "Почему покупатели выбирают prokoleso.ua",
-      "Самая удобная покупка - купи шины в prokoleso.ua",
-      "prokoleso.ua - покупай только качественные шины"
-    ]
-    # Используйте метод 'sample' для выбора случайной темы.
 
-    result1 = ContentWriter.new.write_draft_post(query_сity(topics1.sample, сity), 500)
-    result2 = ContentWriter.new.write_draft_post(query_сity(topics2.sample, сity), 500)
-    result3 = ContentWriter.new.write_draft_post(query_сity(topics3.sample, сity), 500)
+    topics = ""
 
-    result = result1['choices'][0]['message']['content'].strip +
-      result2['choices'][0]['message']['content'].strip +
-      result3['choices'][0]['message']['content'].strip
-
-    result =  ContentWriter.new.write_draft_post(format_query(result), 2000)
+    result = ContentWriter.new.write_draft_post(questions, 500)
 
     # puts "prompt =========  #{prompt}"
     render json: { result: result }
@@ -45,23 +16,16 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def questions
-    str = array_questions('TyresFaq', 5)
-    render json: {arr: str}
-  end
+    table = 'TyresFaq'
 
-  def array_questions(table, count)
-    questions = []
     table_copy = table + 'Copy' # Преобразуем имя таблицы-копии
-    puts table
-    puts table_copy
+    copy_table_to_table_copy_if_empty(table, table_copy)
+    question = find_and_destroy_random_record(table_copy).question
+    topics = "Дай краткий ответ на вопрос: #{question}. Ответ оберни тегами <p>"
+    result = ContentWriter.new.write_draft_post(topics, 100)
 
-    count.times do
-      copy_table_to_table_copy_if_empty(table, table_copy)
-      record = find_and_destroy_random_record(table_copy)
-      questions << record.question
-    end
-    questions.join(", ")
+    render json: { question: question, result: result['choices'][0]['message']['content'].strip }
+    puts result
   end
-
 
 end
