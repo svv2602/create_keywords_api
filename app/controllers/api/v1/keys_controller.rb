@@ -1,5 +1,7 @@
 class Api::V1::KeysController < ApplicationController
-
+  def initialize
+    @service = ServiceTable.new
+  end
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -77,38 +79,14 @@ class Api::V1::KeysController < ApplicationController
     tables_with_data.each_with_index do |table, index|
       table_copy = table + 'Copy' # Преобразуем имя таблицы-копии
       table_copies << table_copy
-      copy_table_to_table_copy_if_empty(table, table_copy)
+      @service.copy_table_to_table_copy_if_empty(table, table_copy)
     end
     keys = extract_random_records(table_copies)
     return keys
 
   end
 
-  # Копирование таблицы, переменная - объект
-  def copy_table_to_table_copy(model, model_copy)
-    model.find_each do |rec|
-      attributes = rec.attributes.except("id") # Исключаем атрибут идентификатора
-      model_copy.create!(attributes)
-    end
-  end
 
-  # Имя таблицы - текст!!!
-  def copy_table_to_table_copy_if_empty(table, table_copy)
-    model = table.classify.constantize
-    model_copy = table_copy.classify.constantize
-    if model_copy.count.zero?
-      copy_table_to_table_copy(model, model_copy)
-    end
-  end
-
-  # Находим и удаляем случайную запись
-  # пример: find_and_destroy_random_record("Brand")
-  def find_and_destroy_random_record(table)
-    model = table.classify.constantize
-    random_record = model.order("RANDOM()").first
-    random_record&.destroy
-    random_record
-  end
 
   # На входе массив таблиц и для каждой таблицы извлекает случайную
   # запись с помощью метода find_and_destroy_random_record,
@@ -127,7 +105,7 @@ class Api::V1::KeysController < ApplicationController
     end
 
     tables.each do |table_name|
-      received_record = find_and_destroy_random_record(table_name)
+      received_record = @service.find_and_destroy_random_record(table_name)
       record = received_record[:name]
       record = [received_record[:ww], received_record[:hh], received_record[:rr]] if table_name == "SizeCopy"
 

@@ -19,9 +19,6 @@ SizeCopy.delete_all
 
 
 
-
-
-
 diameter_array = ["12", '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23',
                   '12c','13c','14c','15c','16c','17c']
 diameter_array.each do |el|
@@ -151,4 +148,14 @@ excel = Roo::Excelx.new(excel_file)
 excel.each_row_streaming(pad_cells: true) do |row|
   name = row[0]&.value
   Addon.create(name: name, url: '') if name.present?
+end
+
+# Заполнение таблицы с вопросам по легковым шинам
+excel_file = "lib/tires_FAQs.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  question = row[0]&.value
+  theme = row[1]&.value
+  TyresFaq.create(question: question, theme: theme) if question.present?
 end

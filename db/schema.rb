@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_23_075726) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_01_093701) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -109,6 +109,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_23_075726) do
     t.string "hh"
     t.string "rr"
     t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tyres_faq_copies", force: :cascade do |t|
+    t.string "question"
+    t.string "theme"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tyres_faqs", force: :cascade do |t|
+    t.string "question"
+    t.string "theme"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
