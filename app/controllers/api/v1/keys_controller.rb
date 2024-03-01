@@ -1,7 +1,8 @@
 class Api::V1::KeysController < ApplicationController
-  def initialize
-    @service = ServiceTable.new
-  end
+#   def initialize
+#     @service = ServiceTable.new
+#   end
+include ServiceTable
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -79,7 +80,7 @@ class Api::V1::KeysController < ApplicationController
     tables_with_data.each_with_index do |table, index|
       table_copy = table + 'Copy' # Преобразуем имя таблицы-копии
       table_copies << table_copy
-      @service.copy_table_to_table_copy_if_empty(table, table_copy)
+      copy_table_to_table_copy_if_empty(table, table_copy)
     end
     keys = extract_random_records(table_copies)
     return keys
@@ -105,7 +106,7 @@ class Api::V1::KeysController < ApplicationController
     end
 
     tables.each do |table_name|
-      received_record = @service.find_and_destroy_random_record(table_name)
+      received_record = find_and_destroy_random_record(table_name)
       record = received_record[:name]
       record = [received_record[:ww], received_record[:hh], received_record[:rr]] if table_name == "SizeCopy"
 

@@ -1,4 +1,5 @@
-class ServiceTable
+module ServiceTable
+
   # def initialize
   #   @service = ServiceTable.new
   # end

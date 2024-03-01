@@ -1,7 +1,7 @@
 # app/controllers/api/openai_controller.rb
 
 class Api::V1::TyreQuestionsController < ApplicationController
-
+  include ServiceTable
   def generate_questions
     # Определите массив тем.
     сity = "Белая Церковь"
@@ -45,7 +45,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def questions
-    array_questions('TyresFaq', 3)
+    str = array_questions('TyresFaq', 5)
+    render json: {arr: str}
   end
 
   def array_questions(table, count)
@@ -55,10 +56,11 @@ class Api::V1::TyreQuestionsController < ApplicationController
     puts table_copy
 
     count.times do
-      @service.copy_table_to_table_copy_if_empty(table, table_copy)
-      questions << @service.find_and_destroy_random_record(table_copy)
+      copy_table_to_table_copy_if_empty(table, table_copy)
+      record = find_and_destroy_random_record(table_copy)
+      questions << record.question
     end
-    puts questions
+    questions.join(", ")
   end
 
 
