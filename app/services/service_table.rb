@@ -1,8 +1,5 @@
 module ServiceTable
 
-  # def initialize
-  #   @service = ServiceTable.new
-  # end
   # Копирование таблицы, переменная - объект
   def copy_table_to_table_copy(model, model_copy)
     model.find_each do |rec|

@@ -8,7 +8,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
     list_questions = []
 
     # формирование основного блока вопрос ответ
-    rand(1..2).times do
+    rand(2..4).times do
       list_questions << question unless question[:question] == ""
     end
 
@@ -41,17 +41,17 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def sinonim(str)
-    rand(0..20) % 2 ? str += " Вместо слова 'шины' необходимо использовать синонимы" : str
+    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
+    # true ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
   end
 
-  def question_brand(el)
+  def question_const(el)
     question_random = el[:questions].sample
-    puts question_random
     answer = ""
-    topics = sinonim("Сделай краткий рерайт вопроса: #{question_random[:question]}.")
+    topics = sinonim("Cделай краткий рерайт вопроса: #{question_random[:question]}.")
     question = ContentWriter.new.write_draft_post(topics, 150)['choices'][0]['message']['content'].strip
-    # question = format_str(question)
-    random_brands = el[:aliases].sample(rand(6..10))
+
+    random_brands = el[:aliases].sample(rand(6..10)) # случайное количество ответов
     random_brands.each_with_index do |el, i|
       answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>#{i + 1}. #{el[:name]}</a>    "
     end
@@ -60,9 +60,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def questions_dop
     list_questions = []
-    arr = [BRANDS, CITIES, DIAMETERS].sample(rand(1..2))
+    arr = [BRANDS, CITIES, DIAMETERS, TOP_SIZE].sample(rand(1..2))
     arr.each do |constant|
-      list_questions << question_brand(constant)
+      list_questions << question_const(constant)
     end
 
     list_questions

@@ -183,9 +183,9 @@ module Constants
 
   DIAMETERS = {
     questions: [
-      {question: 'Самые распространенные посадочные диаметры у автошин',url:'https://prokoleso.ua/'},
-      {question: 'ТОП популярных посадочных диаметров для шин',url:'https://prokoleso.ua/'},
-      {question: 'ТОП популярных посадочных диаметров для шин, представленных на  prokoleso.ua',url:'https://prokoleso.ua/'}
+      {question: 'Самые распространенные посадочные диаметры у автошин',url:'https://prokoleso.ua/shiny/'},
+      {question: 'ТОП популярных посадочных диаметров для шин',url:'https://prokoleso.ua/shiny/'},
+      {question: 'ТОП популярных посадочных диаметров для шин, представленных на  prokoleso.ua',url:'https://prokoleso.ua/shiny/'}
 
     ],
     aliases: [
@@ -205,9 +205,74 @@ module Constants
       {name: 'R16c',alias:'r-16c'},
       {name: 'R17c',alias:'r-17c'},
 
-
     ]
 
+  }
+
+  TOP_SIZE = {
+    questions: [
+      {question: 'Какие размеры шин являются наиболее популярными среди автолюбителей на вашем сайте?',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Какие типоразмеры шин являются наиболее популярными ?',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Самые распространенные типоразмеры шин',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Размеры шин для самых популярных автомобилей',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Какие размеры шин для самых популярных автомобилей покупают у вас на сайте?',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Какие размеры шин для самых популярных автомобилей покупают prokoleso.ua?',url:'https://prokoleso.ua/shiny/'},
+      {question: 'Какие типоразмеры летних шин являются наиболее популярными ?',url:'https://prokoleso.ua/shiny/letnie/'},
+      {question: 'Самые распространенные типоразмеры летних шин',url:'https://prokoleso.ua/shiny/letnie/'},
+      {question: 'Размеры летних шин для самых популярных автомобилей',url:'https://prokoleso.ua/shiny/letnie/'},
+      {question: 'Какие размеры летних шин для самых популярных автомобилей покупают у вас на сайте?',url:'https://prokoleso.ua/shiny/letnie/'},
+      {question: 'Какие размеры летних шин для самых популярных автомобилей покупают prokoleso.ua?',url:'https://prokoleso.ua/shiny/letnie/'},
+      {question: 'Какие типоразмеры зимних шин являются наиболее популярными ?',url:'https://prokoleso.ua/shiny/zimnie/'},
+      {question: 'Самые распространенные типоразмеры зимних шин',url:'https://prokoleso.ua/shiny/zimnie/'},
+      {question: 'Размеры зимних шин для самых популярных автомобилей',url:'https://prokoleso.ua/shiny/zimnie/'},
+      {question: 'Какие размеры зимних шин для самых популярных автомобилей покупают у вас на сайте?',url:'https://prokoleso.ua/shiny/zimnie/'},
+      {question: 'Какие размеры зимних шин для самых популярных автомобилей покупают prokoleso.ua?',url:'https://prokoleso.ua/shiny/zimnie/'},
+      {question: 'Какие типоразмеры всесезонных шин являются наиболее популярными ?',url:'https://prokoleso.ua/shiny/vsesezonie/'},
+      {question: 'Какие размеры всесезонных шин для самых популярных автомобилей покупают prokoleso.ua?',url:'https://prokoleso.ua/shiny/vsesezonie/'},
+
+    ],
+    aliases: [
+      {name: '175/70R13',alias:'w-175/h-70/r-13'},
+      {name: '175/70R14',alias:'w-175/h-70/r-14'},
+      {name: '185/70R14',alias:'w-185/h-70/r-14'},
+      {name: '175/65R14',alias:'w-175/h-65/r-14'},
+      {name: '185/65R14',alias:'w-185/h-65/r-14'},
+      {name: '185/60R14',alias:'w-185/h-60/r-14'},
+      {name: '185/65R15',alias:'w-185/h-65/r-15'},
+      {name: '195/65R15',alias:'w-195/h-65/r-15'},
+      {name: '205/65R15',alias:'w-205/h-65/r-15'},
+      {name: '185/60R15',alias:'w-185/h-60/r-15'},
+      {name: '195/60R15',alias:'w-195/h-60/r-15'},
+      {name: '215/70R16',alias:'w-215/h-70/r-16'},
+      {name: '205/65R16',alias:'w-205/h-65/r-16'},
+      {name: '215/65R16',alias:'w-215/h-65/r-16'},
+      {name: '205/60R16',alias:'w-205/h-60/r-16'},
+      {name: '215/60R16',alias:'w-215/h-60/r-16'},
+      {name: '205/55R16',alias:'w-205/h-55/r-16'},
+      {name: '215/55R16',alias:'w-215/h-55/r-16'},
+      {name: '225/65R17',alias:'w-225/h-65/r-17'},
+      {name: '265/65R17',alias:'w-265/h-65/r-17'},
+      {name: '215/60R17',alias:'w-215/h-60/r-17'},
+      {name: '225/60R17',alias:'w-225/h-60/r-17'},
+      {name: '215/55R17',alias:'w-215/h-55/r-17'},
+      {name: '225/55R17',alias:'w-225/h-55/r-17'},
+      {name: '225/50R17',alias:'w-225/h-50/r-17'},
+      {name: '225/45R17',alias:'w-225/h-45/r-17'},
+      {name: '225/60R18',alias:'w-225/h-60/r-18'},
+      {name: '235/60R18',alias:'w-235/h-60/r-18'},
+      {name: '225/55R18',alias:'w-225/h-55/r-18'},
+      {name: '235/55R18',alias:'w-235/h-55/r-18'},
+
+    ]
+  }
+
+  TOP_MODEL = {
+    questions: [
+
+    ],
+    aliases: [
+
+    ]
   }
 
 end
