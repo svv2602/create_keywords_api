@@ -14,7 +14,14 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
     list_questions += questions_dop
 
-    render json: { list_questions: list_questions }
+    str = ""
+    list_questions.each do |el|
+      str += format_hash_question_html(el)
+    end
+
+    result = format_hash_question_with_head_html(str)
+    puts result
+    render json: { list_questions: result}
   end
 
   def question
@@ -30,6 +37,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
     topics = "Сделай краткий рерайт вопроса: #{question}."
 
     question = ContentWriter.new.write_draft_post(topics, 150)['choices'][0]['message']['content'].strip
+    # Убирем лишний текст после знака вопроса
+    question = question.split("?").first
 
     # Получение ответа на вопрос
     topics = "Дай краткий ответ, не более 300 печатных символов, на вопрос: #{question}."
@@ -60,13 +69,35 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def questions_dop
     list_questions = []
-    arr = [BRANDS, CITIES, DIAMETERS, TOP_SIZE].sample(rand(1..2))
+    arr = [BRANDS, CITIES, DIAMETERS, TOP_SIZE].sample(rand(2..3))
     arr.each do |constant|
       list_questions << question_const(constant)
     end
 
     list_questions
 
+  end
+
+  def format_hash_question_html(hash_question)
+    rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
+    rezult += "<h3 itemprop='name'> "
+    rezult += hash_question[:question]
+    rezult += "</h3> "
+    rezult += "<div itemprop='acceptedAnswer' itemscope='' itemtype='https://schema.org/Answer'> "
+    rezult += "<p itemprop='text'> "
+    rezult += hash_question[:answer]
+    rezult += "</p> "
+    rezult += "</div> "
+    rezult += "</div> "
+    return rezult
+  end
+
+  def format_hash_question_with_head_html(str)
+    rezult = "<div itemscope='' itemtype='https://schema.org/FAQPage'>  "
+    rezult += "<h2>Часто задаваемые вопросы (FAQ):</h2> "
+    rezult += str
+    rezult += "</div><br> "
+    return rezult
   end
 
 end

@@ -1,3 +1,15 @@
+# Константы в виде массива
+# ARR_CONST = {
+#     questions: [
+#
+#     ],
+#     aliases: [
+#
+#     ]
+#   }
+# Используются в app/controllers/api/v1/tyre_questions_controller.rb
+# метод: questions_dop
+
 module Constants
   BRANDS = {
     questions: [
