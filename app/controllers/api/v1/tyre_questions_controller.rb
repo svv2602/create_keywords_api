@@ -12,8 +12,10 @@ class Api::V1::TyreQuestionsController < ApplicationController
       list_questions << question unless question[:question] == ""
     end
 
+    # добавляем еще 1-4 вопроса по константам
     list_questions += questions_dop
 
+    # форматируем ответ
     str = ""
     list_questions.each do |el|
       str += format_hash_question_html(el)
@@ -21,7 +23,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
     result = format_hash_question_with_head_html(str)
     puts result
-    render json: { list_questions: result}
+    render json: { list_questions: result }
   end
 
   def question
@@ -50,7 +52,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def sinonim(str)
-    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
+    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} " : str
     # true ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
   end
 
@@ -60,7 +62,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
     topics = sinonim("Cделай краткий рерайт вопроса: #{question_random[:question]}.")
     question = ContentWriter.new.write_draft_post(topics, 150)['choices'][0]['message']['content'].strip
 
-    random_brands = el[:aliases].sample(rand(6..10)) # случайное количество ответов
+    el[:aliases].size < 10 ? max = el[:aliases].size : max = 10
+    random_brands = el[:aliases].sample(rand(6..max)) # случайное количество ответов
+    # сборка в ответ элементов массива
     random_brands.each_with_index do |el, i|
       answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>#{i + 1}. #{el[:name]}</a>    "
     end
@@ -68,10 +72,18 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def questions_dop
+    # формирование количяества доп вопросов
     list_questions = []
-    arr = [BRANDS, CITIES, DIAMETERS, TOP_SIZE].sample(rand(2..3))
+    list = [BRANDS, CITIES, DIAMETERS, TOP_SIZE]
+    arr = list.sample(rand(1..3))
     arr.each do |constant|
       list_questions << question_const(constant)
+    end
+
+    # добавление вопросов по грузовым шинам или дискам
+    if rand(1..6) % 5 == 0
+      list = [DIAMETERS_TRUCK, SIZE_TRUCK, WHEELS]
+      list_questions << question_const(list.sample)
     end
 
     list_questions

@@ -7,6 +7,7 @@ CityUrl.delete_all
 Season.delete_all
 Addon.delete_all
 Size.delete_all
+TyresFaq.delete_all
 
 DiameterCopy.delete_all
 BrandCopy.delete_all
@@ -15,7 +16,7 @@ CityUrlCopy.delete_all
 SeasonCopy.delete_all
 AddonCopy.delete_all
 SizeCopy.delete_all
-
+TyresFaqCopy.delete_all
 
 
 
