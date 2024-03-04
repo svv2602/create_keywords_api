@@ -7,24 +7,59 @@ class Api::V1::TyreQuestionsController < ApplicationController
   def questions
     list_questions = []
     table = 'TyresFaq'
-
     # формирование основного блока вопрос ответ
     rand(2..4).times do
       list_questions << question(table) unless question(table)[:question] == ""
     end
-
     # добавляем еще 1-4 вопроса по константам
-    list_questions += questions_dop
+    list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
+                                    [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
 
+    result = format_question_full(list_questions)
+    puts result
+    render json: { list_questions: result }
+  end
+
+  def questions_track
+    list_questions = []
+    table = 'TrackTyresFaq'
+    # формирование основного блока вопрос ответ
+    rand(2..4).times do
+      list_questions << question(table) unless question(table)[:question] == ""
+    end
+    # добавляем еще 1-4 вопроса по константам
+    list_questions += questions_dop([CITIES, DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK],
+                                    [BRANDS, DIAMETERS, TOP_SIZE, DIAMETERS_WHEELS, BRANDS_WHEELS])
+
+    result = format_question_full(list_questions)
+    puts result
+    render json: { list_questions: result }
+  end
+
+  def questions_diski
+    list_questions = []
+    table = 'DiskiFaq'
+    # формирование основного блока вопрос ответ
+    rand(2..4).times do
+      list_questions << question(table) unless question(table)[:question] == ""
+    end
+    # добавляем еще 1-4 вопроса по константам
+    list_questions += questions_dop([CITIES, DIAMETERS_WHEELS, BRANDS_WHEELS],
+                                    [BRANDS, DIAMETERS, TOP_SIZE, DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK])
+
+    result = format_question_full(list_questions)
+    puts result
+    render json: { list_questions: result }
+  end
+
+  def format_question_full(list_questions)
     # форматируем ответ
     str = ""
     list_questions.each do |el|
       str += format_hash_question_html(el)
     end
-
     result = format_hash_question_with_head_html(str)
-    puts result
-    render json: { list_questions: result }
+    return result
   end
 
   def question(table)
@@ -52,7 +87,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def sinonim(str)
-    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} " : str
+    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, такие как: 'резина','автошины','колеса', 'покрышки', #{str.downcase} " : str
     # true ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
   end
 
@@ -68,23 +103,23 @@ class Api::V1::TyreQuestionsController < ApplicationController
     random_brands.each_with_index do |el, i|
       answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>#{i + 1}. #{el[:name]}</a>    "
     end
-    answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10)%2 == 0
+    answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10) % 2 == 0
     rezult = { question: question, answer: "[#{answer}]" }
   end
 
-  def questions_dop
+  def questions_dop(list1, list2)
     # формирование количяества доп вопросов
     list_questions = []
-    list = [BRANDS, CITIES, DIAMETERS, TOP_SIZE]
-    arr = list.sample(rand(2..3))
+    # list = [BRANDS, CITIES, DIAMETERS, TOP_SIZE]
+    arr = list1.sample(rand(2..3))
     arr.each do |constant|
       list_questions << question_const(constant)
     end
 
     # добавление вопросов по грузовым шинам или дискам
     if rand(1..5) % 4 == 0
-      list = [DIAMETERS_TRUCK, SIZE_TRUCK, WHEELS]
-      list_questions << question_const(list.sample)
+      # list = [DIAMETERS_TRUCK, SIZE_TRUCK, WHEELS]
+      list_questions << question_const(list2.sample)
     end
 
     list_questions

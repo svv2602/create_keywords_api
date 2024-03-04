@@ -11,91 +11,15 @@
 # метод: questions_dop
 
 module Constants
-  BRANDS = {
-    questions: [
-      { question: 'Топ производителей шин, представленных на сайте Prokoleso ', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Топ производителей летних шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Топ производителей зимних шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Топ производителей всесезонных шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Кто входит в список лучших производителей шин?', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Кто входит в список лучших производителей летних шин?', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Кто входит в список лучших производителей зимних шин?', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Кто входит в список лучших производителей всесезонных шин? ', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
-      { question: 'Кто из известных шинных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'список лучших производителей шин', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Лучшие производители летних шин ', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Лучшие производители зимних шин', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Лучшие производители всесезонных шин', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Лучшие производители летних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Лучшие производители зимних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Лучшие производители всесезонных шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
-      { question: 'Какие бренды шин рекомендуются для зимы?', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Какие бренды шин рекомендуются для лета?', url: 'https://prokoleso.ua/shiny/letnie/' },
-
-    ],
-
-    aliases: [
-      { name: 'Barum', alias: 'barum' },
-      { name: 'BFGoodrich', alias: 'bfgoodrich' },
-      { name: 'Bridgestone', alias: 'bridgestone' },
-      { name: 'Continental', alias: 'continental' },
-      { name: 'Cooper', alias: 'cooper' },
-      { name: 'Debica', alias: 'debica' },
-      { name: 'Doublestar', alias: 'doublestar' },
-      { name: 'Dunlop', alias: 'dunlop' },
-      { name: 'Evergreen', alias: 'evergreen' },
-      { name: 'Falken', alias: 'falken' },
-      { name: 'Federal', alias: 'federal' },
-      { name: 'Firestone', alias: 'firestone' },
-      { name: 'Fulda', alias: 'fulda' },
-      { name: 'Gislaved', alias: 'gislaved' },
-      { name: 'GoodYear', alias: 'goodyear' },
-      { name: 'Grenlander', alias: 'grenlander' },
-      { name: 'GTRadial', alias: 'gtradial' },
-      { name: 'Hankook', alias: 'hankook' },
-      { name: 'HiFly', alias: 'hifly' },
-      { name: 'Kleber', alias: 'kleber' },
-      { name: 'Kormoran', alias: 'kormoran' },
-      { name: 'Kumho', alias: 'kumho' },
-      { name: 'Lassa', alias: 'lassa' },
-      { name: 'Laufenn', alias: 'laufenn' },
-      { name: 'Marshal', alias: 'marshal' },
-      { name: 'Matador', alias: 'matador' },
-      { name: 'Maxxis', alias: 'maxxis' },
-      { name: 'Michelin', alias: 'michelin' },
-      { name: 'Nexen', alias: 'nexen' },
-      { name: 'Nokian', alias: 'Tyres' },
-      { name: 'Orium', alias: 'orium' },
-      { name: 'Petlas', alias: 'petlas' },
-      { name: 'Pirelli', alias: 'pirelli' },
-      { name: 'Riken', alias: 'riken' },
-      { name: 'Roadstone', alias: 'roadstone' },
-      { name: 'Rosava', alias: 'rosava' },
-      { name: 'Sailun', alias: 'sailun' },
-      { name: 'Sava', alias: 'sava' },
-      { name: 'Semperit', alias: 'semperit' },
-      { name: 'Starmaxx', alias: 'starmaxx' },
-      { name: 'Strial', alias: 'strial' },
-      { name: 'Sumitomo', alias: 'sumitomo' },
-      { name: 'Taurus', alias: 'taurus' },
-      { name: 'Tigar', alias: 'tigar' },
-      { name: 'Toyo', alias: 'toyo' },
-      { name: 'Uniroyal', alias: 'uniroyal' },
-      { name: 'Viking', alias: 'viking' },
-      { name: 'Vredestein', alias: 'vredestein' },
-      { name: 'Yokohama', alias: 'yokohama' }
-
-    ]
-  }
-
+  # Общие страницы - города
   CITIES = {
     questions: [
-      { question: 'Где я могу получить шины и диски, купленные в вашем магазине?', url: 'https://prokoleso.ua/' },
-      { question: 'В какие города Вы доставляете диски и шины?', url: 'https://prokoleso.ua/' },
+      { question: 'Где я могу получить шины, купленные в вашем магазине?', url: 'https://prokoleso.ua/' },
+      { question: 'В какие города Вы доставляете купленный у Вас товар?', url: 'https://prokoleso.ua/' },
       { question: 'Список населенных пунктов Украины, в которые осуществляется доставка', url: 'https://prokoleso.ua/' },
       { question: 'В какие населенные пункты осуществляется курьерская доставка?', url: 'https://prokoleso.ua/' },
       { question: 'В какие населенные пункты осуществляется адресная доставка "Новой Почты"?', url: 'https://prokoleso.ua/' },
-      { question: 'В какие населенные пункты уже отправлялась шина в этом году?', url: 'https://prokoleso.ua/' },
+      { question: 'В какие населенные пункты уже отправлялись товары, купленные в вашем магазине в этом году?', url: 'https://prokoleso.ua/' },
       { question: 'Где в Украине я могу получить шины, оплаченные наложенным платежом?', url: 'https://prokoleso.ua/' }
     ],
     aliases: [
@@ -195,6 +119,85 @@ module Constants
 
   }
 
+  # ================================
+  # Легковые шины бренды
+  BRANDS = {
+    questions: [
+      { question: 'Топ производителей шин, представленных на сайте Prokoleso ', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Топ производителей летних шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Топ производителей зимних шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Топ производителей всесезонных шин, представленных на сайте Prokoleso', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Кто входит в список лучших производителей шин?', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Кто входит в список лучших производителей летних шин?', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Кто входит в список лучших производителей зимних шин?', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Кто входит в список лучших производителей всесезонных шин? ', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
+      { question: 'Кто из известных шинных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'список лучших производителей шин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Лучшие производители летних шин ', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Лучшие производители зимних шин', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Лучшие производители всесезонных шин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Лучшие производители летних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Лучшие производители зимних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Лучшие производители всесезонных шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
+      { question: 'Какие бренды шин рекомендуются для зимы?', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Какие бренды шин рекомендуются для лета?', url: 'https://prokoleso.ua/shiny/letnie/' },
+
+    ],
+
+    aliases: [
+      { name: 'Barum', alias: 'barum' },
+      { name: 'BFGoodrich', alias: 'bfgoodrich' },
+      { name: 'Bridgestone', alias: 'bridgestone' },
+      { name: 'Continental', alias: 'continental' },
+      { name: 'Cooper', alias: 'cooper' },
+      { name: 'Debica', alias: 'debica' },
+      { name: 'Doublestar', alias: 'doublestar' },
+      { name: 'Dunlop', alias: 'dunlop' },
+      { name: 'Evergreen', alias: 'evergreen' },
+      { name: 'Falken', alias: 'falken' },
+      { name: 'Federal', alias: 'federal' },
+      { name: 'Firestone', alias: 'firestone' },
+      { name: 'Fulda', alias: 'fulda' },
+      { name: 'Gislaved', alias: 'gislaved' },
+      { name: 'GoodYear', alias: 'goodyear' },
+      { name: 'Grenlander', alias: 'grenlander' },
+      { name: 'GTRadial', alias: 'gtradial' },
+      { name: 'Hankook', alias: 'hankook' },
+      { name: 'HiFly', alias: 'hifly' },
+      { name: 'Kleber', alias: 'kleber' },
+      { name: 'Kormoran', alias: 'kormoran' },
+      { name: 'Kumho', alias: 'kumho' },
+      { name: 'Lassa', alias: 'lassa' },
+      { name: 'Laufenn', alias: 'laufenn' },
+      { name: 'Marshal', alias: 'marshal' },
+      { name: 'Matador', alias: 'matador' },
+      { name: 'Maxxis', alias: 'maxxis' },
+      { name: 'Michelin', alias: 'michelin' },
+      { name: 'Nexen', alias: 'nexen' },
+      { name: 'Nokian', alias: 'Tyres' },
+      { name: 'Orium', alias: 'orium' },
+      { name: 'Petlas', alias: 'petlas' },
+      { name: 'Pirelli', alias: 'pirelli' },
+      { name: 'Riken', alias: 'riken' },
+      { name: 'Roadstone', alias: 'roadstone' },
+      { name: 'Rosava', alias: 'rosava' },
+      { name: 'Sailun', alias: 'sailun' },
+      { name: 'Sava', alias: 'sava' },
+      { name: 'Semperit', alias: 'semperit' },
+      { name: 'Starmaxx', alias: 'starmaxx' },
+      { name: 'Strial', alias: 'strial' },
+      { name: 'Sumitomo', alias: 'sumitomo' },
+      { name: 'Taurus', alias: 'taurus' },
+      { name: 'Tigar', alias: 'tigar' },
+      { name: 'Toyo', alias: 'toyo' },
+      { name: 'Uniroyal', alias: 'uniroyal' },
+      { name: 'Viking', alias: 'viking' },
+      { name: 'Vredestein', alias: 'vredestein' },
+      { name: 'Yokohama', alias: 'yokohama' }
+
+    ]
+  }
+  # Легковые шины - диаметры
   DIAMETERS = {
     questions: [
       { question: 'Самые распространенные посадочные диаметры у автошин', url: 'https://prokoleso.ua/shiny/' },
@@ -222,7 +225,7 @@ module Constants
     ]
 
   }
-
+  # Легковые шины - размеры
   TOP_SIZE = {
     questions: [
       { question: 'Какие размеры шин являются наиболее популярными среди автолюбителей на вашем сайте?', url: 'https://prokoleso.ua/shiny/' },
@@ -281,26 +284,8 @@ module Constants
     ]
   }
 
-  WHEELS = {
-    questions: [
-      { question: 'Самые распространенные  диаметры легкосплавных дисков для легковых автомобилей ', url: 'https://prokoleso.ua/diski/' },
-      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей', url: 'https://prokoleso.ua/diski/' },
-      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
-      { question: 'Легкосплавные диски каких диаметров покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
-      { question: 'Колесные диски каких диаметров больше всего покупают на вашем сайте?', url: 'https://prokoleso.ua/diski/' },
-    ],
-    aliases: [
-      { name: 'R13', alias: 'r-13' },
-      { name: 'R14', alias: 'r-14' },
-      { name: 'R15', alias: 'r-15' },
-      { name: 'R16', alias: 'r-16' },
-      { name: 'R17', alias: 'r-17' },
-      { name: 'R18', alias: 'r-18' },
-      { name: 'R19', alias: 'r-19' },
-      { name: 'R20', alias: 'r-20' },
-      { name: 'R22', alias: 'r-22' }
-    ]
-  }
+  # ================================
+  # Грузовые шины размеры
   SIZE_TRUCK = {
     questions: [
       { question: 'Какие размеры грузовых шин являются наиболее популярными  на вашем сайте?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
@@ -328,6 +313,7 @@ module Constants
 
     ]
   }
+  # Грузовые шины Диаметры
   DIAMETERS_TRUCK = {
     questions: [
       { question: 'Самые распространенные посадочные диаметры шин для грузовых автомобилей ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
@@ -348,7 +334,90 @@ module Constants
 
     ]
   }
+  # Грузовые шины бренды
+  BRANDS_TRUCK = {
+    questions: [
+      { question: 'Топ производителей грузовых шин, представленных на сайте Prokoleso ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Кто входит в список лучших производителей грузовых шин?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Кто из известных шинных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'список лучших производителей грузовых шин', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Лучшие производители грузовых шин ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Лучшие производители грузовых шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/gruzovye-shiny/' },
 
+    ],
+
+    aliases: [
+      {name: 'Aeolus',alias:'aeolus'},
+      {name: 'Barum',alias:'barum'},
+      {name: 'Bridgestone',alias:'bridgestone'},
+      {name: 'Continental',alias:'continental'},
+      {name: 'Crystal',alias:'crystal'},
+      {name: 'Dongfeng',alias:'dongfeng'},
+      {name: 'Hankook',alias:'hankook'},
+      {name: 'Kumho',alias:'kumho'},
+      {name: 'Marcher',alias:'marcher'},
+      {name: 'Rosava',alias:'rosava'},
+      {name: 'Satoya',alias:'satoya'},
+
+
+    ]
+  }
+
+
+  # ================================
+  # Диски - диаметры
+  DIAMETERS_WHEELS = {
+    questions: [
+      { question: 'Самые распространенные  диаметры легкосплавных дисков для легковых автомобилей ', url: 'https://prokoleso.ua/diski/' },
+      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей', url: 'https://prokoleso.ua/diski/' },
+      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Легкосплавные диски каких диаметров покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Колесные диски каких диаметров больше всего покупают на вашем сайте?', url: 'https://prokoleso.ua/diski/' },
+    ],
+    aliases: [
+      { name: 'R13', alias: 'r-13' },
+      { name: 'R14', alias: 'r-14' },
+      { name: 'R15', alias: 'r-15' },
+      { name: 'R16', alias: 'r-16' },
+      { name: 'R17', alias: 'r-17' },
+      { name: 'R18', alias: 'r-18' },
+      { name: 'R19', alias: 'r-19' },
+      { name: 'R20', alias: 'r-20' },
+      { name: 'R22', alias: 'r-22' }
+    ]
+  }
+  BRANDS_WHEELS = {
+    questions: [
+      { question: 'Топ производителей легковых дисков, представленных на сайте Prokoleso ', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Кто входит в список лучших производителей дисков для легковых автомобилей?', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Кто из известных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
+      { question: 'список лучших производителей легковых дисков', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Лучшие производители легковых дисков ', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Лучшие производители легковых дисков, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
+
+    ],
+    aliases: [
+      {name: 'Alst ',alias:'alst '},
+      {name: 'Дорожная Карта',alias:'dk'},
+      {name: 'K7 ',alias:'k7 '},
+      {name: 'Mak ',alias:'mak '},
+      {name: 'MOMO Italy ',alias:'momo'},
+      {name: 'Reds ',alias:'reds '},
+      {name: 'Remain',alias:'remain'},
+      {name: 'Replica',alias:'replica'},
+      {name: 'Racing Wheels ',alias:'rw'},
+      {name: 'Sportmax Racing',alias:'sportmaxracing'},
+      {name: 'Techline ',alias:'techline '},
+      {name: 'Trebl ',alias:'trebl '},
+      {name: 'Vector ',alias:'vector '},
+      {name: 'WSP Italy',alias:'wsp'},
+
+    ]
+  }
+
+
+  # ================================
+  # пусто
   TOP_MODEL = {
     questions: [
 
