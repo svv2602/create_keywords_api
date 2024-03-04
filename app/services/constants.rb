@@ -392,9 +392,9 @@ module Constants
     questions: [
       { question: 'Топ производителей легковых дисков, представленных на сайте Prokoleso ', url: 'https://prokoleso.ua/diski/' },
       { question: 'Кто входит в список лучших производителей дисков для легковых автомобилей?', url: 'https://prokoleso.ua/diski/' },
-      { question: 'Кто из известных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Кто из известных производителей легковых дисков представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
       { question: 'список лучших производителей легковых дисков', url: 'https://prokoleso.ua/diski/' },
-      { question: 'Лучшие производители легковых дисков ', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Лучшие бренды - производители легковых дисков ', url: 'https://prokoleso.ua/diski/' },
       { question: 'Лучшие производители легковых дисков, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
 
     ],
