@@ -110,7 +110,6 @@ class Api::V1::TyreQuestionsController < ApplicationController
   def questions_dop(list1, list2)
     # формирование количяества доп вопросов
     list_questions = []
-    # list = [BRANDS, CITIES, DIAMETERS, TOP_SIZE]
     arr = list1.sample(rand(2..3))
     arr.each do |constant|
       list_questions << question_const(constant)
@@ -118,7 +117,6 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
     # добавление вопросов по грузовым шинам или дискам
     if rand(1..5) % 4 == 0
-      # list = [DIAMETERS_TRUCK, SIZE_TRUCK, WHEELS]
       list_questions << question_const(list2.sample)
     end
 

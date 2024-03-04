@@ -20,6 +20,8 @@ module Constants
       { question: 'В какие населенные пункты осуществляется курьерская доставка?', url: 'https://prokoleso.ua/' },
       { question: 'В какие населенные пункты осуществляется адресная доставка "Новой Почты"?', url: 'https://prokoleso.ua/' },
       { question: 'В какие населенные пункты уже отправлялись товары, купленные в вашем магазине в этом году?', url: 'https://prokoleso.ua/' },
+      { question: 'В каких городах я могу получить шины,  купленные в prokoleso.ua?', url: 'https://prokoleso.ua/' },
+      { question: 'В каких городах можно получить товар,  приобретенный в prokoleso.ua?', url: 'https://prokoleso.ua/' },
       { question: 'Где в Украине я могу получить шины, оплаченные наложенным платежом?', url: 'https://prokoleso.ua/' }
     ],
     aliases: [
