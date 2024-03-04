@@ -9,3 +9,9 @@
 
 Запуск:
 * sudo docker run --rm -p 3000:3000 my-rails-app
+
+====================================
+
+endpoint:
+* /api/v1/questions  - для блока FAQs
+* /api/v1/show - внутренняя перелинковка по ключевикам
