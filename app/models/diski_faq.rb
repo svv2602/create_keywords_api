@@ -1,0 +1,2 @@
+class DiskiFaq < ApplicationRecord
+end

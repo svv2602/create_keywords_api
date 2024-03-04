@@ -1,0 +1,2 @@
+class TrackTyresFaq < ApplicationRecord
+end

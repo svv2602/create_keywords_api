@@ -6,10 +6,11 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def questions
     list_questions = []
+    table = 'TyresFaq'
 
     # формирование основного блока вопрос ответ
     rand(2..4).times do
-      list_questions << question unless question[:question] == ""
+      list_questions << question(table) unless question(table)[:question] == ""
     end
 
     # добавляем еще 1-4 вопроса по константам
@@ -26,10 +27,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
     render json: { list_questions: result }
   end
 
-  def question
-
+  def question(table)
     # Используется для таблицы вопросов по легковым шинам
-    table = 'TyresFaq'
+    # table = 'TyresFaq'
     table_copy = table + 'Copy' # Преобразуем имя таблицы-копии
     copy_table_to_table_copy_if_empty(table, table_copy)
     question = find_and_destroy_random_record(table_copy).question

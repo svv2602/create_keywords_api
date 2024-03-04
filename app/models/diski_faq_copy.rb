@@ -1,0 +1,2 @@
+class DiskiFaqCopy < ApplicationRecord
+end

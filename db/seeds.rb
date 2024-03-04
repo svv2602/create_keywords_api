@@ -8,6 +8,10 @@ Season.delete_all
 Addon.delete_all
 Size.delete_all
 TyresFaq.delete_all
+TrackTyresFaq.delete_all
+DiskiFaq.delete_all
+
+
 
 DiameterCopy.delete_all
 BrandCopy.delete_all
@@ -17,6 +21,8 @@ SeasonCopy.delete_all
 AddonCopy.delete_all
 SizeCopy.delete_all
 TyresFaqCopy.delete_all
+TrackTyresFaqCopy.delete_all
+DiskiFaqCopy.delete_all
 
 
 
@@ -160,3 +166,24 @@ excel.each_row_streaming(pad_cells: true) do |row|
   theme = row[1]&.value
   TyresFaq.create(question: question, theme: theme) if question.present?
 end
+
+# Заполнение таблицы с вопросам по грузовым шинам
+excel_file = "lib/tires_track_FAQs.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  question = row[0]&.value
+  theme = row[1]&.value
+  TrackTyresFaq.create(question: question, theme: theme) if question.present?
+end
+
+# Заполнение таблицы с вопросам по дискам
+excel_file = "lib/diski_FAQs.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  question = row[0]&.value
+  theme = row[1]&.value
+  DiskiFaq.create(question: question, theme: theme) if question.present?
+end
+
