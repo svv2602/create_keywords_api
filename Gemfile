@@ -53,3 +53,5 @@ gem "roo", "~> 2.10"
 
 gem 'dotenv-rails'
 gem "ruby-openai", "~> 6.3"
+
+
