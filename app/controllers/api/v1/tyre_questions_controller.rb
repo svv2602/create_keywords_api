@@ -68,6 +68,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
     random_brands.each_with_index do |el, i|
       answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>#{i + 1}. #{el[:name]}</a>    "
     end
+    answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10)%2 == 0
     rezult = { question: question, answer: "[#{answer}]" }
   end
 
@@ -75,13 +76,13 @@ class Api::V1::TyreQuestionsController < ApplicationController
     # формирование количяества доп вопросов
     list_questions = []
     list = [BRANDS, CITIES, DIAMETERS, TOP_SIZE]
-    arr = list.sample(rand(1..3))
+    arr = list.sample(rand(2..3))
     arr.each do |constant|
       list_questions << question_const(constant)
     end
 
     # добавление вопросов по грузовым шинам или дискам
-    if rand(1..6) % 5 == 0
+    if rand(1..5) % 4 == 0
       list = [DIAMETERS_TRUCK, SIZE_TRUCK, WHEELS]
       list_questions << question_const(list.sample)
     end
@@ -92,9 +93,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def format_hash_question_html(hash_question)
     rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
-    rezult += "<h3 itemprop='name'> "
+    rezult += "<h4 itemprop='name'> "
     rezult += hash_question[:question]
-    rezult += "</h3> "
+    rezult += "</h4> "
     rezult += "<div itemprop='acceptedAnswer' itemscope='' itemtype='https://schema.org/Answer'> "
     rezult += "<p itemprop='text'> "
     rezult += hash_question[:answer]
@@ -106,7 +107,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def format_hash_question_with_head_html(str)
     rezult = "<div itemscope='' itemtype='https://schema.org/FAQPage'>  "
-    rezult += "<h2>Часто задаваемые вопросы (FAQ):</h2> "
+    rezult += "<h3>Часто задаваемые вопросы (FAQ):</h3> "
     rezult += str
     rezult += "</div><br> "
     return rezult

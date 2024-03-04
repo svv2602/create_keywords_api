@@ -92,9 +92,11 @@ module Constants
     questions: [
       { question: 'Где я могу получить шины и диски, купленные в вашем магазине?', url: 'https://prokoleso.ua/' },
       { question: 'В какие города Вы доставляете диски и шины?', url: 'https://prokoleso.ua/' },
-      { question: 'Список населенных пунктов, в которые осуществляется доставка', url: 'https://prokoleso.ua/' },
+      { question: 'Список населенных пунктов Украины, в которые осуществляется доставка', url: 'https://prokoleso.ua/' },
+      { question: 'В какие населенные пункты осуществляется курьерская доставка?', url: 'https://prokoleso.ua/' },
+      { question: 'В какие населенные пункты осуществляется адресная доставка "Новой Почты"?', url: 'https://prokoleso.ua/' },
       { question: 'В какие населенные пункты уже отправлялась шина в этом году?', url: 'https://prokoleso.ua/' },
-      { question: 'Где я могу получить шины с наложенным платежом?', url: 'https://prokoleso.ua/' }
+      { question: 'Где в Украине я могу получить шины, оплаченные наложенным платежом?', url: 'https://prokoleso.ua/' }
     ],
     aliases: [
       { name: 'Александрия', alias: 'shiny-aleksandriya' },
@@ -226,21 +228,22 @@ module Constants
       { question: 'Какие размеры шин являются наиболее популярными среди автолюбителей на вашем сайте?', url: 'https://prokoleso.ua/shiny/' },
       { question: 'Какие типоразмеры шин являются наиболее популярными ?', url: 'https://prokoleso.ua/shiny/' },
       { question: 'Самые распространенные типоразмеры шин', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Размеры шин для самых популярных автомобилей', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Какие размеры шин для самых популярных автомобилей покупают у вас на сайте?', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'Какие размеры шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Популярные размеры шин для легковых автомобилей', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Какие размеры шин для легковых автомобилей покупают у вас на сайте больше всего?', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Какие размеры шин для легковых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/shiny/' },
       { question: 'Какие типоразмеры летних шин являются наиболее популярными ?', url: 'https://prokoleso.ua/shiny/letnie/' },
       { question: 'Самые распространенные типоразмеры летних шин', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Размеры летних шин для самых популярных автомобилей', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Какие размеры летних шин для самых популярных автомобилей покупают у вас на сайте?', url: 'https://prokoleso.ua/shiny/letnie/' },
-      { question: 'Какие размеры летних шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Размеры летних шин для легковых автомобилей', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Какие размеры летних шин для  легковых автомобилей покупают больше всего у вас на сайте?', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Какие размеры летних шин для  легковых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/shiny/letnie/' },
       { question: 'Какие типоразмеры зимних шин являются наиболее популярными ?', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Самые распространенные типоразмеры зимних шин', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Размеры зимних шин для самых популярных автомобилей', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Какие размеры зимних шин для самых популярных автомобилей покупают у вас на сайте?', url: 'https://prokoleso.ua/shiny/zimnie/' },
-      { question: 'Какие размеры зимних шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Какие размеры зимних шин для  легковых автомобилей покупают больше всего у вас на сайте?', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Какие размеры зимних шин для  легковых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Какие типоразмеры всесезонных шин являются наиболее популярными ?', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
-      { question: 'Какие размеры всесезонных шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
+      { question: 'Какие размеры всесезонных шин для  легковых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
+      { question: 'Какие размеры всесезонных шин для  легковых автомобилей покупают больше всего у вас на сайте?', url: 'https://prokoleso.ua/shiny/' },
 
     ],
     aliases: [
@@ -278,12 +281,13 @@ module Constants
     ]
   }
 
-
   WHEELS = {
     questions: [
       { question: 'Самые распространенные  диаметры легкосплавных дисков для легковых автомобилей ', url: 'https://prokoleso.ua/diski/' },
       { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей', url: 'https://prokoleso.ua/diski/' },
-      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/diski/' }
+      { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Легкосплавные диски каких диаметров покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Колесные диски каких диаметров больше всего покупают на вашем сайте?', url: 'https://prokoleso.ua/diski/' },
     ],
     aliases: [
       { name: 'R13', alias: 'r-13' },
@@ -328,7 +332,9 @@ module Constants
     questions: [
       { question: 'Самые распространенные посадочные диаметры шин для грузовых автомобилей ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'ТОП популярных посадочных диаметров для грузовых шин', url: 'https://prokoleso.ua/gruzovye-shiny/' },
-      { question: 'ТОП популярных посадочных диаметров для грузовых шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/gruzovye-shiny/' }
+      { question: 'ТОП популярных посадочных диаметров для грузовых шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Какие диаметры шин для грузовых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Какие диаметры шин для грузовых автомобилей покупают больше всего на вашем сайте?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
 
     ],
     aliases: [
