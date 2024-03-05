@@ -158,60 +158,44 @@ include ServiceTable
   # обработка вариантов написания размеров
   def size_name(ww, hh, rr)
     result = []
-    case rand(1..520)
-    when 1..10, 210..215
+    case rand(1..300)
+    when 1..10
       # 2055516
       result << "#{ww}#{hh}#{rr}"
-    when 11..20, 216..260
-      # 205/55R16
-      result << "#{ww}/#{hh}R#{rr}"
-    when 21..30, 261..300
+    when 11..30
       # 205 55R16
       result << "#{ww} #{hh}R#{rr}"
-    when 31..40, 301..330
-      # 205 55р16
-      result << "#{ww} #{hh}P#{rr}"
-    when 41..50, 331..350
+    when 41..50
       # 205 5516
       result << "#{ww} #{hh}#{rr}"
-
-    when 51..60, 351..370
+    when 51..60
       result << "#{ww} #{hh}"
       result << "#{rr}"
-    when 61..70, 371..380
-      result << "#{ww} #{hh}"
-      result << "Р#{rr}"
-    when 81..90, 381..450
-      result << "#{ww} #{hh}"
-      result << "R#{rr}"
-    when 91..100
+    when 71..90
       result << "#{ww}/#{hh}"
       result << "#{rr}"
-    when 101..110
-      result << "#{ww}/#{hh}"
-      result << "Р#{rr}"
-    when 121..130, 471..490
+    when 91..110
       result << "#{ww}/#{hh}"
       result << "R#{rr}"
-
-    when 131..140
+    when 111..120
       result << "#{ww}х#{hh}"
       result << "#{rr}"
+    when 121..130
+      result << "#{ww}х#{hh}"
+      result << "Р#{rr}"
     when 141..150
-      result << "#{ww}х#{hh}"
-      result << "Р#{rr}"
-    when 161..170
       result << "#{ww}x#{hh}"
       result << "R#{rr}"
-
-    when 171..180
+    when 151..160
       result << "#{ww}х#{hh}"
       result << "на #{rr}"
-
-    when 191..200
+    when 161..180
       result << "#{ww}/#{hh}"
-      result << "R#{rr}"
-
+      result << "на #{rr}"
+    when 181..190
+      result << "#{ww}-#{hh}-#{rr}"
+    when 191..250
+      result << "#{ww}/#{hh} R#{rr}"
     else
       result << "#{ww}/#{hh}R#{rr}"
     end
