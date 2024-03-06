@@ -144,7 +144,11 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def gsub_symbol(str)
-    return str.to_s.gsub('#', '').gsub(/h1(?=\u003e|>)/, 'h4')
+    str_new = str.to_s.gsub('#', '')
+                 .gsub(/h1(?=\u003e|>)/, 'h4')
+                 .gsub('Заголовок:', '')
+                 .gsub('[', '')
+                 .gsub(']', '')
   end
 
   def format_hash_question_with_head_html(str)
