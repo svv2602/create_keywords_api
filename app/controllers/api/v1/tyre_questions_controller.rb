@@ -130,7 +130,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
     if hash_question
       rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
       rezult += "<h4 itemprop='name'> "
-      rezult += gsub_symbol(hash_question[:question])
+      # Убирем лишний текст после знака вопроса
+      question = hash_question[:question].split("?").first
+      rezult += gsub_symbol(question)
       rezult += "</h4> "
       rezult += "<div itemprop='acceptedAnswer' itemscope='' itemtype='https://schema.org/Answer'> "
       rezult += "<p itemprop='text'> "
