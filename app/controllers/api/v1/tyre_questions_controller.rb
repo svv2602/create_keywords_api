@@ -148,12 +148,17 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def gsub_symbol(str)
-    str_new = str.to_s.gsub('#', '')
-                 .gsub(/h1(?=\u003e|>)/, 'h4')
-                 .gsub('Заголовок:', '')
-                 .gsub('[', '')
-                 .gsub(']', '')
-                 .gsub('*', '')
+    str_new = str.downcase
+    str_new = str_new.to_s
+                     .gsub('#', '')
+                     .gsub(/h1(?=\u003e|>)/, 'h4')
+                     .gsub('заголовок:', '')
+                     .gsub('микроразметка:', '')
+                     .gsub('seo-текст:', '')
+                     .gsub(/\[|\]/, '')
+                     .gsub(/(|\/)html/, '')
+                     .gsub('*', '')
+    str_new
   end
 
   def format_hash_question_with_head_html(str)
