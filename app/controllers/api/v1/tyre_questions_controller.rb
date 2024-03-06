@@ -161,7 +161,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
                    .gsub('основной текст:', '')
                    .gsub('украин', 'Украин')
                    .gsub('введение:', '')
-                   .gsub(/\[|\]/, '')
+                   .gsub('[', '')
+                   .gsub(']', '')
                    .gsub(/(|\/)html/, '')
                    .gsub('*', '')
 
