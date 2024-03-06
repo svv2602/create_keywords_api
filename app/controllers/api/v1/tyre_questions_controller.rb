@@ -8,7 +8,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
     list_questions = []
     table = 'TyresFaq'
     # формирование основного блока вопрос ответ
-    rand(2..4).times do
+    # rand(2..4).times do
+    2.times do
       list_questions << question(table) unless question(table)[:question] == ""
     end
     # добавляем еще 1-4 вопроса по константам
@@ -24,7 +25,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
     list_questions = []
     table = 'TrackTyresFaq'
     # формирование основного блока вопрос ответ
-    rand(2..4).times do
+    2.times do
       list_questions << question(table) unless question(table)[:question] == ""
     end
     # добавляем еще 1-4 вопроса по константам
@@ -40,7 +41,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
     list_questions = []
     table = 'DiskiFaq'
     # формирование основного блока вопрос ответ
-    rand(2..4).times do
+    # rand(2..4).times do
+    2.times do
       list_questions << question(table) unless question(table)[:question] == ""
     end
     # добавляем еще 1-4 вопроса по константам
@@ -101,7 +103,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
     random_brands = el[:aliases].sample(rand(6..max)) # случайное количество ответов
     # сборка в ответ элементов массива
     random_brands.each_with_index do |el, i|
-      answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>#{i + 1}. #{el[:name]}</a>    "
+      answer += "<a href='#{question_random[:url]}#{el[:alias]}/'>• #{el[:name]}  </a>    "
     end
     answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10) % 2 == 0
     rezult = { question: question, answer: "[#{answer}]" }
@@ -110,7 +112,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
   def questions_dop(list1, list2)
     # формирование количяества доп вопросов
     list_questions = []
-    arr = list1.sample(rand(2..3))
+    arr = list1.sample(rand(1..2))
     arr.each do |constant|
       list_questions << question_const(constant)
     end
@@ -125,17 +127,24 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def format_hash_question_html(hash_question)
-    rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
-    rezult += "<h4 itemprop='name'> "
-    rezult += hash_question[:question]
-    rezult += "</h4> "
-    rezult += "<div itemprop='acceptedAnswer' itemscope='' itemtype='https://schema.org/Answer'> "
-    rezult += "<p itemprop='text'> "
-    rezult += hash_question[:answer]
-    rezult += "</p> "
-    rezult += "</div> "
-    rezult += "</div> "
-    return rezult
+    if hash_question
+      rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
+      rezult += "<h4 itemprop='name'> "
+      rezult += gsub_symbol(hash_question[:question])
+      rezult += "</h4> "
+      rezult += "<div itemprop='acceptedAnswer' itemscope='' itemtype='https://schema.org/Answer'> "
+      rezult += "<p itemprop='text'> "
+      rezult += gsub_symbol(hash_question[:answer])
+      rezult += "</p> "
+      rezult += "</div> "
+      rezult += "</div> "
+      return rezult
+    end
+
+  end
+
+  def gsub_symbol(str)
+    return str.to_s.gsub('#', '').gsub(/h1(?=\u003e|>)/, 'h4')
   end
 
   def format_hash_question_with_head_html(str)
