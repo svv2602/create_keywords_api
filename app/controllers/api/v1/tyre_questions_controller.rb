@@ -148,18 +148,36 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def gsub_symbol(str)
-    str_new = str.downcase
-    str_new = str_new.to_s
-                     .gsub('#', '')
-                     .gsub(/h1(?=\u003e|>)/, 'h4')
-                     .gsub('заголовок:', '')
-                     .gsub('микроразметка:', '')
-                     .gsub('seo-текст:', '')
-                     .gsub('основной текст:', '')
-                     .gsub('введение:', '')
-                     .gsub(/\[|\]/, '')
-                     .gsub(/(|\/)html/, '')
-                     .gsub('*', '')
+    str_new = str
+    if str !~ /(• )/
+      str_new = str.downcase
+                   .gsub('#', '')
+                   .gsub(/\u003c(\/|)h1\u003e/, '')
+                   .gsub(/<(\/|)h1>/, '')
+                   .gsub(/\n.+(?=(\u003c|<))/, '')
+                   .gsub(/\n```(\n.+\n)```\n/, '')
+                   .gsub('заголовок:', '')
+                   .gsub('микроразметка:', '')
+                   .gsub('seo-текст:', '')
+                   .gsub('основной текст:', '')
+                   .gsub('введение:', '')
+                   .gsub(/\[|\]/, '')
+                   .gsub(/(|\/)html/, '')
+                   .gsub('*', '')
+
+      # Разбить строку на предложения
+      sentences = str_new.split(". ")
+      # Преобразовать первые буквы каждого предложения в заглавные буквы
+      capitalized_sentences = sentences.map(&:capitalize)
+      # Объединить предложения в строку снова
+      str_new = capitalized_sentences.join(". ")
+
+    end
+    if str_new =~ (/(\u003e|>)(\s+)(\w|[а-яА-Я])/)
+      str_new = str_new.gsub(/(\u003e|>)(\s+)(\w|[а-яА-Я])/) { $1 + $2 + $3.capitalize }
+      puts "str_new === #{str_new}".inspect
+    end
+
     str_new
   end
 
