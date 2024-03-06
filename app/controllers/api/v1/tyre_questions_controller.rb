@@ -73,7 +73,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
     # puts "question = #{question}"
 
     # Делается рерайт полученного случайного вопроса
-    topics = "Сделай краткий рерайт вопроса: #{question}."
+    topics = "Сделай, желательно одним предложением, краткий рерайт вопроса: #{question}."
 
     question = ContentWriter.new.write_draft_post(topics, 150)['choices'][0]['message']['content'].strip
     # Убирем лишний текст после знака вопроса
@@ -90,13 +90,12 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
   def sinonim(str)
     rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, такие как: 'резина','автошины','колеса', 'покрышки', #{str.downcase} " : str
-    # true ? str = "Используя вместо слова 'шины' синонимы, #{str.downcase} "  : str
   end
 
   def question_const(el)
     question_random = el[:questions].sample
     answer = ""
-    topics = sinonim("Cделай краткий рерайт вопроса: #{question_random[:question]}.")
+    topics = sinonim("Cделай одним предложением краткий рерайт вопроса: #{question_random[:question]}.")
     question = ContentWriter.new.write_draft_post(topics, 150)['choices'][0]['message']['content'].strip
 
     el[:aliases].size < 10 ? max = el[:aliases].size : max = 10
@@ -174,6 +173,10 @@ class Api::V1::TyreQuestionsController < ApplicationController
       str_new = capitalized_sentences.join(". ")
 
     end
+
+    str_new = str_new.gsub('[', '')
+                     .gsub(']', '')
+
     if str_new =~ /\A(|\s+)(\w|[а-яА-Я])/
       str_new = str_new.gsub(/\A(|\s+)(\w|[а-яА-Я])/) { $1 + $2.capitalize }
       puts "str_new === #{str_new}".inspect
