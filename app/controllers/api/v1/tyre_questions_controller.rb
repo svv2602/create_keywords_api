@@ -112,7 +112,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
   def questions_dop(list1, list2)
     # формирование количяества доп вопросов
     list_questions = []
-    arr = list1.sample(rand(1..2))
+    arr = list1.sample(2)
     arr.each do |constant|
       list_questions << question_const(constant)
     end
@@ -151,6 +151,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
                  .gsub('Заголовок:', '')
                  .gsub('[', '')
                  .gsub(']', '')
+                 .gsub('*', '')
   end
 
   def format_hash_question_with_head_html(str)

@@ -44,7 +44,7 @@ module Constants
       { name: 'Вышгород', alias: 'shiny-vyshgorod' },
       { name: 'Гайсин', alias: 'shiny-gaysin' },
       { name: 'Глухов', alias: 'shiny-glukhov-sumskaya-obl-' },
-      { name: 'Горишние Плавные', alias: 'shiny-gorishnie-plavni' },
+      { name: 'Горишние Плавни', alias: 'shiny-gorishnie-plavni' },
       { name: 'Днепр', alias: 'shiny-dnepr' },
       { name: 'Дубно', alias: 'shiny-dubno' },
       { name: 'Желтые Воды', alias: 'shiny-zheltye-vody' },
