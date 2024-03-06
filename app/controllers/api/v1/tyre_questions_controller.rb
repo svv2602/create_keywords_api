@@ -152,14 +152,14 @@ class Api::V1::TyreQuestionsController < ApplicationController
     if str !~ /(• )/
       str_new = str.downcase
                    .gsub('#', '')
-                   .gsub(/\u003c(\/|)h1\u003e/, '')
-                   .gsub(/<(\/|)h1>/, '')
-                   .gsub(/\n.+(?=(\u003c|<))/, '')
-                   .gsub(/\n```(\n.+\n)```\n/, '')
+                   .gsub(/\u003c(\/|)h\d\u003e/, '')
+                   .gsub(/<(\/|)h\d>/, '')
+                   .gsub(/\n.+/, '')
                    .gsub('заголовок:', '')
                    .gsub('микроразметка:', '')
                    .gsub('seo-текст:', '')
                    .gsub('основной текст:', '')
+                   .gsub('украин', 'Украин')
                    .gsub('введение:', '')
                    .gsub(/\[|\]/, '')
                    .gsub(/(|\/)html/, '')
@@ -173,8 +173,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
       str_new = capitalized_sentences.join(". ")
 
     end
-    if str_new =~ (/(\u003e|>)(\s+)(\w|[а-яА-Я])/)
-      str_new = str_new.gsub(/(\u003e|>)(\s+)(\w|[а-яА-Я])/) { $1 + $2 + $3.capitalize }
+    if str_new =~ /\A(|\s+)(\w|[а-яА-Я])/
+      str_new = str_new.gsub(/\A(|\s+)(\w|[а-яА-Я])/) { $1 + $2.capitalize }
       puts "str_new === #{str_new}".inspect
     end
 
