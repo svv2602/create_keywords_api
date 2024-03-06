@@ -155,6 +155,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
                      .gsub('заголовок:', '')
                      .gsub('микроразметка:', '')
                      .gsub('seo-текст:', '')
+                     .gsub('основной текст:', '')
+                     .gsub('введение:', '')
                      .gsub(/\[|\]/, '')
                      .gsub(/(|\/)html/, '')
                      .gsub('*', '')
