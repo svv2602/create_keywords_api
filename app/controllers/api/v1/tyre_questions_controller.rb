@@ -127,7 +127,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def format_hash_question_html(hash_question)
-    if hash_question
+    rezult = ''
+    if hash_question && hash_question.key?(:question) && hash_question.key?(:answer)
       rezult = "<div itemscope='' itemprop='mainEntity' itemtype='https://schema.org/Question'>  "
       rezult += "<h4 itemprop='name'> "
       # Убирем лишний текст после знака вопроса
@@ -140,9 +141,10 @@ class Api::V1::TyreQuestionsController < ApplicationController
       rezult += "</p> "
       rezult += "</div> "
       rezult += "</div> "
-      return rezult
+      rezult = "" if rezult =~ /<h4 itemprop='name'>\s*<\/h4>/
     end
 
+    return rezult
   end
 
   def gsub_symbol(str)
