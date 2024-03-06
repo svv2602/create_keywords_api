@@ -176,7 +176,7 @@ module Constants
       { name: 'Maxxis', alias: 'maxxis' },
       { name: 'Michelin', alias: 'michelin' },
       { name: 'Nexen', alias: 'nexen' },
-      { name: 'Nokian', alias: 'Tyres' },
+      { name: 'Nokian', alias: 'nokian' },
       { name: 'Orium', alias: 'orium' },
       { name: 'Petlas', alias: 'petlas' },
       { name: 'Pirelli', alias: 'pirelli' },
