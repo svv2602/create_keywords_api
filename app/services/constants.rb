@@ -134,7 +134,7 @@ module Constants
       { question: 'Кто входит в список лучших производителей зимних шин?', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Кто входит в список лучших производителей всесезонных шин? ', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
       { question: 'Кто из известных шинных брендов представлен на сайте prokoleso.ua?', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'список лучших производителей шин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Список лучших производителей шин', url: 'https://prokoleso.ua/shiny/' },
       { question: 'Лучшие производители летних шин ', url: 'https://prokoleso.ua/shiny/letnie/' },
       { question: 'Лучшие производители зимних шин', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Лучшие производители всесезонных шин', url: 'https://prokoleso.ua/shiny/' },
@@ -143,6 +143,9 @@ module Constants
       { question: 'Лучшие производители всесезонных шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
       { question: 'Какие бренды шин рекомендуются для зимы?', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Какие бренды шин рекомендуются для лета?', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Наш рейтинг: Лучшие производители всесезонных шин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Наш рейтинг: Лучшие производители летних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Наш рейтинг: Лучшие производители зимних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/zimnie/' },
 
     ],
 
@@ -163,7 +166,7 @@ module Constants
       { name: 'Gislaved', alias: 'gislaved' },
       { name: 'GoodYear', alias: 'goodyear' },
       { name: 'Grenlander', alias: 'grenlander' },
-      { name: 'GTRadial', alias: 'gtradial' },
+      #{ name: 'GTRadial', alias: 'gtradial' },
       { name: 'Hankook', alias: 'hankook' },
       { name: 'HiFly', alias: 'hifly' },
       { name: 'Kleber', alias: 'kleber' },
@@ -202,9 +205,16 @@ module Constants
   # Легковые шины - диаметры
   DIAMETERS = {
     questions: [
-      { question: 'Самые распространенные посадочные диаметры у автошин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Самые распространенные посадочные диаметры для шин', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Самые распространенные посадочные диаметры для  летних шин: ', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Самые распространенные посадочные диаметры для  зимних шин: ', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'ТОП популярных посадочных диаметров для шин', url: 'https://prokoleso.ua/shiny/' },
-      { question: 'ТОП популярных посадочных диаметров для шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/shiny/' }
+      { question: 'ТОП популярных посадочных диаметров для шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'ТОП популярных диаметров для летних шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'ТОП популярных диаметров для зимних шин, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Наш рейтинг самых популярных диаметров для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Наш рейтинг самых популярных диаметров для  летних шин: ', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Наш рейтинг самых популярных диаметров для зимних шин: ', url: 'https://prokoleso.ua/shiny/zimnie/' },
 
     ],
     aliases: [
@@ -249,6 +259,9 @@ module Constants
       { question: 'Какие типоразмеры всесезонных шин являются наиболее популярными ?', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
       { question: 'Какие размеры всесезонных шин для  легковых автомобилей покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/shiny/vsesezonie/' },
       { question: 'Какие размеры всесезонных шин для  легковых автомобилей покупают больше всего у вас на сайте?', url: 'https://prokoleso.ua/shiny/' },
+      { question: 'Наш рейтинг самых популярных летних шин для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/letnie/' },
+      { question: 'Наш рейтинг самых популярных зимних шин для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/zimnie/' },
+      { question: 'Наш рейтинг самых популярных всесезонных шин для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/' },
 
     ],
     aliases: [
@@ -296,6 +309,7 @@ module Constants
       { question: 'Размеры грузовых шин для самых популярных автомобилей', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'Какие размеры грузовых шин для самых популярных автомобилей покупают у вас на сайте?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'Какие размеры грузовых шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Наш рейтинг: Популярные размеры грузовых шин. ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
     ],
     aliases: [
       { name: '295/80R22.5', alias: 'w-295/h-80/r-22.5' },
@@ -345,6 +359,7 @@ module Constants
       { question: 'список лучших производителей грузовых шин', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'Лучшие производители грузовых шин ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'Лучшие производители грузовых шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/gruzovye-shiny/' },
+      { question: 'Наш рейтинг: Лучшие производители грузовых шин: ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
 
     ],
 
@@ -396,6 +411,7 @@ module Constants
       { question: 'список лучших производителей легковых дисков', url: 'https://prokoleso.ua/diski/' },
       { question: 'Лучшие бренды - производители легковых дисков ', url: 'https://prokoleso.ua/diski/' },
       { question: 'Лучшие производители легковых дисков, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
+      { question: 'Наш рейтинг: Лучшие производители легковых дисков', url: 'https://prokoleso.ua/diski/' },
 
     ],
     aliases: [
