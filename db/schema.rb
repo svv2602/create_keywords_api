@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_04_100342) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_08_233240) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -123,6 +123,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_04_100342) do
     t.string "hh"
     t.string "rr"
     t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "text_errors", force: :cascade do |t|
+    t.string "line"
+    t.string "type_line"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

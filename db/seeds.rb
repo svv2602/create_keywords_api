@@ -187,3 +187,12 @@ excel.each_row_streaming(pad_cells: true) do |row|
   DiskiFaq.create(question: question, theme: theme) if question.present?
 end
 
+# Заполнение таблицы с вопросам по дискам
+excel_file = "lib/text_errors.xlsx"
+excel = Roo::Excelx.new(excel_file)
+
+excel.each_row_streaming(pad_cells: true) do |row|
+  line = row[0]&.value
+  type_line = row[1]&.value
+  TextError.create(line: line, type_line: type_line) if line.present?
+end

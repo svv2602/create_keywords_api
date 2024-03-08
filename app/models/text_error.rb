@@ -1,0 +1,2 @@
+class TextError < ApplicationRecord
+end
