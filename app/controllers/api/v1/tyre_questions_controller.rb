@@ -89,7 +89,7 @@ class Api::V1::TyreQuestionsController < ApplicationController
   end
 
   def sinonim(str)
-    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, такие как: 'резина','автошины','колеса', 'покрышки', #{str.downcase} " : str
+    rand(0..20) % 2 ? str = "Используя вместо слова 'шины' синонимы, такие, например, как: 'резина' или 'колеса' #{str.downcase} " : str
   end
 
   def question_const(el)
