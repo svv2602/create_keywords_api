@@ -23,7 +23,7 @@ include ServiceTable
       arr4 << ["Season", "Size", "Addon"]
       arr4 << ["Season","Brand", "Size", "Addon"]
       arr4 << ["Season","Brand", "Diameter", "Addon"]
-      arr4 << ["Season","Brand", "Diameter", "City"]
+      arr4 << ["Season","Size"]
     end
 
     4.times do
@@ -31,13 +31,13 @@ include ServiceTable
     end
 
     arr4 << ["Size"]
-    arr4 << ["Size", "City"]
-    arr4 << ["Size", "Addon", "City"]
-    arr4 << ["Season", "Brand", "Size", "Addon"]
-    arr4 << ["Season", "Diameter", "Addon"]
+    arr4 << ["Size", "Brand"]
+    arr4 << ["Size", "Addon"]
+    arr4 << ["Brand", "Size", "Addon"]
+    arr4 << ["Season", "Diameter"]
     arr4 << ["Season", "Brand", "Diameter"]
     arr4 << ["Brand", "Diameter", "Addon"]
-    arr4 << ["Diameter", "Addon", "City"]
+    arr4 << ["Diameter", "Addon"]
 
     # добавить города
     rand(10)%2 == 0 ?  arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
@@ -158,7 +158,7 @@ include ServiceTable
   # обработка вариантов написания размеров
   def size_name(ww, hh, rr)
     result = []
-    case rand(1..300)
+    case rand(1..400)
     when 1..10
       # 2055516
       result << "#{ww}#{hh}#{rr}"
@@ -194,10 +194,12 @@ include ServiceTable
       result << "на #{rr}"
     when 181..190
       result << "#{ww}-#{hh}-#{rr}"
-    when 191..250
-      result << "#{ww}/#{hh} R#{rr}"
-    else
+    when 191..230
       result << "#{ww}/#{hh}R#{rr}"
+    when 231..290
+      result << "#{ww} #{hh} #{rr}"
+    else
+      result << "#{ww}/#{hh} R#{rr}"
     end
     result
   end
