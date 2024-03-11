@@ -18,3 +18,5 @@ endpoint:
 * /api/v1/show - внутренняя перелинковка по ключевикам
 * /api/v1/questions_track - для блока FAQs грузовые шины
 * /api/v1/questions_diski - для блока FAQs диски
+* /api/v1/text_line?url=params_url - текст об ошибках при поиске размера
+  * params_url - строка https://prokoleso.ua/shiny/w-175/h-70/r-13/', приведенная к виду: https%3A%2F%2Fprokoleso.ua%2Fshiny%w-175%2Fh-70%2Fr-13%2F
