@@ -65,7 +65,7 @@ class Api::V1::TextErrorController < ApplicationController
       res += block_str_size(tyre_r, tyre_w, tyre_h)
 
       res += str_brand(tyre_brand) if tyre_brand != ''
-      res += str_season(tyre_season) if tyre_season > 0
+      res += str_season(tyre_season, tyre_r, tyre_w, tyre_h) if tyre_season > 0
       res += str_end
 
     end
@@ -158,18 +158,18 @@ class Api::V1::TextErrorController < ApplicationController
     result
   end
 
-  def str_season(tyre_season)
+  def str_season(tyre_season, tyre_r, tyre_w, tyre_h)
     result = ''
     result += "<p>"
     result += TextError.where(type_line: "season").order("RANDOM()").first&.line
 
     case tyre_season
     when 1
-      result += " Пример: летние шины, резина на лето. "
+      result += " Пример: летние шины #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, резина #{tyre_w}/#{tyre_h} r#{tyre_r} на лето. "
     when 2
-      result += " Пример: зимняя резина, шины на зиму, липучки."
+      result += " Пример: зимняя резина #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, шины #{tyre_w}/#{tyre_h} r#{tyre_r} на зиму, липучки."
     when 3
-      result += " Пример: универсальная резина, всесезонные шины, для любой погоды."
+      result += " Пример: универсальная резина #{tyre_w}/#{tyre_h} r#{tyre_r}, всесезонные шины #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, для любой погоды."
     end
 
     result += "</p>\n"
@@ -180,7 +180,7 @@ class Api::V1::TextErrorController < ApplicationController
     result = ''
     result += "<h3>"
     result += TextError.where(type_line: "h2").order("RANDOM()").first&.line
-    result.gsub!('[size]',"#{tyre_w}/#{tyre_h} R#{tyre_r}")
+    result.gsub!('[size]',"#{tyre_w} #{tyre_h} R#{tyre_r}")
     result += "</h3>\n"
     result += "<p>"
     result += TextError.where(type_line: "start").order("RANDOM()").first&.line
