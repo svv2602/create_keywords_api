@@ -84,7 +84,7 @@ class Api::V1::TextErrorController < ApplicationController
       str.gsub!("<b>\n<i>", "\n<i><b>")
       arr << str
     end
-    # arr.shuffle!
+    arr.shuffle!
     arr.each do |el|
       result += el
     end
@@ -118,7 +118,7 @@ class Api::V1::TextErrorController < ApplicationController
     result += "<li>"
     result += TextError.where(type_line: "size2").order("RANDOM()").first&.line
     result += "\n<ul>\n"
-    result += "<i>Пример:  резину #{tyre_w}-#{tyre_h}-#{tyre_r}, купить #{tyre_w}х#{tyre_h} р#{tyre_r}, #{tyre_w}x#{tyre_h} r#{tyre_r} </i>"
+    result += "<i>Пример:  резину #{tyre_w}-#{tyre_h}-#{tyre_r},  #{tyre_w}х#{tyre_h} р#{tyre_r} купить в Киеве, #{tyre_w}x#{tyre_h} r#{tyre_r} </i>"
     result += "</ul>\n"
     result += "</li>\n"
     result
@@ -162,14 +162,14 @@ class Api::V1::TextErrorController < ApplicationController
     result = ''
     result += "<p>"
     result += TextError.where(type_line: "season").order("RANDOM()").first&.line
-
+    result += " Пример запроса с указанием сезонности: "
     case tyre_season
     when 1
-      result += " Пример: летние шины #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, резина #{tyre_w}/#{tyre_h} r#{tyre_r} на лето. "
+      result += "летние шины #{tyre_w} #{tyre_h} #{tyre_r} , резина #{tyre_w}/#{tyre_h} r#{tyre_r} на лето. "
     when 2
-      result += " Пример: зимняя резина #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, шины #{tyre_w}/#{tyre_h} r#{tyre_r} на зиму, липучки."
+      result += "зимняя резина #{tyre_w} #{tyre_h} #{tyre_r} , шины #{tyre_w}/#{tyre_h} r#{tyre_r} на зиму, липучки."
     when 3
-      result += " Пример: универсальная резина #{tyre_w}/#{tyre_h} r#{tyre_r}, всесезонные шины #{tyre_w} #{tyre_h} #{tyre_r} в Киеве, для любой погоды."
+      result += "универсальная резина #{tyre_w}/#{tyre_h} r#{tyre_r}, всесезонные шины #{tyre_w} #{tyre_h} #{tyre_r}, для любой погоды."
     end
 
     result += "</p>\n"
