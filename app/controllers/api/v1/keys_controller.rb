@@ -19,9 +19,9 @@ include ServiceTable
 
     arr4 = []
     2.times do
-      arr4 << ["Brand", "Size", "Addon"]
+      arr4 << ["Brand", "Size"]
       arr4 << ["Season", "Size", "Addon"]
-      arr4 << ["Season","Brand", "Size", "Addon"]
+      arr4 << ["Season","Brand", "Size"]
       arr4 << ["Season","Brand", "Diameter", "Addon"]
       arr4 << ["Season","Size"]
     end
@@ -31,8 +31,8 @@ include ServiceTable
     end
 
     arr4 << ["Size"]
-    arr4 << ["Size", "Brand"]
-    arr4 << ["Size", "Addon"]
+    arr4 << ["Size"]
+    arr4 << ["Season","Size"]
     arr4 << ["Brand", "Size", "Addon"]
     arr4 << ["Season", "Diameter"]
     arr4 << ["Season", "Brand", "Diameter"]
