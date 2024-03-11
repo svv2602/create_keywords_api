@@ -10,7 +10,7 @@ Size.delete_all
 TyresFaq.delete_all
 TrackTyresFaq.delete_all
 DiskiFaq.delete_all
-
+TextError.delete_all
 
 
 DiameterCopy.delete_all

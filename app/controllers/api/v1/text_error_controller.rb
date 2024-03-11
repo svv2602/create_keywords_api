@@ -61,7 +61,7 @@ class Api::V1::TextErrorController < ApplicationController
 
       end
 
-      res += str_head
+      res += str_head(tyre_r, tyre_w, tyre_h)
       res += block_str_size(tyre_r, tyre_w, tyre_h)
 
       res += str_brand(tyre_brand) if tyre_brand != ''
@@ -176,10 +176,11 @@ class Api::V1::TextErrorController < ApplicationController
     result
   end
 
-  def str_head
+  def str_head(tyre_r, tyre_w, tyre_h)
     result = ''
     result += "<h3>"
     result += TextError.where(type_line: "h2").order("RANDOM()").first&.line
+    result.gsub!('[size]',"#{tyre_w}/#{tyre_h} R#{tyre_r}")
     result += "</h3>\n"
     result += "<p>"
     result += TextError.where(type_line: "start").order("RANDOM()").first&.line
