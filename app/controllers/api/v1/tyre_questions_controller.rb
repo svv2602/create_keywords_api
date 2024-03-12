@@ -1,4 +1,4 @@
-# app/controllers/api/openai_controller.rb
+# app/controllers/api/v1/tyre_questions_controller.rb
 
 class Api::V1::TyreQuestionsController < ApplicationController
   include ServiceTable

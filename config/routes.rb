@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       get '/questions_track', to: 'tyre_questions#questions_track'
       get '/questions_diski', to: 'tyre_questions#questions_diski'
       get '/text_line', to: 'text_error#text_line'
+      get '/seo_text', to: 'seo_texts#seo_text'
 
     end
 
