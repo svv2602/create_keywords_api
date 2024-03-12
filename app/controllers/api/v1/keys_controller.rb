@@ -33,9 +33,9 @@ include ServiceTable
     arr4 << ["Size"]
     arr4 << ["Size"]
     arr4 << ["Season","Size"]
-    arr4 << ["Brand", "Size", "Addon"]
+    arr4 << ["Size", "Addon"]
     arr4 << ["Season", "Diameter"]
-    arr4 << ["Season", "Brand", "Diameter"]
+    arr4 << ["Season", "Size"]
     arr4 << ["Brand", "Diameter", "Addon"]
     arr4 << ["Diameter", "Addon"]
 
