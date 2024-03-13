@@ -59,9 +59,9 @@ class ContentWriter
         ],
         # temperature: 0.5,
         max_tokens: max_tokens,
-        # top_p: 0.9,
-        # frequency_penalty: 0.4,
-        # presence_penalty: 0.3
+        top_p: 0.9,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3
       }
     )
   end

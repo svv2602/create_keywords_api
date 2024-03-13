@@ -19,13 +19,21 @@ module StringProcessing
   end
 
   def replace_size_to_template(str)
-
     search_size_1 = /\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
     search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
     str.gsub!(search_size_1, " [size] ")
     str.gsub!(search_size_2, " [size] ")
+    # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
+    str.gsub!("111111", " [w-] ")
+    str.gsub!("222222", " [h-] ")
+    str.gsub!("333333", " [r-] ")
     str
+  end
 
+  def replace_name_to_template(str)
+    str.gsub!(/((U|u)kr(S|s)hina|UKRSHINA)(\.(com|COM)\.(UA|ua))|(У|у)кр(Ш|ш)ина|УКРШИНА|Ukrshina/, "ProKoleso")
+
+    str
   end
 
   def template_txt_to_array_and_write_to_json(name_file_out)
@@ -34,7 +42,9 @@ module StringProcessing
     file_path_out = Rails.root.join('lib', 'template_texts', name_file_out)
 
     begin
-      File.foreach("#{file_path}.txt") { |line| text_array << line.chomp }
+      File.foreach("#{file_path}.txt") do |line|
+        text_array << replace_name_to_template(line.chomp)
+      end
     rescue Errno::ENOENT
       puts "File not found"
       return
@@ -45,12 +55,12 @@ module StringProcessing
   end
 
   def read_array_from_json_file(name_file_out)
-    file_path_out = Rails.root.join('lib', 'template_texts', name_file_out)
+    file_path_out = Rails.root.join('lib', 'template_texts/finished_texts', name_file_out)
     begin
       json_string = File.read("#{file_path_out}.json")
     rescue Errno::ENOENT
       puts "File not found"
-      return []
+      raise "File not found"
     end
 
     array_from_json = JSON.parse(json_string)
