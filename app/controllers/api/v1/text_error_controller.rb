@@ -1,74 +1,40 @@
 class Api::V1::TextErrorController < ApplicationController
+  include StringProcessing
   def text_line
     # test_url = 'https://prokoleso.ua/shiny/letnie/taurus/w-175/h-70/r-13/'
     # url = CGI::unescape(test_url) # возвращает URL обратно в незакодированном виде
     # GET /text_line?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fw-175%2Fh-70%2Fr-13%2F
     # url = CGI::unescape(params[:url]) # возвращает URL обратно в незакодированном виде
 
-    result = arr_url_result_str(arr_url)
+    result = arr_url_result_str
 
     render json: { result: result }
     puts result
   end
 
   def encoded_url(url)
+    # тестовый для проверки url
     CGI::escape(url)
     # encoded_url = CGI::escape('https://prokoleso.ua/shiny/w-175/h-70/r-13/')
     # => "https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fw-175%2Fh-70%2Fr-13%2F"
   end
 
-  def arr_url
-    url = params[:url]
-    url_parts = ''
-    if url.present?
-      CGI::unescape(url)
-      url_parts = url.split('/')
-    end
-    url_parts
-  end
 
-  def arr_url_result_str(url_parts)
-    tyre_w = ''
-    tyre_h = ''
-    tyre_r = ''
-    tyre_season = 0
-    tyre_brand = ''
+  def arr_url_result_str
     res = ''
-    if url_parts.include?('shiny') && url_parts != '' &&
-      url_parts.any? { |part| part.match(/w-\d+/) } &&
-      url_parts.any? { |part| part.match(/h-\d+/) } &&
-      url_parts.any? { |part| part.match(/r-\d+/) }
+    url_param = url_shiny_hash_params
+    if !url_param.empty?
+      res += str_head(url_param[:tyre_r], url_param[:tyre_w], url_param[:tyre_h])
+      res += block_str_size(url_param[:tyre_r], url_param[:tyre_w], url_param[:tyre_h])
 
-      url_parts.each do |el|
-
-        case el
-        when /w-\d+/
-          tyre_w = el.to_s.gsub('w-', '')
-        when /h-\d+/
-          tyre_h = el.to_s.gsub('h-', '')
-        when /r-\d+/
-          tyre_r = el.to_s.gsub('r-', '')
-        when 'letnie'
-          tyre_season = 1
-        when 'zimnie'
-          tyre_season = 2
-        when 'vsesezonie'
-          tyre_season = 3
-        else
-          tyre_brand = el if Brand.exists?(url: el)
-
-        end
-
-      end
-
-      res += str_head(tyre_r, tyre_w, tyre_h)
-      res += block_str_size(tyre_r, tyre_w, tyre_h)
-
-      res += str_brand(tyre_brand) if tyre_brand != ''
-      res += str_season(tyre_season, tyre_r, tyre_w, tyre_h) if tyre_season > 0
+      res += str_brand( url_param[:tyre_brand]) if url_param[:tyre_brand] != ""
+      res += str_season( url_param[:tyre_season],
+                         url_param[:tyre_r],
+                         url_param[:tyre_w],
+                         url_param[:tyre_h]) if url_param[:tyre_season] > 0
       res += str_end
-
     end
+
     res
   end
 
@@ -134,6 +100,7 @@ class Api::V1::TextErrorController < ApplicationController
     result += "</li>\n"
     result
   end
+
   #  175/70r13, 175 70 r 13 82t, 175 70 р 13,
   def str_size4(tyre_r, tyre_w, tyre_h)
     result = ''
@@ -180,7 +147,7 @@ class Api::V1::TextErrorController < ApplicationController
     result = ''
     result += "<h3>"
     result += TextError.where(type_line: "h2").order("RANDOM()").first&.line
-    result.gsub!('[size]',"#{tyre_w} #{tyre_h} R#{tyre_r}")
+    result.gsub!('[size]', "#{tyre_w} #{tyre_h} R#{tyre_r}")
     result += "</h3>\n"
     result += "<p>"
     result += TextError.where(type_line: "start").order("RANDOM()").first&.line

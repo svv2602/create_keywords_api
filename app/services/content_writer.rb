@@ -53,7 +53,7 @@ class ContentWriter
         model: MODEL,
         messages: [
           { role: "system",
-            content: 'Вы копирайтер мирового уровня, который делает делает свою работу качественно, согласно техзаданию'
+            content: 'Вы копирайтер мирового уровня.'
           },
           { role: "user", content: prompt }
         ],

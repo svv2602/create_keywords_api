@@ -66,4 +66,56 @@ module StringProcessing
     array_from_json = JSON.parse(json_string)
     array_from_json
   end
+
+  def arr_params_url
+    # url разбивается на массив значений
+    url = params[:url]
+    url_parts = ''
+    if url.present?
+      CGI::unescape(url)
+      url_parts = url.split('/')
+    end
+    url_parts
+  end
+
+  def url_shiny_hash_params
+    # Делаем хеш из параметров полученного url
+    url_parts = arr_params_url
+    url_hash = {
+      tyre_w: '',
+      tyre_h: '',
+      tyre_r: '',
+      tyre_season: 0,
+      tyre_brand: '',
+    }
+    if url_parts.include?('shiny') && url_parts != '' &&
+      url_parts.any? { |part| part.match(/w-\d+/) } &&
+      url_parts.any? { |part| part.match(/h-\d+/) } &&
+      url_parts.any? { |part| part.match(/r-\d+/) }
+
+      url_parts.each do |el|
+
+        case el
+        when /w-\d+/
+          url_hash[:tyre_w] = el.to_s.gsub('w-', '')
+        when /h-\d+/
+          url_hash[:tyre_h] = el.to_s.gsub('h-', '')
+        when /r-\d+/
+          url_hash[:tyre_r] = el.to_s.gsub('r-', '')
+        when 'letnie'
+          url_hash[:tyre_season] = 1
+        when 'zimnie'
+          url_hash[:tyre_season] = 2
+        when 'vsesezonie'
+          url_hash[:tyre_season] = 3
+        else
+          url_hash[:tyre_brand] = el if Brand.exists?(url: el)
+
+        end
+
+      end
+    end
+    url_hash
+  end
+
 end
