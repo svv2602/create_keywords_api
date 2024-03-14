@@ -36,18 +36,27 @@ module StringProcessing
     str
   end
 
-  def template_txt_to_array_and_write_to_json(name_file_out)
-    text_array = []
-    file_path = Rails.root.join('lib', 'template_texts', 'text')
-    file_path_out = Rails.root.join('lib', 'template_texts', name_file_out)
+  def get_json_file_names
+    folder_path = Rails.root.join('lib', 'template_texts', 'raw_texts')
+    json_files = Dir.glob("#{folder_path}/*.json")
+    json_files.map! { |file| File.basename(file, '.json') }
+  end
 
+  def template_txt_to_array_and_write_to_json
+    name_file_out = params[:file]
+    text_array = []
+    file_path = Rails.root.join('lib', 'template_texts', 'text.txt')
+    file_path_out = Rails.root.join('lib', 'template_texts/raw_texts', name_file_out)
+    puts "file_path ===== #{file_path}"
+    puts "file_path_out ===== #{file_path_out}"
     begin
-      File.foreach("#{file_path}.txt") do |line|
+      File.foreach("#{file_path}") do |line|
         text_array << replace_name_to_template(line.chomp)
       end
     rescue Errno::ENOENT
       puts "File not found"
-      return
+      render json: { error: "File not found" }, status: :not_found and
+        return
     end
 
     # Запись в файл
@@ -66,6 +75,8 @@ module StringProcessing
     array_from_json = JSON.parse(json_string)
     array_from_json
   end
+
+
 
   def arr_params_url
     # url разбивается на массив значений

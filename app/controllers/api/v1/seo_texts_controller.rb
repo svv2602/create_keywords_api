@@ -1,4 +1,5 @@
 # app/controllers/api/v1/seo_texts_controller.rb
+require 'benchmark'
 
 class Api::V1::SeoTextsController < ApplicationController
   include StringProcessing
@@ -6,21 +7,22 @@ class Api::V1::SeoTextsController < ApplicationController
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
     # для запуска: внести текст, для обработки в файл lib/template_texts/text.txt
-    # и выполнить curl http://localhost:3000/api/v1/json_write_for_read?file=name_file
+    # и выполнить
+    # curl http://localhost:3000/api/v1/json_write_for_read?file=name_file
     # где параметр name_file - имя файла для записи
-    file_path_out = params[:file]
-    template_txt_to_array_and_write_to_json(file_path_out)
-    render json: { result: "Создан файл #{file_path_out}.json" }
+
+    template_txt_to_array_and_write_to_json
+    render json: { result: "Создан файл lib/template_texts/raw_texts/#{params[:file]}.json" }
     # после обработки готовый файл нужно перенести в папку finished_texts
   end
 
   def seo_text
-    # пример: curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+    # пример:
+    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
 
     # content_type = params[:file]
     # total_arr_to_table
-    result = "Ok!!!"
-    content_type = "ukrsina_proba"
+    content_type = "известных_брендов"
     result = generator_text(content_type)
     puts result
     render json: { result: result }
@@ -31,31 +33,24 @@ class Api::V1::SeoTextsController < ApplicationController
     # SeoContentText.delete_all
     content_type = params[:file]
     array = read_array_from_json_file(content_type)
-    # array = ["Купить шины 175/70 R13 в Киеве и Украине",
-    #          "Желаете обновить шины 175/70 R13 для вашего автомобиля? Тогда обратите внимание на широкий выбор моделей шин на сайте Prokoleso.ua. У нас вы найдете разнообразие вариантов от ведущих производителей, подходящих как для повседневных поездок, так и для экстремальных условий.",
-    #          "Каталог шин 175/70 R13 на сайте Prokoleso.ua порадует вас разнообразием предложений. Вы сможете выбрать сезонность, индексы скорости и нагрузки, а также рисунок протектора, соответствующий вашим потребностям и требованиям к безопасности и комфорту. У нас представлены и премиум, и бюджетные варианты, чтобы каждый клиент смог выбрать оптимальное решение.",
-    #          "При выборе шин 175/70 R13 важно учитывать множество факторов. И наш сайт поможет вам в этом. Удобный фильтр позволяет быстро найти нужные варианты, а простой интерфейс делает процесс выбора максимально комфортным. Мы ценим ваше время, поэтому сделаем покупку шин простой и приятной процедурой.",
-    #          "Помимо выбора и покупки шин, на Prokoleso.ua вы можете воспользоваться дополнительными возможностями. Сравните различные модели и бренды шин 175/70 R13, изучив отзывы клиентов, чтобы принять обоснованное решение. А если у вас остались вопросы, наши специалисты всегда готовы дать вам профессиональную консультацию.",
-    #          "Важно помнить, что правильный выбор и покупка шин 175/70 R13 имеют большое значение для вашей безопасности на дороге. Поэтому не теряйте времени, приобретайте качественную резину на Prokoleso.ua уже сегодня и наслаждайтесь комфортными и безопасными поездками в Киеве и по всей Украине."
-    # ]
-    # content_type = "ВТОРОЙ ТЕКСТ"
 
     # Задаем количество повторов вариантов для всего текста в number_of_repeats_for_text
     # (количество вариантов написания каждого абзаца устанавливается в number_of_repeats)
-    number_of_repeats_for_text = 2
-    number_of_repeats = 2
-    sch = 0
-    array.each_with_index do |el, i|
-      number_of_repeats_for_text.times do
-        puts "ВХОДЯЩАЯ ФРАЗА #{i}:==   #{el}"
-        txt = seo_phrase(el, number_of_repeats, i)
-        puts "ФРАЗА:   #{txt}"
-        arr_result = make_array_phrase(txt, i)
-        arr_to_table(arr_result, content_type, i)
-        sch += number_of_repeats
+    number_of_repeats_for_text = 5
+    number_of_repeats = 10
+
+    execution_time = Benchmark.measure do
+      array.each_with_index do |el, i|
+        number_of_repeats_for_text.times do
+          txt = seo_phrase(el, number_of_repeats, i)
+          arr_result = make_array_phrase(txt, i)
+          arr_to_table(arr_result, content_type, i)
+        end
       end
     end
-    result = "В таблицу базы данных SeoContentText добавлены #{sch} записей. Маркер - #{content_type}"
+
+    result = "В таблицу базы данных SeoContentText добавлены записи. Маркер - #{content_type}. \n "
+    result += "Время выполнения: #{execution_time.real.round(2)} секунд. \n"
     puts result
     render json: { result: result }
 
@@ -67,8 +62,8 @@ class Api::V1::SeoTextsController < ApplicationController
     topics += element_array.to_s
     if ind > 0
       topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов."
-      topics += "\n Количество печатных символов в ответе должно быть близким к количеству знаков в образце"
-      topics += "\n постараться сохранить количество ключевых слов, главное - получить эффективный уникальный SEO-текст"
+      topics += "\n Количество печатных символов в ответе может быть больше, чем количество знаков в образце."
+      topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%"
       # topics += "\n  "
     else
       topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
@@ -82,15 +77,6 @@ class Api::V1::SeoTextsController < ApplicationController
   def make_array_phrase(var_phrase, i)
     txt = var_phrase.gsub("\n\n", "\n")
     txt = txt.gsub(/\*|\#/, "")
-    # if i == 0
-    #   # txt = txt.split(/\n|\.|\?|\!/).first
-    #   elements = txt.split(/\n|\.|\?|\!/)
-    #   elements.find { |element| element.length > 20 }
-    #
-    # else
-    #   # txt = txt.gsub("\n", " ")
-    #   txt = txt.gsub(/^("|)((\d+|)(|\s+))(В|в)ариант((|\s+)(|\d+(\s+|))(\.|\:|\-))/,"")
-    # end
     txt = txt.gsub(/^("|)((\d+|)(|\s+))(В|в)ариант((|\s+)(|\d+(\s+|))(\.|\:|\-))/, "")
     txt = txt.split("\n")
     txt
@@ -99,6 +85,7 @@ class Api::V1::SeoTextsController < ApplicationController
   def arr_to_table(arr, content_type, str_number)
     arr.each do |el|
       str = el.sub(/^\d+(\.|\))\s/, '')
+      str = str.gsub(/^('|")|('|")$/, '')
       replace_size_to_template(str)
       SeoContentText.create(str: str,
                             content_type: content_type,
@@ -107,7 +94,7 @@ class Api::V1::SeoTextsController < ApplicationController
     end
   end
 
-  def replace_size_tyre(array_of_string,url_params)
+  def replace_size_tyre(array_of_string, url_params)
     arr = []
     size_count = array_of_string.count { |string| string.include?("[size]") }
     size_count.times do |i|
@@ -116,7 +103,7 @@ class Api::V1::SeoTextsController < ApplicationController
     arr
   end
 
-  def replace_params_w_h_r_tyre(str,url_params)
+  def replace_params_w_h_r_tyre(str, url_params)
     str = str.gsub('[r-]', url_params[:tyre_r])
     str = str.gsub('[h-]', url_params[:tyre_h])
     str = str.gsub('[w-]', url_params[:tyre_w])
@@ -131,13 +118,13 @@ class Api::V1::SeoTextsController < ApplicationController
     array = []
     url_params = url_shiny_hash_params
     unless max_str_number.nil?
-
+      max_str_number += 1
       (max_str_number).times do |i|
         random_record = SeoContentText.where(content_type: content_type, str_number: i).sample
-        processed_record = replace_params_w_h_r_tyre(random_record[:str],url_params)
+        processed_record = replace_params_w_h_r_tyre(random_record[:str], url_params)
         array << processed_record
       end
-      arr_size = replace_size_tyre(array,url_params)
+      arr_size = replace_size_tyre(array, url_params)
 
       first_element = array.first
       first_element.gsub!('[size]', arr_size.shift)
@@ -146,7 +133,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       # задается случайный порядок предложений в абзаце
       rest_of_array.map! do |string|
-        arr_size = replace_size_tyre(array,url_params) if arr_size.size == 0
+        arr_size = replace_size_tyre(array, url_params) if arr_size.size == 0
         sentences = string.split(/(?<=\?|\.|!)\s/)
         shuffled_sentences = sentences.shuffle
         string = shuffled_sentences.join(" ")
@@ -154,9 +141,18 @@ class Api::V1::SeoTextsController < ApplicationController
       end
 
       first_str = [first_element].join(" ").split(/(?<=\?|!|\.)/)[0] + "\n"
-      text += +first_str + rest_of_array.join("\n")
+      arr_body_text = change_text_order(rest_of_array).join("\n")
+      text += first_str + arr_body_text
     end
     text
+  end
+
+  def change_text_order(array)
+    if array.last =~ /\?\s*$/
+      last_element = array.pop
+      array.unshift(last_element)
+    end
+    array
   end
 
 end
