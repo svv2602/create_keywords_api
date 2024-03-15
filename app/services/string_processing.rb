@@ -27,55 +27,87 @@ module StringProcessing
     str.gsub!("111111", " [w-] ")
     str.gsub!("222222", " [h-] ")
     str.gsub!("333333", " [r-] ")
+    replace_name_to_template(str)
     str
   end
 
-  def replace_name_to_template(str)
-    str.gsub!(/((U|u)kr(S|s)hina|UKRSHINA)(\.(com|COM)\.(UA|ua))|(У|у)кр(Ш|ш)ина|УКРШИНА|Ukrshina/, "ProKoleso")
+  def replace_name_to_template(text)
+    text.gsub!(/((U|u)kr(S|s)hina|UKRSHINA)(\.(com|COM)\.(UA|ua))|(У|у)кр(Ш|ш)ина|УКРШИНА|Ukrshina/, "ProKoleso")
 
-    str
-  end
+    sentences = text.split(/\.|\!/).map(&:strip)
 
-  def get_json_file_names
-    folder_path = Rails.root.join('lib', 'template_texts', 'raw_texts')
-    json_files = Dir.glob("#{folder_path}/*.json")
-    json_files.map! { |file| File.basename(file, '.json') }
-  end
-
-  def template_txt_to_array_and_write_to_json
-    name_file_out = params[:file]
-    text_array = []
-    file_path = Rails.root.join('lib', 'template_texts', 'text.txt')
-    file_path_out = Rails.root.join('lib', 'template_texts/raw_texts', name_file_out)
-    puts "file_path ===== #{file_path}"
-    puts "file_path_out ===== #{file_path_out}"
-    begin
-      File.foreach("#{file_path}") do |line|
-        text_array << replace_name_to_template(line.chomp)
+    transformed_sentences = sentences.map do |sentence|
+      case sentence
+      when /(?:^|\.)\s*Потому\s*[\p{P}\p{S}]*\s*что\s*/, /(?:^|\.)\s*(Поэтому|А|Но)\s*/,  /(?:^|\.)\s*Эт(и|о|от)\s*/
+        puts "sentence === #{sentence}"
+        sentence.sub($&, '').gsub(/^[\p{P}\p{S}]+/, '').split.map.with_index { |word, i| i.zero? ? word.capitalize : word }.join(' ')
+      when /\s*эт(и|о|от)\s*/
+        puts "sentence это === #{sentence}"
+        sentence.gsub(/\s*эт(о|и|от)\s*/, '')
+      else
+        sentence
       end
-    rescue Errno::ENOENT
-      puts "File not found"
-      render json: { error: "File not found" }, status: :not_found and
-        return
     end
 
-    # Запись в файл
-    File.write("#{file_path_out}.json", JSON.dump(text_array))
+    transformed_text = transformed_sentences.join('. ')
+
+
+    transformed_text
   end
 
-  def read_array_from_json_file(name_file_out)
-    file_path_out = Rails.root.join('lib', 'template_texts/finished_texts', name_file_out)
+
+
+  def txt_file_to_json
+    file_path = Rails.root.join('lib', 'template_texts', 'data.txt')
+    texts = {}
+    current_text = {}
+    current_key = ''
+    index = 1
+
+    File.foreach(file_path) do |line|
+      line = line.strip
+      replace_name_to_template(line)
+
+      if line.include?(':')
+        current_key, value = line.split(':').map(&:strip)
+        if current_key == 'TextBody'
+          current_text[current_key] = [value]
+        else
+          current_text[current_key] = value
+        end
+      elsif line.empty? && !current_text.empty?
+        texts["Block_#{index}"] = current_text
+        current_text = {}
+        index += 1
+      elsif !current_key.empty? && !line.empty?
+        current_text[current_key] << line
+      end
+
+    end
+
+    texts["Block_#{index}"] = current_text unless current_text.empty?
+    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+
+    File.open(file_path, 'w') do |f|
+      f.write(JSON.pretty_generate(texts))
+    end
+  end
+
+  def data_json_to_hash
+    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+    return unless File.exist?(file_path) # Return nil if the file doesn't exist
+
     begin
-      json_string = File.read("#{file_path_out}.json")
-    rescue Errno::ENOENT
-      puts "File not found"
-      raise "File not found"
+      file = File.read(file_path)
+      data_hash = JSON.parse(file)
+      # puts data_hash
+    rescue Exception => e
+      # Вывод информации об ошибке, если файл не может быть прочитан
+      puts "Could not read file: #{e.message}"
+      return nil  # Return nil in case of an exception
     end
-
-    array_from_json = JSON.parse(json_string)
-    array_from_json
+    data_hash
   end
-
 
 
   def arr_params_url

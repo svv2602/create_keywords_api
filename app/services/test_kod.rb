@@ -1,34 +1,26 @@
-require 'json'
+# app/services/test_kod.rb
 
-path = '/home/user/RubymineProjects/workspace_api/create_keywords_api/lib/template_texts/'
-file_path = path + 'data.txt'
-texts = {}
-current_text = {}
-current_key = ''
-index = 1
 
-File.foreach(file_path) do |line|
-  line = line.strip
+# Для копирования базы записей запустить:
+# rails console
+# TestKod.export_data_to_json
 
-  if line.include?(':')
-    current_key, value = line.split(':').map(&:strip)
-    if current_key == 'TextBody'
-      current_text[current_key] = [value]
-    else
-      current_text[current_key] = value
+class TestKod
+  # lib/template_texts/finished_texts
+  def self.export_data_to_json
+    require 'json'
+
+    time_stamp = Time.now.strftime("%Y%m%d-%H%M%S")
+    file_path = Rails.root.join('lib', 'template_texts/finished_texts', "texts_#{time_stamp}.json")
+
+    texts = SeoContentText.all
+
+    # Преобразовываем данные в JSON, используя `as_json`
+    json_data = texts.as_json
+
+    # Сохраняем данные в файл JSON
+    File.open(file_path, "w") do |file|
+      file.write(JSON.pretty_generate(json_data))
     end
-  elsif line.empty? && !current_text.empty?
-    texts["Block_#{index}"] = current_text
-    current_text = {}
-    index += 1
-  elsif !current_key.empty?
-    current_text[current_key] << line
   end
-
-end
-
-texts["Block_#{index}"] = current_text unless current_text.empty?
-
-File.open(path + 'data.json', 'w') do |f|
-  f.write(JSON.pretty_generate(texts))
 end

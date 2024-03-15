@@ -6,13 +6,19 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
-    # для запуска: внести текст, для обработки в файл lib/template_texts/text.txt
-    # и выполнить
-    # curl http://localhost:3000/api/v1/json_write_for_read?file=name_file
-    # где параметр name_file - имя файла для записи
+    # для запуска: внести текст, для обработки в файл lib/template_texts/data.txt
+    # пример файла:
+    # TextType: strTextType
+    # TextTitle: Покупка АВТОШИНЫ 205/60R16 ответственный выбор.
+    #   TextBody: Купить в Украине
+    #
+    # TextType: strTextType1
+    # TextTitle: АВТОШИНЫ 205/60R16.
+    #   TextBody:  Украине нужные шины Украине нужные шины Украине
+    # нужные шины Украине нужные шины Украине нужные шины
 
-    template_txt_to_array_and_write_to_json
-    render json: { result: "Создан файл lib/template_texts/raw_texts/#{params[:file]}.json" }
+    txt_file_to_json
+    render json: { result: "Создан файл lib/template_texts/data.json" }
     # после обработки готовый файл нужно перенести в папку finished_texts
   end
 
@@ -20,37 +26,49 @@ class Api::V1::SeoTextsController < ApplicationController
     # пример:
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
 
-    # content_type = params[:file]
-    # total_arr_to_table
-    content_type = "известных_брендов"
+    content_type = "Сделай эффективный выбор шин с PROKOLESO.UA"
     result = generator_text(content_type)
     puts result
     render json: { result: result }
+
+
   end
 
   def total_arr_to_table
-    # пример: curl http://localhost:3000/api/v1/total_arr_to_table?file=ukrsina_proba
+
     # SeoContentText.delete_all
-    content_type = params[:file]
-    array = read_array_from_json_file(content_type)
 
-    # Задаем количество повторов вариантов для всего текста в number_of_repeats_for_text
-    # (количество вариантов написания каждого абзаца устанавливается в number_of_repeats)
-    number_of_repeats_for_text = 5
-    number_of_repeats = 10
+    h = data_json_to_hash
+    number_of_repeats_for_text = 1
+    number_of_repeats = 1
 
-    execution_time = Benchmark.measure do
+    ind = 0
+    count_record = 0
+    h.each do |key, value|
+      ind += 1
+      order_out = h["Block_" + ind.to_s]["order_out"].to_i
+      type_text = h["Block_" + ind.to_s]["TextType"]
+      content_type = h["Block_" + ind.to_s]["TextTitle"]
+      array = h["Block_" + ind.to_s]["TextBody"]
+      array.unshift(content_type)
+      puts "content_type ==== #{content_type}"
+      puts "array ==== #{array.inspect}"
+      # Задаем количество повторов вариантов для всего текста в number_of_repeats_for_text
+      # (количество вариантов написания каждого абзаца устанавливается в number_of_repeats)
+
+
       array.each_with_index do |el, i|
         number_of_repeats_for_text.times do
           txt = seo_phrase(el, number_of_repeats, i)
           arr_result = make_array_phrase(txt, i)
-          arr_to_table(arr_result, content_type, i)
+          arr_to_table(arr_result, content_type, type_text,order_out, i)
+          count_record += 1
         end
       end
-    end
 
-    result = "В таблицу базы данных SeoContentText добавлены записи. Маркер - #{content_type}. \n "
-    result += "Время выполнения: #{execution_time.real.round(2)} секунд. \n"
+    end
+    result = "В таблицу базы данных SeoContentText добавлены записи. === Кол-во: #{count_record}  "
+
     puts result
     render json: { result: result }
 
@@ -64,6 +82,24 @@ class Api::V1::SeoTextsController < ApplicationController
       topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов."
       topics += "\n Количество печатных символов в ответе может быть больше, чем количество знаков в образце."
       topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%"
+      topics += "\n Каждый вариант ответа должен состоять из одного абзаца (не использовать символ переноса каретки)"
+      topics += "\n Предложения в абзаце должны быть самостоятельными по смыслу, т.е. не ссылаться на предыдущие предлжожения"
+      topics += "\n Пример 1. "
+      topics += "\n Неправильно: 'Шины для автомобилей различаются по типу назначения. Каждый из этих типов шин имеет особенности'. "
+      topics += "\n Правильно: 'Шины для автомобилей различаются по типу назначения. Каждый тип шин имеет особенности'. "
+      topics += "\n Пример 2. "
+      topics += "\n Неправильно: 'Когда выбираете летнюю резину, не доверяйте подозрительно низким ценам. Подобные предложения могут быть для товаров без гарантий'. "
+      topics += "\n Правильно: 'Когда выбираете летнюю резину, не доверяйте подозрительно низким ценам, подобные предложения могут быть для товаров без гарантий'. "
+      topics += "\n Пример 3. "
+      topics += "\n Неправильно: 'Компания ProKoleso - это надежный партнер для всех, кто ценит качество и надежность. Поэтому мы предлагаем только оригинальные автомобильные шины'. "
+      topics += "\n Правильно: 'Компания ProKoleso - это надежный партнер для всех, кто ценит качество и надежность. Мы предлагаем только оригинальные автомобильные шины'. "
+      topics += "\n Пример 4. "
+      topics += "\n Неправильно: 'Не попадайтесь на уловки магазинов, предлагающих шины по недорогой цене. Чаще всего такие предложения скрывают низкое качество товара'. "
+      topics += "\n Правильно: 'Не попадайтесь на уловки магазинов, предлагающих шины по недорогой цене. Дешевые предложения скрывают низкое качество товара'. "
+      topics += "\n Пример 5. "
+      topics += "\n Неправильно: 'Приобретение новой летней резины - это  залог вашей безопасности на дороге. Поэтому выбирать лучше всего проверенных поставщиков'. "
+      topics += "\n Правильно: 'Приобретение новой летней резины - это  залог вашей безопасности на дороге. При покупке шин выбирать лучше всего проверенных поставщиков'. "
+
       # topics += "\n  "
     else
       topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
@@ -82,12 +118,14 @@ class Api::V1::SeoTextsController < ApplicationController
     txt
   end
 
-  def arr_to_table(arr, content_type, str_number)
+  def arr_to_table(arr, content_type, type_text,order_out, str_number)
     arr.each do |el|
       str = el.sub(/^\d+(\.|\))\s/, '')
       str = str.gsub(/^('|")|('|")$/, '')
       replace_size_to_template(str)
       SeoContentText.create(str: str,
+                            order_out: order_out,
+                            type_text: type_text,
                             content_type: content_type,
                             str_number: str_number
       ) if el.present? #&& el.length > 20
@@ -117,6 +155,7 @@ class Api::V1::SeoTextsController < ApplicationController
     text = ""
     array = []
     url_params = url_shiny_hash_params
+
     unless max_str_number.nil?
       max_str_number += 1
       (max_str_number).times do |i|
@@ -127,17 +166,17 @@ class Api::V1::SeoTextsController < ApplicationController
       arr_size = replace_size_tyre(array, url_params)
 
       first_element = array.first
-      first_element.gsub!('[size]', arr_size.shift)
+      first_element.gsub('[size]', arr_size.shift&.to_s) unless arr_size.nil? || arr_size.empty?
 
       rest_of_array = array.drop(1).shuffle
-
       # задается случайный порядок предложений в абзаце
       rest_of_array.map! do |string|
         arr_size = replace_size_tyre(array, url_params) if arr_size.size == 0
         sentences = string.split(/(?<=\?|\.|!)\s/)
         shuffled_sentences = sentences.shuffle
-        string = shuffled_sentences.join(" ")
-        string.gsub('[size]', arr_size.shift&.to_s)
+        string_new = shuffled_sentences.join(" ")
+        string_new.gsub('[size]', arr_size.shift&.to_s) unless arr_size.nil? || arr_size.empty?
+        string_new
       end
 
       first_str = [first_element].join(" ").split(/(?<=\?|!|\.)/)[0] + "\n"
