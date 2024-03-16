@@ -26,7 +26,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # пример:
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
 
-    content_type = "Сделай эффективный выбор шин с PROKOLESO.UA"
+    content_type = "ЛУЧШИЕ ШИНЫ 195/65R15 ОТ официального представителя ИЗВЕСТНЫХ брендов"
     result = generator_text(content_type)
     puts result
     render json: { result: result }
@@ -41,12 +41,15 @@ class Api::V1::SeoTextsController < ApplicationController
     h = data_json_to_hash
     number_of_repeats_for_text = 1
     number_of_repeats = 1
-
+    order_out = 0
     ind = 0
     count_record = 0
     h.each do |key, value|
       ind += 1
-      order_out = h["Block_" + ind.to_s]["order_out"].to_i
+
+      Rails.logger.info "Block_" + ind.to_s + ": #{h["Block_" + ind.to_s].inspect}"
+
+      order_out = h["Block_" + ind.to_s]["order_out"]&.to_i
       type_text = h["Block_" + ind.to_s]["TextType"]
       content_type = h["Block_" + ind.to_s]["TextTitle"]
       array = h["Block_" + ind.to_s]["TextBody"]
@@ -106,7 +109,16 @@ class Api::V1::SeoTextsController < ApplicationController
       topics += "\n Заголовок должен состоять из одного предложения. "
     end
 
-    new_text = ContentWriter.new.write_seo_text(topics, 3500)['choices'][0]['message']['content'].strip
+    new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
+
+    if new_text
+      begin
+        new_text = new_text['choices'][0]['message']['content'].strip
+      rescue => e
+        puts "Произошла ошибка: #{e.message}"
+      end
+    end
+
     new_text
   end
 

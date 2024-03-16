@@ -2,6 +2,7 @@
 
 class ContentWriter
   MODEL = 'gpt-3.5-turbo'
+  MAX_ATTEMPTS = 5
 
   def initialize
     @client = OpenAI::Client.new
@@ -47,6 +48,10 @@ class ContentWriter
   end
 
   def write_seo_text(prompt, max_tokens)
+    attempts = 0
+
+    begin
+
     # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
     @client.chat(
       parameters: {
@@ -64,6 +69,17 @@ class ContentWriter
         presence_penalty: 0.3
       }
     )
+    rescue OpenAI::Error => e
+      attempts += 1
+
+      if attempts < MAX_ATTEMPTS
+        puts "Произошла ошибка: #{e.message}. Повторная попытка..."
+        retry
+      else
+        puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
+        nil
+      end
+    end
   end
 
 
