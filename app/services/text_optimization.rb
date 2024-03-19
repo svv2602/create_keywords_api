@@ -1,58 +1,7 @@
 # app/services/text_optimization.rb
 
 module TextOptimization
-
-  WORD_FORMS = {
-    "шина" => ["шина", "шины", "шину", "шине", "шиною", "шинах", "шинами", "шинных"],
-    "резина" => ["резина", "резины", "резину", "резине", "резиной", "резин", "резинами", "резинах"],
-    "Киев" => ["Киев", "Киева", "Киеву", "Киеве"],
-    "купить" => ["купить", "купил"],
-    "колесо" => ["колесо", "колеса", "колесу", "колесе", "колесом",  "колесами", "колесах"],
-    "покрышка" => ["покрышка", "покрышки", "покрышку", "покрышке", "покрышкой", "покрышках"],
-    "автошина" => ["автошина", "автошины", "автошину", "автошине", "автошиной", "автошинами", "автошинах"],
-    "доставка" => ["доставка", "доставки", "доставку", "доставке", "доставкой"],
-    "размер" => ["размер", "размера", "размеру", "размере", "размером", "размеры", "размерами", "размерах"],
-    "приобрести" => ["приобрести", "приобрел", "приобрели", "приобретя"],
-    "выбрать" => ["выбрать", "выбрал", "выбрали", "выбрав"],
-    "выбор" => ["выбор", "выбора", "выбору", "выборе", "выбором"],
-    "покупка" => ["покупка", "покупки", "покупку", "покупке", "покупкой",  "покупками", "покупках"],
-    "заказ" => ["заказ", "заказа", "заказу", "заказе", "заказом",  "заказы", "заказами", "заказах"],
-    "купить шины" => ["купить шины", "купить шину"],
-    "шины купить" => ["шины купить", "шину купить"],
-    "купить резину" => ["купить резину"],
-    "резину купить" => ["резину купить"],
-    "заказать" => ["заказать", "заказал",  "заказали", "заказав"],
-    "лето" => ['лета', 'лето', 'лету', 'летом', 'лете'],
-    "летние" => ['летние', 'летних', 'летним',  'летними', 'летней'],
-    "зима" => ['зима', 'зимы', 'зиме', 'зиму', 'зимой'],
-    "зимние" => ['зимние', 'зимних', 'зимним','зимними', 'зимней'],
-    "всесезонние" => ['всесезонные', 'всесезонных', 'всесезонным', 'всесезонными']
-  }
-
-  KEYWORD_STUFFING_TEMPLATE = {
-    "шина" => 4.5,
-    "резина" => 2.5,
-    "Киев" => 0.6,
-    "купить" => 0.7,
-    # "колесо" => 1.0,
-    # "покрышка" => 0.8,
-    # "автошина" => 0.8,
-    # "доставка" => 0.16,
-    "размер" => 0.33,
-    "выбор" => 0.5,
-    # "покупка" => 0.2,
-    "заказ" => 0.5,
-    # "купить шины" => 0.3,
-    # "шины купить" => 0.2,
-    # "купить резину" => 0.2,
-    # "резину купить" => 0.2,
-    "заказать" => 0.15,
-    "лето" => 0.66,
-    "летние" => 0.33,
-    "зима" => 0.66,
-    "зимние" => 0.33,
-    # "всесезонние" => 0.15
-  }
+  require_relative '../services/dictionaries/replaсe_keyword_tyres'
 
   def adjust_keyword_stuffing(str)
     current_stuffing = keyword_stuffing_for_all_words(str)
@@ -67,13 +16,11 @@ module TextOptimization
 
       # Рассчёт реального количества слов в тексте и желаемого количества слов
       current_word_count = (total_words * current_stuffing_level / 100).round
-      target_word_count = (total_words * desired_stuffing / 100).round
-      target_word_count - current_word_count < 0 ? action = "убрать " : action = "добавить "
+      target_word_count = (total_words * desired_stuffing['keyword_stuffing'] / 100).round
       adjustments[keyword] = {
         current_word_count: current_word_count,
         target_word_count: target_word_count,
-        # action: action + (target_word_count - current_word_count).to_s
-        action: target_word_count - current_word_count
+        action: (target_word_count - current_word_count)
       }
     end
 
@@ -131,8 +78,41 @@ module TextOptimization
     str_new
   end
 
+  def apply_replacements(text)
+    replacements = KEYWORD_STUFFING_TEMPLATE
 
+    adjustments = adjust_keyword_stuffing(text)
+    if adjustments["шина"][:action]>0 && adjustments["резина"][:action]>0
+      min_value = [adjustments["шина"][:action], adjustments["резина"][:action]].min
+      text = replacements_keywords(text, replacements, "резина и шины", min_value)
+    end
 
+    result = text
+    adjustments.each do |key, value|
+      # puts "Ключ: #{key}, значение: #{value[:action]}"
+      adjustments_new = adjust_keyword_stuffing(text)
+      replacements_count_max = adjustments_new[key][:action]
+      result = replacements_keywords(result, replacements, key, replacements_count_max)
+    end
+
+    result
+  end
+
+  def replacements_keywords(text, replacements, key, replacements_count_max)
+
+    # puts "replacements == #{replacements}"
+    # puts "replacements == #{key}"
+    replacements_count = 0
+    replacements[key]['replaces'].each do |old, new|
+      break if replacements_count >= replacements_count_max
+      while text =~ old
+        break if replacements_count >= replacements_count_max
+        text.sub!(old, new)
+        replacements_count += 1
+      end
+    end
+    text
+  end
 
 
 
