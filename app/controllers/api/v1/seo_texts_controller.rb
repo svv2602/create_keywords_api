@@ -54,7 +54,7 @@ class Api::V1::SeoTextsController < ApplicationController
     alphanumeric_chars_count = result&.scan(/[\p{L}\p{N}]/)&.length
     puts "количество значимых символов - #{alphanumeric_chars_count}"
     puts adjust_keyword_stuffing(result)
-    apply_replacements(result)
+    replace_text_by_hash(result)
     puts adjust_keyword_stuffing(result)
 
     render json: { result: result }

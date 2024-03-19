@@ -78,41 +78,78 @@ module TextOptimization
     str_new
   end
 
-  def apply_replacements(text)
-    replacements = KEYWORD_STUFFING_TEMPLATE
+  # def apply_replacements(text)
+  #   replacements = KEYWORD_STUFFING_TEMPLATE
+  #
+  #   adjustments = adjust_keyword_stuffing(text)
+  #   if adjustments["шина"][:action]>0 && adjustments["резина"][:action]>0
+  #     min_value = [adjustments["шина"][:action], adjustments["резина"][:action]].min
+  #     text = replacements_keywords(text, replacements, "резина и шины", min_value)
+  #   end
+  #
+  #   result = text
+  #   adjustments.each do |key, value|
+  #     # puts "Ключ: #{key}, значение: #{value[:action]}"
+  #     adjustments_new = adjust_keyword_stuffing(text)
+  #     replacements_count_max = adjustments_new[key][:action]
+  #     result = replacements_keywords(result, replacements, key, replacements_count_max)
+  #   end
+  #
+  #   result
+  # end
+  #
+  # def replacements_keywords(text, replacements, key, replacements_count_max)
+  #
+  #   # puts "replacements == #{replacements}"
+  #   # puts "replacements == #{key}"
+  #   replacements_count = 0
+  #   replacements[key]['replaces'].each do |old, new|
+  #     break if replacements_count >= replacements_count_max
+  #     while text =~ old
+  #       break if replacements_count >= replacements_count_max
+  #       text.sub!(old, new)
+  #       replacements_count += 1
+  #     end
+  #   end
+  #   text
+  # end
 
-    adjustments = adjust_keyword_stuffing(text)
-    if adjustments["шина"][:action]>0 && adjustments["резина"][:action]>0
-      min_value = [adjustments["шина"][:action], adjustments["резина"][:action]].min
-      text = replacements_keywords(text, replacements, "резина и шины", min_value)
-    end
+  def replace_text_by_hash(text)
+    hash = KEYWORD_STUFFING_TEMPLATE
+    sentences = text.split(/\.|!|\?|\\n/)
+    count = Hash.new(0)
+    max_replacements = adjust_keyword_stuffing(text)
+    selected_max_elements = max_replacements.select { |key, value| value[:action] > 0 }
+    puts "selected_elements ===== #{selected_max_elements}"
 
-    result = text
-    adjustments.each do |key, value|
-      # puts "Ключ: #{key}, значение: #{value[:action]}"
-      adjustments_new = adjust_keyword_stuffing(text)
-      replacements_count_max = adjustments_new[key][:action]
-      result = replacements_keywords(result, replacements, key, replacements_count_max)
-    end
+    sentences.map! do |sentence|
+      hash.each do |key, replacement|
+        if selected_max_elements[key] && selected_max_elements[key][:action] > 0
+          was_replaced = false
+          replacement['replaces'].each do |k, rpl|
+            sentence = sentence.sub(k) do |match|
+              count[key] += 1
+              if count[key] > selected_max_elements[key][:action]
+                match
+              else
+                was_replaced = true
+                rpl
+              end
+            end
 
-    result
-  end
+            break if was_replaced
+          end
 
-  def replacements_keywords(text, replacements, key, replacements_count_max)
+        end
 
-    # puts "replacements == #{replacements}"
-    # puts "replacements == #{key}"
-    replacements_count = 0
-    replacements[key]['replaces'].each do |old, new|
-      break if replacements_count >= replacements_count_max
-      while text =~ old
-        break if replacements_count >= replacements_count_max
-        text.sub!(old, new)
-        replacements_count += 1
       end
+      sentence
     end
-    text
+
+    sentences.join('.')
   end
+
+
 
 
 
