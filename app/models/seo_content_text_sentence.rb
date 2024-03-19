@@ -1,0 +1,2 @@
+class SeoContentTextSentence < ApplicationRecord
+end

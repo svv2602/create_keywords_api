@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  str_seo_text: MyString
+  str_number: 1
+  sentence: MyString
+  num_snt_in_str: 1
+
+two:
+  str_seo_text: MyString
+  str_number: 1
+  sentence: MyString
+  num_snt_in_str: 1

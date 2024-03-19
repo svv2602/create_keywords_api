@@ -12,7 +12,7 @@ Rails.application.routes.draw do
       get '/seo_text', to: 'seo_texts#seo_text'
       get '/json_write_for_read', to: 'seo_texts#json_write_for_read'
       get '/total_arr_to_table', to: 'seo_texts#total_arr_to_table'
-
+      get '/total_arr_to_table_sentence', to: 'seo_texts#total_arr_to_table_sentence'
     end
 
   end

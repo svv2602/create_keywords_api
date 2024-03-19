@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_14_125955) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_16_211210) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -105,6 +105,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_125955) do
   create_table "seasons", force: :cascade do |t|
     t.string "name"
     t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "seo_content_text_sentences", force: :cascade do |t|
+    t.string "str_seo_text"
+    t.integer "str_number"
+    t.string "sentence"
+    t.integer "num_snt_in_str"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

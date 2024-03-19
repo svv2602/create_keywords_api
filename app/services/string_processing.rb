@@ -3,15 +3,51 @@ module StringProcessing
   def arr_size_name_min(ww, hh, rr, i)
     result = ''
 
-    case i % 5
+    case i % 10
     when 1
       result = "#{ww} #{hh}r#{rr}"
     when 2
       result = "#{ww}/#{hh} P#{rr}"
     when 3
-      result = "#{ww}#{hh} r#{rr}"
+      result = "#{ww} #{hh} r#{rr}"
     when 4
       result = "#{ww}/#{hh} R#{rr}"
+    when 5
+      result = "#{ww} #{hh} R#{rr}"
+    when 6
+      result = "#{ww}x#{hh} R#{rr}"
+    when 7
+      result = "#{ww}/#{hh} на R#{rr}"
+    when 8
+      result = "#{ww}/#{hh} на #{rr}"
+    else
+      result = "#{ww} #{hh} #{rr}"
+    end
+    result
+  end
+
+  def replace_name_size(url_params)
+    ww = url_params[:tyre_w]
+    hh = url_params[:tyre_h]
+    rr = url_params[:tyre_r]
+
+    case rand(1..10) % 10
+    when 1
+      result = "#{ww}/#{hh} на #{rr}"
+    when 2
+      result = "#{ww}/#{hh} P#{rr}"
+    when 3
+      result = "#{ww} #{hh} r#{rr}"
+    when 4
+      result = "#{ww}/#{hh} R#{rr}"
+    when 5
+      result = "#{ww} #{hh} R#{rr}"
+    when 6
+      result = "#{ww}x#{hh} R#{rr}"
+    when 7
+      result = "#{ww}/#{hh} на R#{rr}"
+    when 8
+      result = "#{ww} #{hh}r#{rr}"
     else
       result = "#{ww} #{hh} #{rr}"
     end
@@ -31,15 +67,29 @@ module StringProcessing
     str
   end
 
+  def replace_reverse_size_to_template(str)
+    search_size_1 = '195/65R15'
+    str.gsub!("[size]", search_size_1) unless str.nil?
+    # str.gsub!(search_size_2, " [size] ")
+    # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
+    str.gsub!("[w-]", "111111") unless str.nil?
+    str.gsub!("[h-]", "222222") unless str.nil?
+    str.gsub!("[r-]", "333333") unless str.nil?
+
+    str
+  end
+
   def replace_name_to_template(text)
     text.gsub!(/((U|u)kr(S|s)hina|UKRSHINA)(\.(com|COM)\.(UA|ua))|(У|у)кр(Ш|ш)ина|УКРШИНА|Ukrshina/, "ProKoleso")
     text.gsub!(/((I|i)nfo(S|s)hina|INFOSHINA)(\.(com|COM)\.(UA|ua))|(И|и)нфо(Ш|ш)ина|ИНФОШИНА|Infoshina/, "ProKoleso")
+    text.gsub!(/((R|r)(ezina|EZINA)(\.(cc|CC|сс|СС)))/, "ProKoleso")
+    text.gsub!(/((P|p)ro(K|k)oleso|PROKOLESO)\.(u|U)((a|A)|(а|А))/, "ProKoleso")
 
     sentences = text.split(/\.|\!/).map(&:strip)
 
     transformed_sentences = sentences.map do |sentence|
       case sentence
-      when /(?:^|\.)\s*Потому\s*[\p{P}\p{S}]*\s*что\s*/, /(?:^|\.)\s*(Поэтому|А|Но)\s*/,  /(?:^|\.)\s*Эт(и|о|от)\s*/
+      when /(?:^|\.)\s*Потому\s*[\p{P}\p{S}]*\s*что\s*/, /(?:^|\.)\s*(Поэтому|А|Но)\s*/, /(?:^|\.)\s*Эт(и|о|от)\s*/
         puts "sentence === #{sentence}"
         sentence.sub($&, '').gsub(/^[\p{P}\p{S}]+/, '').split.map.with_index { |word, i| i.zero? ? word.capitalize : word }.join(' ')
       when /\s*эт(и|о|от)\s*/
@@ -52,11 +102,8 @@ module StringProcessing
 
     transformed_text = transformed_sentences.join('. ')
 
-
     transformed_text
   end
-
-
 
   def txt_file_to_json
     file_path = Rails.root.join('lib', 'template_texts', 'data.txt')
@@ -105,11 +152,10 @@ module StringProcessing
     rescue Exception => e
       # Вывод информации об ошибке, если файл не может быть прочитан
       puts "Could not read file: #{e.message}"
-      return nil  # Return nil in case of an exception
+      return nil # Return nil in case of an exception
     end
     data_hash
   end
-
 
   def arr_params_url
     # url разбивается на массив значений
@@ -160,6 +206,16 @@ module StringProcessing
       end
     end
     url_hash
+  end
+
+  def print_errors_text?
+    url_param = url_shiny_hash_params
+    case url_param[:tyre_r].to_i
+    when 13, 14, 15, 16, 17, 18, 19
+      true
+    else
+      false
+    end
   end
 
 end
