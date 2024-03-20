@@ -26,6 +26,40 @@ module StringProcessing
     result
   end
 
+  def arr_size_to_error
+    url_hash = url_shiny_hash_params
+    ww = url_hash[:tyre_w]
+    hh = url_hash[:tyre_h]
+    rr = url_hash[:tyre_r]
+    result = []
+    10.times do |i|
+      case i
+      when 0
+        result << "#{ww}#{hh}r#{rr}"
+      when 1
+        result << "#{ww} #{hh}r#{rr}"
+      when 2
+        result << "#{ww}/#{hh} P#{rr}"
+      when 3
+        result << "#{ww} #{hh} r#{rr}"
+      when 4
+        result << "#{ww}/#{hh} R#{rr}"
+      when 5
+        result << "#{ww} #{hh} R#{rr}"
+      when 6
+        result << "#{ww}x#{hh} R#{rr}"
+      when 7
+        result << "#{ww}/#{hh} на R#{rr}"
+      when 8
+        result << "#{ww}/#{hh} на #{rr}"
+      else
+        result << "#{ww} #{hh} #{rr}"
+      end
+    end
+
+    result.shuffle
+  end
+
   def replace_name_size(url_params)
     ww = url_params[:tyre_w]
     hh = url_params[:tyre_h]
@@ -167,6 +201,8 @@ module StringProcessing
     end
     url_parts
   end
+
+
 
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
