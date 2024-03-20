@@ -1,8 +1,9 @@
 # app/services/copy_text_optimization.rb
 require 'json'
 require_relative '../services/dictionaries/replaсe_keyword_tyres'
-
+require_relative '../../app/services/content_writer'
 class CopyTextOptimization
+
   def adjust_keyword_stuffing(str)
     current_stuffing = keyword_stuffing_for_all_words(str)
     adjustments = {}
@@ -201,6 +202,7 @@ class CopyTextOptimization
 
 
 
+
 end
 
 test = CopyTextOptimization.new
@@ -284,4 +286,4 @@ puts "=" * 120
 puts test_do
 puts "=" * 120
 puts test.adjust_keyword_stuffing(result)
-#
+

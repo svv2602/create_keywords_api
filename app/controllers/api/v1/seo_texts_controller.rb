@@ -47,9 +47,9 @@ class Api::V1::SeoTextsController < ApplicationController
     result += generator_text(content_type) + "\n"
 
     # Добавление текста об ошибках в зависимости от диаметра колес
-    result += arr_url_result_str if print_errors_text?
-    result += min_errors_text(arr_size)
-
+    # result += arr_url_result_str if print_errors_text?
+    # result += min_errors_text(arr_size)
+    result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
     # alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     # puts alphanumeric_chars_count
     result
@@ -59,7 +59,7 @@ class Api::V1::SeoTextsController < ApplicationController
 def min_errors_text(arr_size)
   result = ''
   if !print_errors_text? && !arr_size.empty?
-    text_err = "<h3>" + "="*40 + "<\h3>\n"
+    text_err = "<h3>" + "="*40 + "</h3>\n"
     text_err += "<p>"
     text_err += TEMPLATE_TEXT_ERROR.shuffle.first + " " + arr_size.shift(5).join(', ')
     text_err += "</p><br>\n"

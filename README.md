@@ -22,6 +22,8 @@ endpoint:
   * params_url - строка https://prokoleso.ua/shiny/w-175/h-70/r-13/', приведенная к виду: https%3A%2F%2Fprokoleso.ua%2Fshiny%w-175%2Fh-70%2Fr-13%2F
 
 #### дополнительно:
+* /api/v1/generate_completion - формирование заголовков для статей, созраняются в lib/template_texts/title_h2.json
 * /api/v1/json_write_for_read - перенос текстов из lib/template_texts/data.txt в lib/template_texts/data.json
 * /api/v1/total_arr_to_table - рерайт текста из lib/template_texts/data.json и запись в базу данных
 * /api/v1/total_arr_to_table_sentence - рерайт предложений в заданном а абзаце порядке 
+* /api/v1/seo_text?url=params_url - генерация текста под урл (с оптимизацией, заголовками, ошибками, ссылками и html-разметкой)

@@ -13,8 +13,65 @@ class Api::V1::OpenaiController < ApplicationController
   # Ответы на вопросы должны быть краткими, но содержательными
   # Блок отформатируй, используй заголовки <h3> для вопроса
   # Текст оберни в HTML - теги, с учетом микроразметки"
-
   def generate_completion
+    # Создает заголовки для каждой группы урлов, переменные - размер, бренд, сезон
+    repeat_count = 5 # учитываем, что итог будет - repeat_count*[repeat_count_topics]
+    repeat_count_topics = 10
+    hash_result = {}
+    hash_params = {
+      "total" => "шины 195/65R15",
+      "letnie" => "летние шины 195/65R15",
+      "zimnie" => "зимние шины 195/65R15",
+      "vsesezonie" => "всесезонные шины 195/65R15",
+      "total_brand" => "шины Michelin 195/65R15",
+      "letnie_brand" => "летние шины Michelin 195/65R15",
+      "zimnie_brand" => "зимние шины Michelin 195/65R15",
+      "vsesezonie_brand" => "всесезонные шины Michelin 195/65R15",
+    }
+
+    file_path = Rails.root.join('lib', 'template_texts', 'title_h2.json')
+    file_data = File.read(file_path)
+    hash_result = JSON.parse(file_data)
+
+    repeat_count.times do
+
+      hash_params.each do |key, value|
+        topics = ''
+        topics += "\n Сделай #{repeat_count_topics} вариантов короткого качественного, оптимизированного под продажу, заголовка для сео-статьи на странице '#{value}' шинного интернет-магазина ProKoleso."
+        topics += "\n Вместо слова 'шины' можно применять его синонимы."
+        topics += "\n каждый заголовок оберни в квадратные скобки"
+        topics += "\n "
+
+        new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
+        if new_text
+          begin
+            new_text = new_text['choices'][0]['message']['content'].strip
+          rescue => e
+            puts "Произошла ошибка: #{e.message}"
+          end
+        end
+
+        # Создание массива для ключа , если он не существует
+        hash_result[key] ||= []
+
+        new_text = new_text.scan(/\[(.*?)\]/).flatten
+        # Добавление новых уникальных элементов в массив
+        hash_result[key] = hash_result[key] | new_text
+
+      end
+
+    end
+
+    File.open(file_path, 'w') do |f|
+      f.write(JSON.pretty_generate(hash_result))
+    end
+
+    result = hash_result[:total]
+    render json: { message: "Все обработано!!!" }, status: :ok
+
+  end
+
+  def generate_completion_old
     # Определите массив тем.
     сity = "Белая Церковь"
     topics1 = [
@@ -49,7 +106,7 @@ class Api::V1::OpenaiController < ApplicationController
       result2['choices'][0]['message']['content'].strip +
       result3['choices'][0]['message']['content'].strip
 
-    result =  ContentWriter.new.write_draft_post(format_query(result), 2000)
+    result = ContentWriter.new.write_draft_post(format_query(result), 2000)
 
     # puts "prompt =========  #{prompt}"
     render json: { result: result }
