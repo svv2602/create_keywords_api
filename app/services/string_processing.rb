@@ -238,7 +238,7 @@ module StringProcessing
 
       line
     end.join("")
-
+    # ссылка на страницу оплата и доставка
     regex = /(оплат(а|ы)(| и доставк(а|и)))/
     match = text.match(regex)
     url = "<a href='https://prokoleso.ua/oplata-i-dostavka/'>#{match[0]}</a>"
