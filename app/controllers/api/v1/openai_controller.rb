@@ -30,6 +30,9 @@ class Api::V1::OpenaiController < ApplicationController
     }
 
     file_path = Rails.root.join('lib', 'template_texts', 'title_h2.json')
+    unless File.exist?(file_path)
+      File.write(file_path, '{}')
+    end
     file_data = File.read(file_path)
     hash_result = JSON.parse(file_data)
 
@@ -70,6 +73,11 @@ class Api::V1::OpenaiController < ApplicationController
     render json: { message: "Все обработано!!!" }, status: :ok
 
   end
+
+
+
+
+
 
   def generate_completion_old
     # Определите массив тем.

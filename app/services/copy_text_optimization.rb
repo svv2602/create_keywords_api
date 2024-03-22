@@ -2,206 +2,88 @@
 require 'json'
 require_relative '../services/dictionaries/replaсe_keyword_tyres'
 require_relative '../../app/services/content_writer'
+require_relative '../../app/services/string_processing'
+
 class CopyTextOptimization
 
-  def adjust_keyword_stuffing(str)
-    current_stuffing = keyword_stuffing_for_all_words(str)
-    adjustments = {}
-
-    # Количество слов в тексте
-    total_words = remove_html_tags(str).split.length
-
-    KEYWORD_STUFFING_TEMPLATE.each do |keyword, desired_stuffing|
-      # Текущая "тошнотность" для этого слова
-      current_stuffing_level = current_stuffing[keyword] || 0
-
-      # Рассчёт реального количества слов в тексте и желаемого количества слов
-      current_word_count = (total_words * current_stuffing_level / 100).round
-      target_word_count = (total_words * desired_stuffing['keyword_stuffing'] / 100).round
-      adjustments[keyword] = {
-        current_word_count: current_word_count,
-        target_word_count: target_word_count,
-        action: (target_word_count - current_word_count)
+  def insert_season_url_new(text_test)
+    # season = url_shiny_hash_params[:tyre_season]
+    # season = url_shiny_hash_params[:tyre_season]
+    text = text_test
+    season = 2
+    type_season = {
+      '1': { value: "letnie",
+             season: 1,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((Л|л)етн(ие|яя|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/,
+      },
+      '2': { value: 'zimnie',
+             season: 2,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((З|з)имн(ие|яя|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/
+      },
+      '3': { value: 'vsesezonie',
+             season: 3,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((В|в)сесезонн(ые|ие|ая|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/
       }
-    end
 
-    adjustments
-  end
+    }
+    # arr_size = arr_size_to_error
+    arr_size = ["196 666 6667", '4567890 456789', '345f3456', '345gf76h 678hg', 'efgh567']
 
-  # Тошнота по Адвего: 30-40% - Учитывает не только количество повторений слов, но и их морфологические формы
-  def keyword_stuffing_for_all_words(str)
-    str = remove_html_tags(str)
-    str = str.gsub("\n", ' ') # Add this line to replace new lines with spaces
+    search_size = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
+    search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
 
-    total_words = str.split.length
+    # ... Ваш код для определения переменных ...
+    replaced = {}
+    text = text.each_line.map do |line|
+      replaced = false
+      type_season.each do |key, value|
 
-    results = {}
-    WORD_FORMS.each do |word, forms|
-      occurrences = forms.sum { |form| word_occurrences(str, form) }
-      results[word] = (occurrences / total_words.to_f * 100).round(2)
-    end
-    results
-  end
+        # if value[:season] != season
+        part_url = value[:value] + '/'
+        regex = value[:search_str]
+        match = line.match(regex)
 
-  def keyword_count_for_all_words(str)
-    results = {}
-    WORD_FORMS.each do |word, forms|
-      occurrences = forms.sum { |form| word_occurrences(str, form) }
-      results[word] = occurrences
-    end
-    results
-  end
-
-  def chars_count(str)
-    str_test = remove_html_tags(str)
-    str_test.scan(/[\p{L}\p{N}]/).length
-  end
-
-  def remove_html_tags(str)
-    str.gsub(/<\/?[^>]*>/, "")
-  end
-
-  def word_occurrences(str, word)
-    str.scan(/#{word}/i).length
-  end
-
-  # Рекомендуемый уровень тошнотности:
-  # Классическая тошнота: 2,7-7% -  отношение количества повторений ключевого слова к общему количеству слов в тексте.
-  def keyword_stuffing(str, word)
-    total_words = remove_html_tags(str).split.length
-    result = word_occurrences(str, word) / total_words.to_f * 100
-    result = "Классическая тошнота: #{result.round(2)}%"
-  end
-
-  def replace_trash(str)
-    str_new = str.gsub(/Dover's Auto Care/, 'PROKOLESO')
-    str_new.gsub(/а боковой стене шин/, 'а боковине шин')
-    str_new
-  end
-
-  # def apply_replacements(text)
-  #   replacements = KEYWORD_STUFFING_TEMPLATE
-  #
-  #   adjustments = adjust_keyword_stuffing(text)
-  #   if adjustments["шина"][:action] > 0 && adjustments["резина"][:action] > 0
-  #     min_value = [adjustments["шина"][:action], adjustments["резина"][:action]].min
-  #     text = replacements_keywords(text, replacements, "резина и шины", min_value)
-  #   end
-  #
-  #   result = text
-  #   adjustments.each do |key, value|
-  #     # puts "Ключ: #{key}, значение: #{value[:action]}"
-  #     adjustments_new = adjust_keyword_stuffing(text)
-  #     replacements_count_max = adjustments_new[key][:action]
-  #     result = replacements_keywords(result, replacements, key, replacements_count_max)
-  #   end
-  #
-  #   result
-  # end
-  #
-  # def replacements_keywords(text, replacements, key, replacements_count_max)
-  #   # puts "replacements[key] = #{replacements[key]}"
-  #   replacements_count = 0
-  #   replacements[key]['replaces'].each do |old, new|
-  #     break if replacements_count >= replacements_count_max
-  #     while text =~ old
-  #       break if replacements_count >= replacements_count_max
-  #       text.sub!(old, new)
-  #       replacements_count += 1
-  #     end
-  #   end
-  #   text
-  # end
-
-  def add_new_el_to_hash(max_replacements, selected_max_elements)
-    if max_replacements["шина"][:action] > 0 && max_replacements["резина"][:action] > 0
-      min_value = [max_replacements["шина"][:action], max_replacements["резина"][:action]].min
-      selected_max_elements["резина и шины"] = {}
-      selected_max_elements["резина и шины"][:action] = min_value
-    end
-    selected_max_elements
-  end
-
-  def replace_text_by_hash(text)
-    hash = KEYWORD_STUFFING_TEMPLATE
-    sentences = text.split(/\.|!|\?|\\n/)
-    count = Hash.new(0)
-
-
-    max_replacements = adjust_keyword_stuffing(text)
-    selected_max_elements = max_replacements.select { |key, value| value[:action] > 0 }
-    selected_max_elements = add_new_el_to_hash(max_replacements, selected_max_elements)
-    grup = false
-
-    sentences.map! do |sentence|
-      hash.each do |key, replacement|
-
-        if selected_max_elements[key] && selected_max_elements[key][:action] > 0
-          was_replaced = false
-          replacement['replaces'].each do |k, rpl|
-            next if grup == true && replacement['grup'] == 'tyres'
-            sentence = sentence.sub(k) do |match|
-              count[key] += 1
-
-              if count[key] >= selected_max_elements[key][:action]
-                match
-              else
-                grup = true if replacement['grup'] == 'tyres'
-                was_replaced = true
-                if key == "резина и шины"
-                  count["резина"] += 1
-                  count["шина"] += 1
-                end
-                rpl.is_a?(Array) ? rpl.sample : rpl
-              end
-            end
-            break if was_replaced
-          end
+        if match && value[:state][:season_url]
+          url = "<a href='https://prokoleso.ua/shiny/#{part_url}'>#{match[0]}</a>"
+          line.sub!(regex, url)
+          value[:state][:season_url] = false
+          replaced = true
         end
-      end
-      grup = false
-      sentence
-    end
 
-    sentences.join('.')
-  end
-
-  def replace_text_by_hash_minus(text)
-    hash = KEYWORD_STUFFING_TEMPLATE
-    sentences = text.split(/\.|!|\?|\\n/)
-    count = Hash.new(0)
-
-    max_replacements = adjust_keyword_stuffing(text)
-    selected_max_elements = max_replacements.select { |key, value| value[:action] < 0 }
-
-    sentences.map! do |sentence|
-      hash.each do |key, replacement|
-        if selected_max_elements[key] && selected_max_elements[key][:action] < 0
-          was_replaced = false
-          replacement['sinonims'].each do |k, rpl|
-            # next if grup == true && replacement['grup'] == 'tyres'
-            sentence = sentence.sub(k) do |match|
-              count[key] -= 1
-
-              if count[key] <= selected_max_elements[key][:action]
-                match
-              else
-                was_replaced = true
-                rpl.is_a?(Array) ? rpl.sample : rpl
-              end
-            end
-            break if was_replaced
-          end
+        break if replaced
+        # ссылки на размеры
+        regex = /#{value[:search_str]}\s*#{search_size}/
+        match = line.match(regex)
+        part_url = value[:value] == season ? '' : value[:value] + '/'
+        if match && value[:state][:season_size]
+          url = "<a href='https://prokoleso.ua/shiny/#{part_url}'>#{match[1]}</a>"
+          line.sub!(regex, url)
+          value[:state][:season_size] = false
+          replaced = true
         end
+        break if replaced
       end
-      sentence
-    end
 
-    sentences.join('.')
+      # if season != 0 && !replaced
+      #   # part_url = "w-#{url_shiny_hash_params[:tyre_w]}/h-#{url_shiny_hash_params[:tyre_h]}/r-#{url_shiny_hash_params[:tyre_r]}/"
+      #   part_url = "w-205/h-55/r-16/"
+      #   str_search = /#{search_size}/
+      #   url = "<a href='https://prokoleso.ua/shiny/#{part_url}'>#{arr_size[season]}</a>"
+      #   replaced = !line.sub!(str_search, url).nil?
+      # end
+
+      line
+    end.join("")
+
+    # вернуть измененный текст
+    text
   end
-
-
-
 
 end
 
@@ -211,79 +93,20 @@ text = "
 
 
 
-<h3> 5 причин выбрать интернет-магазин PROKOLESO для покупки шин.</h3>
-<ul>
-<li> Идеальный выбор: комфортные и бесшумные автомобильные шины  205/55 на R16 . Эти шины, специально разработанные для обеспечения безопасности и удовольствия от вождения, помогут сделать вашу поездку максимально приятной.</li>
-<li>Мы обеспечим вас качественными рекомендациями, учитывая все особенности вашего транспортного средства и условий дорожного покрытия.  Как выбрать идеальные шины для вашего автомобиля: экспертные советы. Обращаясь к нам, вы можете получить профессиональную консультацию по выбору шин и обеспечить безопасность на дороге.</li>
-<li>Мы сотрудничаем только с надежными брендами автомобильных шин, которые ценят комфорт и безопасность водителей, поэтому качество и безопасность наших продуктов всегда остаются на первом месте.  Отличное сцепление: широкий выбор высококачественных шин от лучших производителей.</li>
-<li> При выборе шин  205 55 r16 важно не только цена, но и условия оплаты и доставки. Мы предлагаем выгодные варианты оплаты и оперативную доставку по вашему выбору, чтобы сделать покупку максимально удобной для вас.</li>
-</ul>
-
-<h3> Выбор чемпионов: топ-5 лучших шин  205/55 R16 от ведущих мировых производителей.</h3>
-<p>Выбор шин важен для безопасности на дороге, поэтому лучше предпочесть проверенных поставщиков.  Шины от мировых производителей отличаются высоким качеством и долговечностью, но стоят дороже. В мире автомобильных шин существует разделение на премиум, средний и бюджетный сегменты, каждый из которых обладает уникальными характеристиками.</p>
-<p>Шины в указанном размере отличаются высокой степенью надежности сцепления с дорогой, обеспечивая комфортную езду и отличную управляемость вне зависимости от производителя. При выборе шин  205 55r16 тоит обратить внимание на баланс между ценой и качеством, чтобы получить оптимальное соотношение для безопасной поездки. Этот размер шин популярен и может быть выпущен как крупными производителями, так и менее известными брендами.  Шины с индексом  205 55r16 представляют собой универсальное решение для большинства легковых автомобилей.</p>
-<p> Премиум шины для автомобилей отличаются своей высокой ценой, которая обусловлена применением передовых технологий, использованием качественных материалов и тщательным тестированием. Премиальные шины  205/55 P16 обещают водителям улучшенную долговечность, высокую управляемость и повышенный уровень безопасности на дорогах. Комфорт, надежность и возможность эффективно справляться с различными условиями покрытия - вот основные преимущества премиальных шин, что делает их выбором многих автолюбителей, ценящих качество и производительность.</p>
-<p>Хотя такие покрышки могут иметь менее привлекательный дизайн и ограниченные характеристики, они все равно обеспечивают базовый уровень безопасности и проходимости.  Бюджетные шины представляют собой наиболее доступный вариант для тех, кто хочет сэкономить.</p>
-<h3> Разбираем маркировку: что означает  205 55r16 на легковых шинах.</h3>
-<ul>
-<li> Тип шины играет важную роль при выборе автомобильных шин. При выборе шин стоит обращать внимание на тип конструкции, чтобы гарантировать их соответствие вашим требованиям и потребностям. Радиальные конструкции (обозначаемые буквой R) обладают определенными характеристиками, которые делают их подходящими для определенных условий эксплуатации.</li>
-<li>Правильно подобранная ширина профиля поможет достичь оптимального баланса между управляемостью и комфортом передвижения.  Ширина профиля шины: ключевой параметр для оптимальной производительности автомобиля. Важно помнить, что первая цифра в маркировке указывает именно на ширину профиля в миллиметрах. При выборе новых шин для вашего автомобиля обратите особое внимание на безопасность и надежность на дороге, чтобы обеспечить комфортное передвижение. При выборе шин для автомобиля важно учитывать данный параметр, так как он оказывает влияние на стабильность управления, сцепление с дорогой и комфорт вождения.</li>
-<li>Диаметр диска, выраженный в дюймах, играет ключевую роль при установке шин на колеса, поэтому необходимо быть внимательным к этому значению при покупке новой резины. Учитывая этот фактор, можно гарантировать безопасность и комфортное вождение вашего транспортного средства. Данный параметр позволит подобрать шины, идеально подходящие для вашего автомобиля, учитывая все особенности и требования производителя.  Зачем важно обратить внимание на диаметр диска при выборе автомобильных шин?</li>
-<li>Учитывайте этот фактор при выборе подходящего профиля для вашего проекта или задачи.  Изучение характеристик профиля важно перед покупкой. Пропорция высоты к ширине профиля шин играет важную роль в определении их внешнего вида и функциональности.</li>
-<li>При выборе новых шин важно уделить внимание индексу нагрузки, чтобы быть уверенными в их соответствии вашим потребностям и требованиям.  Индекс нагрузки на шинах: ключ к безопасности и долговечности автомобиля. При выборе шин для вашего автомобиля важно учитывать индивидуальный показатель нагрузки каждой из них, чтобы обеспечить безопасность и долговечность вашего транспортного средства. Правильное определение этого показателя является крайне важным при выборе шин, поскольку от него зависит безопасность и комфорт во время движения.</li>
-<li>Он указывает на максимально допустимую скорость, при которой шина может работать безопасно. Поэтому при выборе новых шин важно обращать внимание на данный параметр, чтобы быть уверенными в соответствии скорости вашего автомобиля и способности шины к надежной работе. Различные буквенные обозначения (такие как H, V, W) представляют разные уровни скорости, поэтому правильный выбор индекса скорости поможет обеспечить безопасность и комфорт во время движения.  Зачем важно обращать внимание на индекс скорости при выборе шин?</li>
-</ul>
-
-<h3> Правильный выбор: как подобрать шины в зависимости от сезона.</h3>
-<ol>
-<li>Благодаря специальной резиновой смеси, эта модель предлагает прекрасную управляемость и стабильность на трассе, позволяя водителю чувствовать себя уверенно за рулем.  Идеальный выбор: летние шины  205x55 R16 для безопасного сезонного вождения. Эта модель шин - надежный выбор для летнего сезона вашего автомобиля. Эти шины обеспечивают отличное сцепление с дорогой даже при высоких температурах, что делает их надежным компаньоном для длительных поездок. Шины  205x55 R16 отличаются высокой износостойкостью, что значительно увеличивает их срок службы.</li>
-<li>В таких ситуациях рекомендуется выбирать альтернативные типы зимних шин без шипов, чтобы обеспечить безопасность на дороге и сохранить состояние магистралей.  Надежная защита на любых дорогах: зимние шины с шипами для горных трасс. Однако, использование таких шин на городских и европейских дорогах ограничено из-за возможного вреда для дорожного покрытия.</li>
-<li>Такие шины обеспечивают отличное сцепление как на сухих, так и на мокрых дорогах, что делает их универсальным выбором для водителей, которые не хотят менять шины в зависимости от сезона.  Никогда не бойтесь сезонных изменений с всесезонными шинами! Универсальный протектор идеально подходит для регионов с мягким климатом и небольшими перепадами температуры. Этот тип шин отлично справляется с переменными условиями дорожного покрытия и обеспечивает оптимальное сцепление при любых погодных условиях.</li>
-</ol>
-
-<h3>Полезные советы по выбору и корректному указанию размера шин 205 55 R16 </h3>
-<p>При поиске ассортимента колес различных марок и производителей в интернете, важно помнить о том, что даже малейшая ошибка в записи размеров может привести к непредвиденным трудностям при использовании приобретенных товаров. Поэтому следует уделить должное внимание корректности указанных данных.</p>
-<p> Вот несколько из наиболее распространенных ошибок:</p>
-<li><b>Недостаточное качество характеристик:</b> В некоторых случаях данные могут быть неполными и не содержать всех трех важных параметров (ширина, профиль и диаметр), что мешает точному определению товара.
-<ul>
-<i><b>Пример:</b> Сколько стоит 205 на 16?
-  Какая цена  205 55 r 16 ?</i></ul>
-</li>
-<li><b>Неподходящие формы:</b> При указании размеров шин возможны ошибки в последовательности, что влияет на правильность анализа и выбора данных.
-<ul>
-<i><b>Пример:</b>  купить шины на  R16 205 55,  55R16 на 205, р16 205 55 </i></ul>
-</li>
-<li><b>Отсутствие символов:</b> Если пользователи пропускают буквенные обозначения при указании размера шин, это может сбить с толку и привести к ошибочным результатам.
-<ul>
-<i><b>Пример:</b>  205/55/16 в Киеве, 205 55 16 купить.</i></ul>
-</li>
-<li><b>Ошибочное применение разделителей:</b> Вместо стандартных знаков для разделения параметров ширины, профиля и диаметра диска могут быть выбраны неправильные разделительные символы, что делает размер менее упорядоченным и неясным.
-<ul>
-<i><b>Пример:</b>  резину 205-55-16,  205х55 р16, 205x55 r16 купить в Киеве</i></ul>
-</li>
-<li>Допущенные опечатки в названиях брендов шин могут затруднить поиск подходящего варианта и привести к ошибочным решениям.
-<ul>
-<i>Пример: кумхо - набор наименования бренда кириллицей,
-а 'лгьрщ' - не была переключена раскладка клавиатуры при наборе 'kumho'. </i></ul>
-</li>
-<p>Старайтесь избегать перечисленных распространенных ошибок при поиске легковых шин в сети для получения наиболее точных и соответствующих вашим требованиям результатов.</p>
-
+<h3> 5 причин выбрать зимние шины интернет-магазин летние шины  PROKOLESO для всесезонная резина шиныпокупки шин.</h3>
+<h3> 5 причин выбрать зимние шины интернет-магазин летние шины  PROKOLESO для всесезонная резина шиныпокупки шин.</h3>
+<h3> 5 причин выбрать зимние шины интернет-магазин летние шины  PROKOLESO для всесезонная резина шиныпокупки шин.</h3>
+<h3> 5 причин выбрать зимние шины 205 55 18 интернет-магазин летние шины  PROKOLESO для всесезонная резина шиныпокупки шин.</h3>
 
 
 
 
 "
-
+result = test.insert_season_url_new(text)
 puts "=" * 120
-result = text
-test_do = test.adjust_keyword_stuffing(result)
-
-# result = test.replace_text_by_hash(text)
-result = test.replace_text_by_hash_minus(result)
 puts "test.chars_count(text) = #{result}"
 puts "=" * 120
 puts "=" * 120
-puts test_do
 puts "=" * 120
-puts test.adjust_keyword_stuffing(result)
+
 

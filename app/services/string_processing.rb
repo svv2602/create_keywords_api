@@ -91,18 +91,31 @@ module StringProcessing
   def replace_size_to_template(str)
     search_size_1 = /\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
     search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
-    str.gsub!(search_size_1, " [size] ")
-    str.gsub!(search_size_2, " [size] ")
+
+    return str if str.nil? # Убедитесь что str не nil
+
+    if str.match?(search_size_1)
+      str.gsub!(search_size_1, " [size] ")
+    end
+    if str.match?(search_size_2)
+      str.gsub!(search_size_2, " [size] ")
+    end
     # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
-    str.gsub!("111111", " [w-] ")
-    str.gsub!("222222", " [h-] ")
-    str.gsub!("333333", " [r-] ")
+    ["111111", "222222", "333333"].each do |value|
+      if str.include?(value)
+        str.gsub!(value, " [w-] ") if value == "111111"
+        str.gsub!(value, " [h-] ") if value == "222222"
+        str.gsub!(value, " [r-] ") if value == "333333"
+      end
+    end
     replace_name_to_template(str)
     str
   end
 
   def replace_reverse_size_to_template(str)
     search_size_1 = '195/65R15'
+    return str if str.nil? # Убедитесь что str не nil
+
     str.gsub!("[size]", search_size_1) unless str.nil?
     # str.gsub!(search_size_2, " [size] ")
     # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
@@ -111,6 +124,99 @@ module StringProcessing
     str.gsub!("[r-]", "333333") unless str.nil?
 
     str
+  end
+
+  def insert_brand_url(text)
+    brands = Brand.all
+    # Создать хэш с именами брендов в качестве ключей и URL в качестве значений
+    brand_urls = brands.each_with_object({}) do |brand, hash|
+      hash[brand.name] = "<a href='https://prokoleso.ua/shiny/#{brand.url}/'>#{brand.name}</a>"
+    end
+
+    # Проверить, есть ли названия брендов в тексте и заменить их на URL
+    brand_urls.each do |brand, url|
+      text.sub!(brand, url)
+    end
+
+  end
+
+  def insert_season_url_new(text)
+    season = url_shiny_hash_params[:tyre_season]
+    type_season = {
+      '1': { value: "letnie",
+             season: 1,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((Л|л)етн(ие|яя|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/,
+      },
+      '2': { value: 'zimnie',
+             season: 2,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((З|з)имн(ие|яя|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/
+      },
+      '3': { value: 'vsesezonie',
+             season: 3,
+             state: { season_url: true,
+                      season_size: true },
+             search_str: /((В|в)сесезонн(ые|ие|ая|юю)\s+(шин(ы|а|у)|резин(а|ы|у)))/
+      }
+
+    }
+    arr_size = arr_size_to_error
+
+    search_size = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
+    search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
+
+    replaced = {}
+    text = text.each_line.map do |line|
+
+      replaced = false
+      type_season.each do |key, value|
+
+        # if value[:season] != season
+        part_url = value[:value] + '/'
+        regex = value[:search_str]
+        match = line.match(regex)
+
+        if match && value[:state][:season_url]
+          puts "match = = #{match}"
+          url = "<a href='https://prokoleso.ua/shiny/#{part_url}'>#{match[0]}</a>"
+          puts "url = = #{url}"
+          puts line
+          line.sub!(regex, url)
+          puts line
+          value[:state][:season_url] = false
+          puts "value[:state][:season_url] = = #{value[:state][:season_url]}"
+          replaced = true
+        end
+
+        break if replaced
+      end
+
+      # ссылки на размеры
+      type_season.each do |key, value|
+        url_shiny_hash_params[:tyre_w]
+
+        regex = /(#{value[:search_str]}\s*#{search_size})/
+        match = line.match(regex)
+        part_url_size = "w-#{url_shiny_hash_params[:tyre_w]}/h-#{url_shiny_hash_params[:tyre_h]}/r-#{url_shiny_hash_params[:tyre_r]}/"
+
+        puts "value[:season].to_i = #{value[:season].to_i} ? season.to_i = #{season.to_i}"
+        part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
+        if match && value[:state][:season_size]
+          url = "<a href='https://prokoleso.ua/shiny/#{part_url}#{part_url_size}'>#{match[1]}</a>"
+          line.sub!(regex, url)
+          value[:state][:season_size] = false
+          replaced = true
+        end
+        break if replaced
+      end
+      line
+    end.join("")
+
+    # вернуть измененный текст
+    text
   end
 
   def replace_name_to_template(text)
@@ -124,7 +230,7 @@ module StringProcessing
     transformed_sentences = sentences.map do |sentence|
       case sentence
       when /(?:^|\.)\s*Потому\s*[\p{P}\p{S}]*\s*что\s*/, /(?:^|\.)\s*(Поэтому|А|Но)\s*/, /(?:^|\.)\s*Эт(и|о|от)\s*/
-        puts "sentence === #{sentence}"
+        # puts "sentence === #{sentence}"
         sentence.sub($&, '').gsub(/^[\p{P}\p{S}]+/, '').split.map.with_index { |word, i| i.zero? ? word.capitalize : word }.join(' ')
       when /\s*эт(и|о|от)\s*/
         puts "sentence это === #{sentence}"
@@ -202,8 +308,6 @@ module StringProcessing
     url_parts
   end
 
-
-
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
     url_parts = arr_params_url
@@ -247,11 +351,36 @@ module StringProcessing
   def print_errors_text?
     url_param = url_shiny_hash_params
     case url_param[:tyre_r].to_i
-    when 13, 14, 15, 16, 17, 18, 19
+    when 13, 14, 15, 16, 17, 18, 19, 20
       true
     else
       false
     end
   end
+
+  def clear_size_in_sentence
+    # Находим и зачищаем все записи, содержащие число 195, 65, 15 .
+    posts195 = SeoContentTextSentence.where("sentence LIKE ?", "%195%")
+    posts65 = SeoContentTextSentence.where("sentence LIKE ?", "%65%")
+    posts15 = SeoContentTextSentence.where("sentence LIKE ?", "%15%")
+
+    posts195.each do |post|
+      updated_sentence = post.sentence.gsub('195', ' ')
+      post.update(sentence: updated_sentence)
+    end
+    posts65.each do |post|
+      updated_sentence = post.sentence.gsub('65', ' ')
+      post.update(sentence: updated_sentence)
+    end
+    posts15.each do |post|
+      updated_sentence = post.sentence.gsub('15', ' ')
+      post.update(sentence: updated_sentence)
+    end
+  end
+
+
+
+
+
 
 end

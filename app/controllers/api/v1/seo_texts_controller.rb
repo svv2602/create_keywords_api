@@ -19,10 +19,12 @@ class Api::V1::SeoTextsController < ApplicationController
     #   TextBody:  Украине нужные шины Украине нужные шины Украине
     # нужные шины Украине нужные шины Украине нужные шины
 
-    txt_file_to_json
+    # txt_file_to_json
+    clear_size_in_sentence
     render json: { result: "Создан файл lib/template_texts/data.json" }
     # после обработки готовый файл нужно перенести в папку finished_texts
   end
+
   def raw_text
     # пример:
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
@@ -50,33 +52,36 @@ class Api::V1::SeoTextsController < ApplicationController
     # result += arr_url_result_str if print_errors_text?
     # result += min_errors_text(arr_size)
     result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
-    # alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
-    # puts alphanumeric_chars_count
+    # Добавляем ссылки:
+    insert_brand_url(result)
+    result = insert_season_url_new(result)
+
+    result = generate_title_h2 + result + "<br>"
     result
   end
 
-
-def min_errors_text(arr_size)
-  result = ''
-  if !print_errors_text? && !arr_size.empty?
-    text_err = "<h3>" + "="*40 + "</h3>\n"
-    text_err += "<p>"
-    text_err += TEMPLATE_TEXT_ERROR.shuffle.first + " " + arr_size.shift(5).join(', ')
-    text_err += "</p><br>\n"
-    result += text_err
+  def min_errors_text(arr_size)
+    result = ''
+    if !print_errors_text? && !arr_size.empty?
+      text_err = "<br>\n"
+      text_err += "<p class='keywords-size'>"
+      text_err += TEMPLATE_TEXT_ERROR.shuffle.first + " " + arr_size.shift(5).join(', ')
+      text_err += "</p><br>\n"
+      result += text_err
+    end
+    result
   end
-  result
-end
+
   def seo_text
 
     result = replace_trash(raw_text)
 
     alphanumeric_chars_count = result&.scan(/[\p{L}\p{N}]/)&.length
     puts "количество значимых символов - #{alphanumeric_chars_count}"
-    puts "Было:" + "="*80
+    puts "Было:" + "=" * 80
     puts adjust_keyword_stuffing(result)
     result = replace_text_by_hash(result)
-    puts "Стало:" + "=>"*40
+    puts "Стало:" + "=>" * 40
     puts adjust_keyword_stuffing(result)
     puts result
     render json: { result: result }
@@ -200,8 +205,10 @@ end
       select_record_to_table_sentence(content_type) unless SeoContentTextSentence.where(str_seo_text: content_type).exists?
       count_record += add_record_to_table(array, data_table_hash, select_number_table)
     end
+    # Находим и подчищаем все записи, содержащие число 195, 65, 15 .
+    clear_size_in_sentence
 
-    result = "В таблицу базы данных SeoContentText добавлены записи. === Кол-во: #{count_record}  "
+    result = "В таблицу базы данных SeoContentTextSentence добавлены записи. === Кол-во: #{count_record}  "
 
     puts result
     render json: { result: result }
@@ -368,6 +375,69 @@ end
     str
   end
 
+  def generate_title_h2
+    title_h2 = ""
+
+    url_params = url_shiny_hash_params
+    file_path = Rails.root.join('lib', 'template_texts', 'title_h2.json')
+    file_data = File.read(file_path)
+    hash_title = JSON.parse(file_data)
+    # url_hash = { tyre_w, tyre_h,tyre_r,tyre_season,tyre_brand}
+    # hash_title = {"total" ,"letnie", "zimnie", "vsesezonie", "total_brand","letnie_brand", "zimnie_brand", "vsesezonie_brand"}
+    if url_params[:tyre_brand].present?
+      case url_params[:tyre_season]
+      when 1
+        title_h2 = hash_title["letnie_brand"].shuffle.first
+      when 2
+        title_h2 = hash_title["zimnie_brand"].shuffle.first
+      when 3
+        title_h2 = hash_title["vsesezonie_brand"].shuffle.first
+      else
+        title_h2 = hash_title["total_brand"].shuffle.first
+
+      end
+    else
+      case url_params[:tyre_season]
+      when 1
+        title_h2 = hash_title["letnie"].shuffle.first
+      when 2
+        title_h2 = hash_title["zimnie"].shuffle.first
+      when 3
+        title_h2 = hash_title["vsesezonie"].shuffle.first
+      else
+        title_h2 = hash_title["total"].shuffle.first
+      end
+    end
+
+    title_h2 = make_replace_for_title(title_h2, url_params) if title_h2.present?
+    result = "<h2> #{title_h2} </h2>\n"
+    result
+  end
+
+  def make_replace_for_title(str, url_params)
+    replace_size_to_template(str)
+    str = str.gsub('[size]', replace_name_size(url_params))
+    rpl = ''
+    brand = url_params[:tyre_brand]
+    if brand.present?
+      records = Brand.where(url: brand)
+      arr = []
+      first_char_word1 = brand[0].downcase
+      records.each do |record|
+        first_char_word2 = Translit.convert(record[:name][0], :english).downcase
+        if first_char_word1 == first_char_word2 || first_char_word1 == record[:name][0]
+          arr << record[:name].capitalize
+          arr << "#{record[:name].capitalize} (#{brand.capitalize})" if first_char_word1 == first_char_word2
+        end
+      end
+      puts "я тут ==== #{arr.inspect}"
+      rpl = arr.shuffle.first
+    end
+
+    str = str.gsub('Michelin ', rpl)
+    str
+  end
+
   def generator_text(content_type)
     # количество абзацев в выбранном типе текста
     max_str_number = SeoContentText.where(content_type: content_type).maximum(:str_number)
@@ -400,7 +470,7 @@ end
       first_element = array.first
       first_element = first_element.gsub('[size]', replace_name_size(url_params))
 
-      rest_of_array = array.drop(1).shuffle
+      rest_of_array = array.drop(1)#.shuffle
       # задается случайный порядок предложений в абзаце
 
       rest_of_array.map! do |string|
