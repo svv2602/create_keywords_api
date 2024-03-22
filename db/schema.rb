@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_16_211210) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_22_115308) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -126,6 +126,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_211210) do
     t.datetime "updated_at", null: false
     t.text "type_text"
     t.integer "order_out", default: 0
+    t.integer "type_tag"
   end
 
   create_table "size_copies", force: :cascade do |t|

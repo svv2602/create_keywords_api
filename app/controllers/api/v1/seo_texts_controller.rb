@@ -9,18 +9,9 @@ class Api::V1::SeoTextsController < ApplicationController
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
     # для запуска: внести текст, для обработки в файл lib/template_texts/data.txt
-    # пример файла:
-    # TextType: strTextType
-    # TextTitle: Покупка АВТОШИНЫ 205/60R16 ответственный выбор.
-    #   TextBody: Купить в Украине
-    #
-    # TextType: strTextType1
-    # TextTitle: АВТОШИНЫ 205/60R16.
-    #   TextBody:  Украине нужные шины Украине нужные шины Украине
-    # нужные шины Украине нужные шины Украине нужные шины
 
-    # txt_file_to_json
-    clear_size_in_sentence
+    txt_file_to_json
+    # clear_size_temp # для обновления данных в таблице
     render json: { result: "Создан файл lib/template_texts/data.json" }
     # после обработки готовый файл нужно перенести в папку finished_texts
   end
@@ -151,10 +142,12 @@ class Api::V1::SeoTextsController < ApplicationController
         number_of_repeats: number_of_repeats,
         content_type: h["Block_" + ind.to_s]["TextTitle"],
         type_text: h["Block_" + ind.to_s]["TextType"],
+        type_tag: h["Block_" + ind.to_s]["TextTypeTag"]&.to_i,
         order_out: h["Block_" + ind.to_s]["order_out"]&.to_i,
         str_number: 0
       }
-      puts " array ==== #{array}"
+
+      puts "Current hash: #{h}"
 
       count_record += add_record_to_table(array, data_table_hash, select_number_table)
     end
@@ -344,6 +337,7 @@ class Api::V1::SeoTextsController < ApplicationController
       when 1
         SeoContentText.create(str: str,
                               order_out: data_table_hash[:order_out],
+                              type_tag: data_table_hash[:type_tag],
                               type_text: data_table_hash[:type_text],
                               content_type: data_table_hash[:content_type],
                               str_number: data_table_hash[:str_number]
@@ -441,7 +435,7 @@ class Api::V1::SeoTextsController < ApplicationController
   def generator_text(content_type)
     # количество абзацев в выбранном типе текста
     max_str_number = SeoContentText.where(content_type: content_type).maximum(:str_number)
-    SeoContentText.where(content_type: content_type).first.try(:[], :type_text) =~ /_1/ ? tag_li = "li" : tag_li = "p"
+    SeoContentText.where(content_type: content_type).first.try(:[], :type_tag) == 1 ? tag_li = "li" : tag_li = "p"
     text = ""
     array = []
     url_params = url_shiny_hash_params
