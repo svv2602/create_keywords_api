@@ -61,31 +61,63 @@ module StringProcessing
   end
 
   def replace_name_size(url_params)
-    ww = url_params[:tyre_w]
-    hh = url_params[:tyre_h]
-    rr = url_params[:tyre_r]
+    result = ''
+    if size_present_in_url?
+      ww = url_params[:tyre_w]
+      hh = url_params[:tyre_h]
+      rr = url_params[:tyre_r]
 
-    case rand(1..10) % 10
-    when 1
-      result = "#{ww}/#{hh} на #{rr}"
-    when 2
-      result = "#{ww}/#{hh} P#{rr}"
-    when 3
-      result = "#{ww} #{hh} r#{rr}"
-    when 4
-      result = "#{ww}/#{hh} R#{rr}"
-    when 5
-      result = "#{ww} #{hh} R#{rr}"
-    when 6
-      result = "#{ww}x#{hh} R#{rr}"
-    when 7
-      result = "#{ww}/#{hh} на R#{rr}"
-    when 8
-      result = "#{ww} #{hh}r#{rr}"
-    else
-      result = "#{ww} #{hh} #{rr}"
+      case rand(1..10) % 10
+      when 1
+        result = "#{ww}/#{hh} на #{rr}"
+      when 2
+        result = "#{ww}/#{hh} P#{rr}"
+      when 3
+        result = "#{ww} #{hh} r#{rr}"
+      when 4
+        result = "#{ww}/#{hh} R#{rr}"
+      when 5
+        result = "#{ww} #{hh} R#{rr}"
+      when 6
+        result = "#{ww}x#{hh} R#{rr}"
+      when 7
+        result = "#{ww}/#{hh} на R#{rr}"
+      when 8
+        result = "#{ww} #{hh}r#{rr}"
+      else
+        result = "#{ww} #{hh} #{rr}"
+      end
     end
+
+    if size_only_diameter_in_url?
+      result = ''
+      case rand(1..12)
+      when 1
+        result = "р"
+      when 2
+        result = "Р"
+      when 3
+        result = "p"
+      when 4
+        result = "P"
+      when 5,6,7
+        result = "r"
+      else
+        result = "R"
+      end
+
+      result = result + url_params[:tyre_r]
+      result = result + " " + random_name_brand(url_params[:tyre_brand]) if url_params[:tyre_brand].present?
+      puts "url_params[:tyre_r] = #{url_params[:tyre_r]}"
+    end
+
+    if size_only_brand_in_url?
+      result = random_name_brand(url_params[:tyre_brand])
+    end
+    # result = "" if !(size_only_diameter_in_url?||size_only_brand_in_url?||size_present_in_url?)
+
     result
+
   end
 
   def replace_size_to_template(str)
@@ -146,28 +178,28 @@ module StringProcessing
     season = url_shiny[:tyre_season]
     type_season = {
       'летние': { value: "letnie",
-             season: 1,
-             state: { season_url: true,
-                      season_size: true,
-                      season_diameter: true
-             },
-             search_str: /((Л|л)етн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/,
+                  season: 1,
+                  state: { season_url: true,
+                           season_size: true,
+                           season_diameter: true
+                  },
+                  search_str: /((Л|л)етн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/,
       },
       'зимние': { value: 'zimnie',
-             season: 2,
-             state: { season_url: true,
-                      season_size: true,
-                      season_diameter: true
-             },
-             search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
+                  season: 2,
+                  state: { season_url: true,
+                           season_size: true,
+                           season_diameter: true
+                  },
+                  search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
       },
       'всесезонные': { value: 'vsesezonie',
-             season: 3,
-             state: { season_url: true,
-                      season_size: true,
-                      season_diameter: true
-             },
-             search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
+                       season: 3,
+                       state: { season_url: true,
+                                season_size: true,
+                                season_diameter: true
+                       },
+                       search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
       }
 
     }
@@ -175,7 +207,6 @@ module StringProcessing
 
     search_size = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
     search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
-
 
     replaced = {}
     text = text.each_line.map do |line|
@@ -219,7 +250,7 @@ module StringProcessing
 
       # ссылки на диаметры
       type_season.each do |key, value|
-        regex = /(R|r)#{diameter}/
+        regex = /\b((R|r)#{diameter})\b/
         match = line.match(regex)
         part_url_size = "r-#{url_shiny[:tyre_r]}/"
         part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
@@ -234,15 +265,23 @@ module StringProcessing
         break if replaced
       end
 
-
-
       line
     end.join("")
     # ссылка на страницу оплата и доставка
     regex = /(оплат(а|ы)(| и доставк(а|и)))/
     match = text.match(regex)
-    url = "<a href='https://prokoleso.ua/oplata-i-dostavka/'>#{match[0]}</a>"
-    text.sub!(regex, url)
+    if match
+      url = "<a href='https://prokoleso.ua/oplata-i-dostavka/'>#{match[0]}</a>"
+      text.sub!(regex, url)
+    end
+
+    # ссылка на страницу контакты
+    regex = /(проконсультироваться|консультаци(я|ю|и)|сотрудничеств(а|о)|ответить на все вопросы|профессионал(ы|ов)|(Н|н)аш(ей|а|у) команд(а|у|ой))/
+    match = text.match(regex)
+    if match
+      url = "<a href='https://prokoleso.ua/about/'>#{match[0]}</a>"
+      text.sub!(regex, url)
+    end
 
     # вернуть измененный текст
     text
@@ -337,6 +376,21 @@ module StringProcessing
     url_parts
   end
 
+  def size_present_in_url?
+    url_parts = url_shiny_hash_params
+    ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
+  end
+
+  def size_only_diameter_in_url?
+    url_parts = url_shiny_hash_params
+    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].all?(&:empty?)
+  end
+
+  def size_only_brand_in_url?
+    url_parts = url_shiny_hash_params
+    url_parts[:tyre_brand].present? && !size_present_in_url? && !size_only_diameter_in_url?
+  end
+
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
     url_parts = arr_params_url
@@ -347,10 +401,11 @@ module StringProcessing
       tyre_season: 0,
       tyre_brand: '',
     }
-    if url_parts.include?('shiny') && url_parts != '' &&
-      url_parts.any? { |part| part.match(/w-\d+/) } &&
-      url_parts.any? { |part| part.match(/h-\d+/) } &&
-      url_parts.any? { |part| part.match(/r-\d+/) }
+    if url_parts.include?('shiny') && url_parts != ''
+      # &&
+      # url_parts.any? { |part| part.match(/w-\d+/) } &&
+      # url_parts.any? { |part| part.match(/h-\d+/) } &&
+      # url_parts.any? { |part| part.match(/r-\d+/) }
 
       url_parts.each do |el|
 

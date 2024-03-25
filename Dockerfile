@@ -19,7 +19,7 @@ RUN bundle install
 COPY . ./
 
 
-RUN bundle exec rails db:setup
+#RUN bundle exec rails db:setup
 
 # Установка часового пояса внутри контейнера
 RUN ln -sf /usr/share/zoneinfo/Europe/Kiev /etc/localtime

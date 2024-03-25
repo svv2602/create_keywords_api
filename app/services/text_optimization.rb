@@ -78,41 +78,6 @@ module TextOptimization
     str_new
   end
 
-  # def apply_replacements(text)
-  #   replacements = KEYWORD_STUFFING_TEMPLATE
-  #
-  #   adjustments = adjust_keyword_stuffing(text)
-  #   if adjustments["шина"][:action]>0 && adjustments["резина"][:action]>0
-  #     min_value = [adjustments["шина"][:action], adjustments["резина"][:action]].min
-  #     text = replacements_keywords(text, replacements, "резина и шины", min_value)
-  #   end
-  #
-  #   result = text
-  #   adjustments.each do |key, value|
-  #     # puts "Ключ: #{key}, значение: #{value[:action]}"
-  #     adjustments_new = adjust_keyword_stuffing(text)
-  #     replacements_count_max = adjustments_new[key][:action]
-  #     result = replacements_keywords(result, replacements, key, replacements_count_max)
-  #   end
-  #
-  #   result
-  # end
-  #
-  # def replacements_keywords(text, replacements, key, replacements_count_max)
-  #
-  #   # puts "replacements == #{replacements}"
-  #   # puts "replacements == #{key}"
-  #   replacements_count = 0
-  #   replacements[key]['replaces'].each do |old, new|
-  #     break if replacements_count >= replacements_count_max
-  #     while text =~ old
-  #       break if replacements_count >= replacements_count_max
-  #       text.sub!(old, new)
-  #       replacements_count += 1
-  #     end
-  #   end
-  #   text
-  # end
 
   def add_new_el_to_hash(max_replacements, selected_max_elements)
     if max_replacements["шина"][:action] > 0 && max_replacements["резина"][:action] > 0

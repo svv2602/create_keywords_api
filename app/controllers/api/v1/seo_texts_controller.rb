@@ -6,6 +6,13 @@ class Api::V1::SeoTextsController < ApplicationController
   include StringErrorsProcessing
   include TextOptimization
 
+  def total_generate_seo_text
+    #
+    txt_file_to_json
+    total_arr_to_table(5,5)
+    total_arr_to_table_sentence(5,5)
+
+  end
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
     # для запуска: внести текст, для обработки в файл lib/template_texts/data.txt
@@ -30,7 +37,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       result += generator_text(content_type) + "\n"
       arr = arr_size.shift(5)
-      result += min_errors_text(arr)
+      result += min_errors_text(arr) if size_present_in_url?
 
       alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     end
@@ -44,10 +51,11 @@ class Api::V1::SeoTextsController < ApplicationController
     # result += min_errors_text(arr_size)
     result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
     # Добавляем ссылки:
-    insert_brand_url(result)
+    insert_brand_url(result) if !size_only_brand_in_url?
     result = insert_season_url_new(result)
 
     result = generate_title_h2 + result + "<br>"
+    result = result.gsub(/\s+/, ' ')
     result
   end
 
@@ -98,7 +106,7 @@ class Api::V1::SeoTextsController < ApplicationController
     when 2
       param_season = "%zimnie%"
     when 3
-      param_season = 0
+      param_season = "%vsesezonie%"
     else
       param_season = "%season%"
     end
@@ -126,10 +134,10 @@ class Api::V1::SeoTextsController < ApplicationController
     common_items
   end
 
-  def total_arr_to_table
+  def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
     h = data_json_to_hash
-    number_of_repeats_for_text = 1 # Задаем количество повторов вариантов для всего текста
-    number_of_repeats = 1 # количество вариантов написания каждого абзаца
+    # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
+    # number_of_repeats = 5 # количество вариантов написания каждого абзаца
     select_number_table = 1 # номер таблицы с результатами
     ind = 0 # определение номера блока текста в json
     count_record = 0 # подсчет обработанных записей
@@ -175,9 +183,9 @@ class Api::V1::SeoTextsController < ApplicationController
 
   end
 
-  def total_arr_to_table_sentence
-    number_of_repeats_for_text = 1 # Задаем количество повторов вариантов для всего текста
-    number_of_repeats = 1 # количество вариантов написания каждого предложения
+  def total_arr_to_table_sentence(number_of_repeats_for_text = 1, number_of_repeats = 1)
+    # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
+    # number_of_repeats = 5 # количество вариантов написания каждого предложения
     #========================================================
     select_number_table = 2 # номер таблицы с результатами
     count_record = 0 # подсчет обработанных записей
@@ -194,7 +202,7 @@ class Api::V1::SeoTextsController < ApplicationController
         str_number: record[:str_number]
       }
 
-      puts " array ==== #{array}"
+      # puts " array ==== #{array}"
       select_record_to_table_sentence(content_type) unless SeoContentTextSentence.where(str_seo_text: content_type).exists?
       count_record += add_record_to_table(array, data_table_hash, select_number_table)
     end
@@ -376,31 +384,16 @@ class Api::V1::SeoTextsController < ApplicationController
     file_path = Rails.root.join('lib', 'template_texts', 'title_h2.json')
     file_data = File.read(file_path)
     hash_title = JSON.parse(file_data)
-    # url_hash = { tyre_w, tyre_h,tyre_r,tyre_season,tyre_brand}
-    # hash_title = {"total" ,"letnie", "zimnie", "vsesezonie", "total_brand","letnie_brand", "zimnie_brand", "vsesezonie_brand"}
-    if url_params[:tyre_brand].present?
-      case url_params[:tyre_season]
-      when 1
-        title_h2 = hash_title["letnie_brand"].shuffle.first
-      when 2
-        title_h2 = hash_title["zimnie_brand"].shuffle.first
-      when 3
-        title_h2 = hash_title["vsesezonie_brand"].shuffle.first
-      else
-        title_h2 = hash_title["total_brand"].shuffle.first
 
-      end
+    case url_params[:tyre_season]
+    when 1
+      title_h2 = hash_title["letnie"].shuffle.first
+    when 2
+      title_h2 = hash_title["zimnie"].shuffle.first
+    when 3
+      title_h2 = hash_title["vsesezonie"].shuffle.first
     else
-      case url_params[:tyre_season]
-      when 1
-        title_h2 = hash_title["letnie"].shuffle.first
-      when 2
-        title_h2 = hash_title["zimnie"].shuffle.first
-      when 3
-        title_h2 = hash_title["vsesezonie"].shuffle.first
-      else
-        title_h2 = hash_title["total"].shuffle.first
-      end
+      title_h2 = hash_title["total"].shuffle.first
     end
 
     title_h2 = make_replace_for_title(title_h2, url_params) if title_h2.present?
@@ -411,8 +404,14 @@ class Api::V1::SeoTextsController < ApplicationController
   def make_replace_for_title(str, url_params)
     replace_size_to_template(str)
     str = str.gsub('[size]', replace_name_size(url_params))
-    rpl = ''
     brand = url_params[:tyre_brand]
+    rpl = random_name_brand(brand)
+    str = size_only_brand_in_url? ? str.gsub('Michelin ', rpl) : str.gsub('Michelin ', '')
+    str
+  end
+
+  def random_name_brand(brand)
+    rpl = ''
     if brand.present?
       records = Brand.where(url: brand)
       arr = []
@@ -424,12 +423,9 @@ class Api::V1::SeoTextsController < ApplicationController
           arr << "#{record[:name].capitalize} (#{brand.capitalize})" if first_char_word1 == first_char_word2
         end
       end
-      puts "я тут ==== #{arr.inspect}"
       rpl = arr.shuffle.first
     end
-
-    str = str.gsub('Michelin ', rpl)
-    str
+    rpl
   end
 
   def generator_text(content_type)
@@ -464,7 +460,7 @@ class Api::V1::SeoTextsController < ApplicationController
       first_element = array.first
       first_element = first_element.gsub('[size]', replace_name_size(url_params))
 
-      rest_of_array = array.drop(1)#.shuffle
+      rest_of_array = array.drop(1) #.shuffle
       # задается случайный порядок предложений в абзаце
 
       rest_of_array.map! do |string|
