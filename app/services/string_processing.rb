@@ -100,7 +100,7 @@ module StringProcessing
         result = "p"
       when 4
         result = "P"
-      when 5,6,7
+      when 5, 6, 7
         result = "r"
       else
         result = "R"
@@ -170,6 +170,56 @@ module StringProcessing
       text.sub!(brand, url)
     end
 
+  end
+
+  # Доработать удаление мусорных записей AI
+  def delete_all_trash_records_ai
+    SeoContentText.all.each do |record|
+      SeoContentText.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.str)
+    end
+    SeoContentTextSentence.all.each do |record|
+      SeoContentTextSentence.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.sentence)
+    end
+  end
+
+  def delete_record_with_trash(text)
+    SeoContentText.where(str: text).delete_all
+    SeoContentTextSentence.where(sentence: text).delete_all
+  end
+
+  def arr_name_brand_uniq
+    # извлечения уникальных значений из поля url
+    unique_urls = Brand.pluck(:url).uniq
+    # преобразовать каждый URL в массив слов
+    words_array = unique_urls.map { |url| url.split("/") }.flatten.uniq
+    exclude_words = words_array.join("|") # преобразуем массив слов в строку, разделенную символом '|'
+    exclude_words
+  end
+
+  def is_the_percent_of_Latin_chars_invalid?(text)
+    # проверка на допустимое наличие букв латинского алфавита (% от общего количества знаков)
+    percent_of_latin_chars(text) > 1
+  end
+
+  def percent_of_latin_chars(text)
+    # Подсчет латинских символов в тексте
+    # регулярное для маркировки
+    marker = "Z|W|Y|\(Y\)|ZR|XL|Reinforced|SL|Standard\sLoad|AS|All-Season|AT|All-Terrain|MT|M\+S|M/S|LT|P|C|ST|RF|DOT|ECE|ISO|UTQG|M&S|ATP|AWD"
+    # список брендов
+    exclude_words = arr_name_brand_uniq
+
+    # Создаем регулярное выражение, объединяя все слова и регулярные выражения, из которых нужно избавиться
+    regexp_string = "\\b(?:size|prokoleso|#{exclude_words.split(' ').join("|")}|ua|#{marker})\\b"
+    regexp = Regexp.new(regexp_string, "i")
+
+    filtered_text = text.gsub(regexp, '') # удаляем указанные слова из текста
+    filtered_text = filtered_text.gsub(/(R|r)(|\s*)\d+/, '')
+
+    latin_letters = filtered_text.scan(/[a-zA-Z]/).size
+    total_chars = text.gsub(/\s+/, "").size
+    percentage = (latin_letters.to_f / total_chars) * 100
+
+    puts "Percentage of Latin letters: #{percentage.round(2)}%"
   end
 
   def insert_season_url_new(text)

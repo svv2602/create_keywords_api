@@ -5,15 +5,18 @@ class Api::V1::SeoTextsController < ApplicationController
   include StringProcessing
   include StringErrorsProcessing
   include TextOptimization
+  include StringProcessingServices
 
   def total_generate_seo_text
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
-    txt_file_to_json
-    # первый рерайт текстов по абзацам _
-    total_arr_to_table(5,5)
-    # второй рерайт текстов по предложениям
-    total_arr_to_table_sentence(5,5)
+
+    render json: { result: "#{array_after_error_from_json.inspect}"}
+    # txt_file_to_json
+    # # первый рерайт текстов по абзацам _
+    # total_arr_to_table(5,5)
+    # # второй рерайт текстов по предложениям
+    # total_arr_to_table_sentence(5,5)
 
   end
   def json_write_for_read
@@ -158,7 +161,7 @@ class Api::V1::SeoTextsController < ApplicationController
         str_number: 0
       }
 
-      puts "Current hash: #{h}"
+      # puts "Current hash: #{h}"
 
       count_record += add_record_to_table(array, data_table_hash, select_number_table)
     end
