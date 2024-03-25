@@ -163,7 +163,16 @@ class Api::V1::SeoTextsController < ApplicationController
     # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
     # number_of_repeats = 5 # количество вариантов написания каждого абзаца
     select_number_table = 1 # номер таблицы с результатами
-    ind = 0 # определение номера блока текста в json
+
+    if params[:type_proc] == 0
+      ind = 0 # определение номера блока текста в json
+    else
+      # Получить первый ключ хэша
+      first_key = h.keys.first
+      ind = first_key.split('_').last.to_i if first_key.include?('_')
+    end
+
+
     count_record = 0 # подсчет обработанных записей
     h.each do |key, value|
       ind += 1
