@@ -75,6 +75,8 @@ module TextOptimization
   def replace_trash(str)
     str_new = str.gsub(/Dover's Auto Care/, 'PROKOLESO')
     str_new.gsub(/а боковой стене шин/, 'а боковине шин')
+    str_new.gsub(/Doudlestar/, 'Doublestar')
+
     str_new
   end
 
