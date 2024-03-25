@@ -15,8 +15,12 @@ Rails.application.routes.draw do
       get '/json_write_for_read', to: 'seo_texts#json_write_for_read'
       get '/total_arr_to_table', to: 'seo_texts#total_arr_to_table'
       get '/total_arr_to_table_sentence', to: 'seo_texts#total_arr_to_table_sentence'
+      get '/total_generate_seo_text', to: 'seo_texts#total_generate_seo_text'
+
     end
 
   end
+  get '/export_text', to: 'exports#export_text'
+  get '/export_sentence', to: 'exports#export_sentence'
 end
 

@@ -31,6 +31,8 @@ class CopyTextOptimization
     end
     count
   end
+
+
 end
 
 test = CopyTextOptimization.new
