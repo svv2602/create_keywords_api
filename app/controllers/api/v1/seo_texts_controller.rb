@@ -11,15 +11,24 @@ class Api::V1::SeoTextsController < ApplicationController
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
 
-    result = array_after_error_from_json
-    puts result
-    render json: { result: "#{result.inspect}"}
-    # txt_file_to_json
-    # # первый рерайт текстов по абзацам _
-    # total_arr_to_table(5,5)
-    # # второй рерайт текстов по предложениям
-    # total_arr_to_table_sentence(5,5)
+    # result = array_after_error_from_json
+    # puts result
+
+    txt_file_to_json
+    # первый рерайт текстов по абзацам _
+    #===========================================================
+    # ВНИМАНИЕ!!!
+    #===========================================================
+    # для полной обработки набирать с параметром params[:type_proc] = 0
+    # В total_arr_to_table, иначе обработке файла data.json - будет неполной
+    #===========================================================
+
+    total_arr_to_table(5,5)
+    # второй рерайт текстов по предложениям
+    total_arr_to_table_sentence(5,5)
+    # Итоговое удаление записей с несанкционированной ))) латиницей
     delete_all_trash_records_ai
+
 
   end
   def json_write_for_read
@@ -144,7 +153,13 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
-    h = data_json_to_hash
+    # h = data_json_to_hash
+    h = params[:type_proc] == 0 ?  data_json_to_hash : array_after_error_from_json
+    #=============================================================
+    # Сделана замена хеша с учетом последней записи в базе данных:
+    # h = array_after_error_from_json # при новом запуске закоментить
+    #=============================================================
+
     # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
     # number_of_repeats = 5 # количество вариантов написания каждого абзаца
     select_number_table = 1 # номер таблицы с результатами
