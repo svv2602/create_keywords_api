@@ -10,7 +10,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
     txt_file_to_json
-    # первый рерайт текстов по абзацам
+    # первый рерайт текстов по абзацам _
     total_arr_to_table(5,5)
     # второй рерайт текстов по предложениям
     total_arr_to_table_sentence(5,5)
