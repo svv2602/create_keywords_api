@@ -14,9 +14,6 @@ module StringProcessingServices
       delete_flag = false
 
       hash_new = hash.delete_if do |key, value|
-        # puts "value['TextTitle'] == #{value['TextTitle']}"
-        # puts "last_content_type == #{last_content_type}"
-        # puts "===== ==> #{value["TextTitle"] == last_content_type}"
         if value["TextTitle"] == last_content_type
           delete_flag = true
         end
@@ -40,13 +37,13 @@ module StringProcessingServices
   # Доработать удаление мусорных записей AI
   def delete_all_trash_records_ai
     SeoContentText.all.each do |record|
-      # SeoContentText.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.str)
-      puts record.str if is_the_percent_of_Latin_chars_invalid?(record.str)
+      SeoContentText.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.str)
+      # puts record.str if is_the_percent_of_Latin_chars_invalid?(record.str)
     end
 
-    # SeoContentTextSentence.all.each do |record|
-    #   SeoContentTextSentence.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.sentence)
-    # end
+    SeoContentTextSentence.all.each do |record|
+      SeoContentTextSentence.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.sentence)
+    end
   end
 
   def delete_record_with_trash(text)
