@@ -23,6 +23,7 @@ endpoint:
 
 #### дополнительно:
 * /api/v1/generate_completion - формирование заголовков для статей, созраняются в lib/template_texts/title_h2.json
+* /api/v1/total_generate_seo_text - полный запуск всех операций по генерации текстов (json, абзацы, предложения)
 * /api/v1/json_write_for_read - перенос текстов из lib/template_texts/data.txt в lib/template_texts/data.json
 * /api/v1/total_arr_to_table - рерайт текста из lib/template_texts/data.json и запись в базу данных
 * /api/v1/total_arr_to_table_sentence - рерайт предложений в заданном а абзаце порядке 
