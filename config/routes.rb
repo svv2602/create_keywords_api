@@ -23,6 +23,8 @@ Rails.application.routes.draw do
   get '/export_text', to: 'exports#export_text'
   get '/export_sentence', to: 'exports#export_sentence'
   get '/count_records', to: 'exports#count_records'
+  get '/readme', to: 'exports#readme'
+
 
 end
 

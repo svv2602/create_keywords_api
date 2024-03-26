@@ -17,4 +17,11 @@ class ExportsController < ApplicationController
                    SeoContentTextSentence: "Number of records: #{SeoContentTextSentence.count}"
     }
   end
+
+  def readme
+    readme_file_path = Rails.root.join('README.md')
+    readme_content = File.read(readme_file_path)
+    render plain: readme_content
+  end
+
 end
