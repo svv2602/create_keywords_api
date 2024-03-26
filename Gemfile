@@ -56,3 +56,6 @@ gem "ruby-openai", "~> 6.3"
 
 gem 'translit', '~> 0.1.5'
 
+
+
+

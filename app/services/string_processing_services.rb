@@ -17,15 +17,19 @@ module StringProcessingServices
   def array_after_error_from_json
     hash_new = {}
     hash = data_json_to_hash
+    return hash_new unless hash # return early if hash is nil
+
     content_last_element_hash = last_element_hash_json(hash)
+    return hash_new unless content_last_element_hash  # return early if content_last_element_hash is nil
 
     last_content_type = ""
+
     last_rec = SeoContentText.order(:created_at).last
     last_content_type = last_rec.content_type if last_rec
 
     # last_content_type = "Легкий выбор  шин  для вашего автомобиля"
 
-    if last_content_type != content_last_element_hash
+    if last_content_type && last_content_type != content_last_element_hash
       delete_flag = false
 
       hash_new = hash.delete_if do |key, value|
