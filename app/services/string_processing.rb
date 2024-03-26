@@ -368,30 +368,21 @@ module StringProcessing
   end
 
   def arr_params_url
+    result = []
     # url разбивается на массив значений
     url = params[:url]
     url_parts = ''
     if url.present?
       CGI::unescape(url)
       url_parts = url.split('/')
+      # удаляем из массива ["https:","","prokoleso.ua","shiny","w-255","h-55","r-20","zimnie"] первые 4 элемента
+      result = url_parts.drop(4)
     end
-    url_parts
+
+    result
   end
 
-  def size_present_in_url?
-    url_parts = url_shiny_hash_params
-    ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
-  end
 
-  def size_only_diameter_in_url?
-    url_parts = url_shiny_hash_params
-    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].all?(&:empty?)
-  end
-
-  def size_only_brand_in_url?
-    url_parts = url_shiny_hash_params
-    url_parts[:tyre_brand].present? && !size_present_in_url? && !size_only_diameter_in_url?
-  end
 
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
@@ -432,6 +423,26 @@ module StringProcessing
       end
     end
     url_hash
+  end
+
+  def size_present_in_url?
+    url_parts = url_shiny_hash_params
+    ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
+  end
+
+  def size_only_diameter_in_url?
+    url_parts = url_shiny_hash_params
+    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].all?(&:empty?)
+  end
+
+  def size_only_brand_in_url?
+    url_parts = url_shiny_hash_params
+    url_parts[:tyre_brand].present? && !size_present_in_url? && !size_only_diameter_in_url?
+  end
+  def alphanumeric_chars_count_for_url_shiny
+    params_url = url_shiny_hash_params
+
+
   end
 
   def print_errors_text?

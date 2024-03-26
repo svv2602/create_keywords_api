@@ -7,6 +7,11 @@ class Api::V1::SeoTextsController < ApplicationController
   include TextOptimization
   include StringProcessingServices
 
+  def mytest
+
+    puts "Все сделано! = #{arr_params_url.inspect}"
+    render json: { result: arr_params_url }
+  end
   def total_generate_seo_text
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
@@ -55,6 +60,12 @@ class Api::V1::SeoTextsController < ApplicationController
     alphanumeric_chars_count = 0
     general_array_without_season = general_array_without_seasonality.shuffle
     puts "common_items - #{general_array_without_season.inspect}"
+
+    # ================= alphanumeric_chars_count < 3000 =====================
+    # Добавить метод для определения базового количества символов в зависимости от урла
+    # +++++++++++++++++++++++++++++++++++++++++++++
+    # ========================================
+
     while alphanumeric_chars_count < 3000 && general_array_without_season.any?
       content_type = general_array_without_season.first
       general_array_without_season = general_array_without_season.drop(1)
@@ -67,13 +78,26 @@ class Api::V1::SeoTextsController < ApplicationController
     end
 
     # добавление текста по сезону
+
+    # ================= content_type = general_array_with_seasonality.first =====================
+    # Добавить условие в зависимости от урла по сезонности (нужен ли текст вообще?)
+    # +++++++++++++++++++++++++++++++++++++++++++++
+    # ========================================
     content_type = general_array_with_seasonality.first
     result += generator_text(content_type) + "\n"
+
+
+
+    # Добавить условие в зависимости от урла по тексту с ошибками (нужен ли такой текст вообще?)
+    # +++++++++++++++++++++++++++++++++++++++++++++
+    # ========================================
 
     # Добавление текста об ошибках в зависимости от диаметра колес
     # result += arr_url_result_str if print_errors_text?
     # result += min_errors_text(arr_size)
     result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
+
+
     # Добавляем ссылки:
     insert_brand_url(result) if !size_only_brand_in_url?
     result = insert_season_url_new(result)
@@ -112,8 +136,9 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def general_array_without_seasonality
-    unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
-                                             "%season%", "%letnie%", "%zimnie%")
+
+    unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
+                                             "%season%", "%letnie%", "%zimnie%", "%vsesezonie%")
                                       .pluck(:type_text)
                                       .uniq
 
