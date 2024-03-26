@@ -303,7 +303,7 @@ module StringProcessing
         # puts "sentence === #{sentence}"
         sentence.sub($&, '').gsub(/^[\p{P}\p{S}]+/, '').split.map.with_index { |word, i| i.zero? ? word.capitalize : word }.join(' ')
       when /\s*эт(и|о|от)\s*/
-        puts "sentence это === #{sentence}"
+        # puts "sentence это === #{sentence}"
         sentence.gsub(/\s*эт(о|и|от)\s*/, '')
       else
         sentence

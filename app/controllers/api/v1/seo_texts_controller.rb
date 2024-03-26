@@ -19,7 +19,8 @@ class Api::V1::SeoTextsController < ApplicationController
     #===========================================================
     # ВНИМАНИЕ!!!
     #===========================================================
-    # для полной обработки набирать с параметром params[:type_proc] = 0
+    # для полной обработки набирать с параметром params[:type_proc] = 1
+    # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?utype_proc=0
     # В total_arr_to_table, иначе обработке файла data.json - будет неполной
     #===========================================================
 
@@ -28,7 +29,8 @@ class Api::V1::SeoTextsController < ApplicationController
     total_arr_to_table_sentence(5,5)
     # Итоговое удаление записей с несанкционированной ))) латиницей
     delete_all_trash_records_ai
-
+    puts "Все сделано!"
+    render json: { result: "Все сделано!" }
 
   end
   def json_write_for_read
@@ -154,7 +156,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
     # h = data_json_to_hash
-    h = params[:type_proc] == 0 ?  data_json_to_hash : array_after_error_from_json
+    h = params[:type_proc].to_i == 1 ?  data_json_to_hash : array_after_error_from_json
     #=============================================================
     # Сделана замена хеша с учетом последней записи в базе данных:
     # h = array_after_error_from_json # при новом запуске закоментить
@@ -169,7 +171,12 @@ class Api::V1::SeoTextsController < ApplicationController
     else
       # Получить первый ключ хэша
       first_key = h.keys.first
-      ind = first_key.split('_').last.to_i if first_key.include?('_')
+      if first_key.present?
+        ind = first_key.split('_').last.to_i if first_key.include?('_')
+      else
+        ind = 0
+      end
+
     end
 
 
