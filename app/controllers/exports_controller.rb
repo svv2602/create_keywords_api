@@ -27,18 +27,18 @@ class ExportsController < ApplicationController
 
   def control_records
     count_previus = 0
-    loop do
-      count = SeoContentText.count
-      if count < 30000 && count == count_previus
-        # rt = ends_with_punctuation?("str")
-        puts "я тут #{}"
-        sleep 5  # ждем 5 минут - 300
-      else
-        count_previus = count
-        puts "В таблице SeoContentText сейчас #{count_previus} записей."
-        sleep 5  # ждем 5 минут - 300
-      end
-    end
+    # loop do
+    #   count = SeoContentText.count
+    #   if count < 30000 && count == count_previus
+    #     # rt = ends_with_punctuation?("str")
+    #     puts "я тут #{}"
+    #     sleep 5  # ждем 5 минут - 300
+    #   else
+    #     count_previus = count
+    #     puts "В таблице SeoContentText сейчас #{count_previus} записей."
+    #     sleep 5  # ждем 5 минут - 300
+    #   end
+    # end
   end
 
 end

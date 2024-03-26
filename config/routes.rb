@@ -25,7 +25,7 @@ Rails.application.routes.draw do
   get '/export_sentence', to: 'exports#export_sentence'
   get '/count_records', to: 'exports#count_records'
   get '/readme', to: 'exports#readme'
-  get '/control_records', to: 'exports#control_records'
+  # get '/control_records', to: 'exports#control_records'
 
 
 
