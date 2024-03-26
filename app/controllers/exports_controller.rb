@@ -9,4 +9,12 @@ class ExportsController < ApplicationController
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data records.to_json, filename: "export_sentence_#{timestamp}.json"
   end
+
+  def count_records
+    puts "Number of records in SeoContentTextSentence: #{SeoContentTextSentence.count}"
+    puts "Number of records in SeoContentText: #{SeoContentText.count}"
+    render json: { SeoContentText: "Number of records: #{SeoContentText.count}",
+                   SeoContentTextSentence: "Number of records: #{SeoContentTextSentence.count}"
+    }
+  end
 end

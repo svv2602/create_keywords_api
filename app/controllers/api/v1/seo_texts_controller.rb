@@ -29,6 +29,8 @@ class Api::V1::SeoTextsController < ApplicationController
     total_arr_to_table_sentence(5,5)
     # Итоговое удаление записей с несанкционированной ))) латиницей
     delete_all_trash_records_ai
+    # puts "array_after_error_from_seo_content_text = #{array_after_error_from_seo_content_text.inspect}"
+    # array_after_error_from_seo_content_text
     puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
@@ -230,7 +232,10 @@ class Api::V1::SeoTextsController < ApplicationController
     select_number_table = 2 # номер таблицы с результатами
     count_record = 0 # подсчет обработанных записей
 
-    SeoContentText.all.each do |record|
+    arr_to_table_sentence = array_after_error_from_seo_content_text
+
+    # SeoContentText.all.each do |record|
+    arr_to_table_sentence.each do |record|
       array = record[:str].split(/[.?!]/)
       array.map!(&:strip) # Удалить пробелы в начале и в конце каждого предложения
       content_type = record[:content_type]
@@ -264,7 +269,6 @@ class Api::V1::SeoTextsController < ApplicationController
         el = element
         replace_reverse_size_to_template(el)
         txt = seo_phrase(el, data_table_hash[:number_of_repeats], i, select_number_table)
-        # txt = "test test test test test test test test test test test test test test "
         arr_result = make_array_phrase(txt, i)
         data_table_hash[:str_number] = i if select_number_table == 1
         data_table_hash[:num_snt_in_str] = i if select_number_table == 2

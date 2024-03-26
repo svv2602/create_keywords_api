@@ -43,5 +43,6 @@ endpoint:
 // продолжение
 
 ### Экспорт данных из таблиц
-* /export_text 
-* /export_sentence
+* /export_text - Экспорт данных в json из SeoContentText
+* /export_sentence - Экспорт данных в json из SeoContentTextSentence
+* /count_records - количество записей в таблицах 
