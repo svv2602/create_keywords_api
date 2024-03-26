@@ -5,9 +5,6 @@ module StringProcessingServices
 
     text_last_record_in_table_sentence = SeoContentTextSentence.last&.str_seo_text
     id_record_content_text_in_table_text = SeoContentText.find_by(content_type: text_last_record_in_table_sentence)&.id
-    # puts "last_record_in_table_sentence ====== #{SeoContentTextSentence.last.id}"
-    # puts "text_last_record_in_table_sentence ====== #{text_last_record_in_table_sentence}"
-    # puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
     records = SeoContentText.all
     filtered_records = records.drop_while { |record| record.id <= id_record_content_text_in_table_text } if id_record_content_text_in_table_text
     filtered_records ||= records # Если предыдущая строка вернула nil, то присваиваем filtered_records все записи
