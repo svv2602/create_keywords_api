@@ -8,10 +8,12 @@ class Api::V1::SeoTextsController < ApplicationController
   include StringProcessingServices
 
   def mytest
-
-    puts "Все сделано! = #{arr_params_url.inspect}"
-    render json: { result: arr_params_url }
+    # curl http://localhost:3000/api/v1/mytest?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+    result = alphanumeric_chars_count_for_url_shiny
+    puts "Все сделано! =====  #{result.inspect}"
+    render json: { result: result }
   end
+
   def total_generate_seo_text
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
@@ -25,14 +27,14 @@ class Api::V1::SeoTextsController < ApplicationController
     # ВНИМАНИЕ!!!
     #===========================================================
     # для полной обработки набирать с параметром params[:type_proc] = 1
-    # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?utype_proc=0
+    # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
     # В total_arr_to_table, иначе обработке файла data.json - будет неполной
     #===========================================================
 
-    total_arr_to_table(5,5)
+    total_arr_to_table(5, 5)
     delete_all_trash_records_ai
     # второй рерайт текстов по предложениям
-    total_arr_to_table_sentence(5,5)
+    total_arr_to_table_sentence(5, 5)
     # Итоговое удаление записей с несанкционированной ))) латиницей
     delete_all_trash_records_ai
     # puts "array_after_error_from_seo_content_text = #{array_after_error_from_seo_content_text.inspect}"
@@ -41,6 +43,7 @@ class Api::V1::SeoTextsController < ApplicationController
     render json: { result: "Все сделано!" }
 
   end
+
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
     # для запуска: внести текст, для обработки в файл lib/template_texts/data.txt
@@ -65,8 +68,9 @@ class Api::V1::SeoTextsController < ApplicationController
     # Добавить метод для определения базового количества символов в зависимости от урла
     # +++++++++++++++++++++++++++++++++++++++++++++
     # ========================================
+    min_chars = alphanumeric_chars_count_for_url_shiny
 
-    while alphanumeric_chars_count < 3000 && general_array_without_season.any?
+    while alphanumeric_chars_count < min_chars && general_array_without_season.any?
       content_type = general_array_without_season.first
       general_array_without_season = general_array_without_season.drop(1)
 
@@ -87,16 +91,12 @@ class Api::V1::SeoTextsController < ApplicationController
     result += generator_text(content_type) + "\n"
 
 
-
-    # Добавить условие в зависимости от урла по тексту с ошибками (нужен ли такой текст вообще?)
-    # +++++++++++++++++++++++++++++++++++++++++++++
-    # ========================================
-
-    # Добавление текста об ошибках в зависимости от диаметра колес
+    # Добавление текста об ошибках в зависимости от диаметра колес, если в url есть размер
     # result += arr_url_result_str if print_errors_text?
     # result += min_errors_text(arr_size)
-    result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
-
+    if size_present_in_url?
+      result += print_errors_text?  ? arr_url_result_str : min_errors_text(arr_size)
+    end
 
     # Добавляем ссылки:
     insert_brand_url(result) if !size_only_brand_in_url?
@@ -137,11 +137,22 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def general_array_without_seasonality
 
+    if (10..14).include?(type_for_url_shiny)
+      # puts "Значение в диапазоне от 1 до 10"
+
+      unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
+                                               "%season%", "%letnie%", "%zimnie%", "%vsesezonie%", "%ассортимент%")
+                                        .pluck(:type_text)
+                                        .uniq
+
+    else
+      # puts "Значение вне диапазона от 1 до 10"
+
     unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
                                              "%season%", "%letnie%", "%zimnie%", "%vsesezonie%")
                                       .pluck(:type_text)
                                       .uniq
-
+    end
     result = general_array(unique_type_texts)
     result
   end
@@ -185,7 +196,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
     # h = data_json_to_hash
-    h = params[:type_proc].to_i == 1 ?  data_json_to_hash : array_after_error_from_json
+    h = params[:type_proc].to_i == 1 ? data_json_to_hash : array_after_error_from_json
     #=============================================================
     # Сделана замена хеша с учетом последней записи в базе данных:
     # h = array_after_error_from_json # при новом запуске закоментить
@@ -207,7 +218,6 @@ class Api::V1::SeoTextsController < ApplicationController
       end
 
     end
-
 
     count_record = 0 # подсчет обработанных записей
     h.each do |key, value|
@@ -518,10 +528,12 @@ class Api::V1::SeoTextsController < ApplicationController
           random_sentence = SeoContentTextSentence.where(str_seo_text: content_type, str_number: i, num_snt_in_str: j)
                                                   .order("RANDOM()")
                                                   .first
-
-          str = random_sentence[:sentence]
-          str += "." if ends_with_punctuation?(str)
-          processed_record += " #{str}"
+          if random_sentence && random_sentence[:sentence]
+            str = random_sentence[:sentence]
+            str += "." if ends_with_punctuation?(str)
+            processed_record += " #{str}"
+          end
+          processed_record
         end
 
         processed_record = replace_params_w_h_r_tyre(processed_record, url_params)

@@ -172,8 +172,6 @@ module StringProcessing
 
   end
 
-
-
   def insert_season_url_new(text)
     url_shiny = url_shiny_hash_params
     diameter = url_shiny[:tyre_r]
@@ -382,8 +380,6 @@ module StringProcessing
     result
   end
 
-
-
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
     url_parts = arr_params_url
@@ -394,12 +390,12 @@ module StringProcessing
       tyre_season: 0,
       tyre_brand: '',
     }
-    if url_parts.include?('shiny') && url_parts != ''
-      # &&
-      # url_parts.any? { |part| part.match(/w-\d+/) } &&
-      # url_parts.any? { |part| part.match(/h-\d+/) } &&
-      # url_parts.any? { |part| part.match(/r-\d+/) }
-
+    # if url_parts.include?('shiny') && url_parts != {}
+    # &&
+    # url_parts.any? { |part| part.match(/w-\d+/) } &&
+    # url_parts.any? { |part| part.match(/h-\d+/) } &&
+    # url_parts.any? { |part| part.match(/r-\d+/) }
+    if url_parts != {}
       url_parts.each do |el|
 
         case el
@@ -432,16 +428,58 @@ module StringProcessing
 
   def size_only_diameter_in_url?
     url_parts = url_shiny_hash_params
-    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].all?(&:empty?)
+    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?)
   end
 
   def size_only_brand_in_url?
     url_parts = url_shiny_hash_params
     url_parts[:tyre_brand].present? && !size_present_in_url? && !size_only_diameter_in_url?
   end
-  def alphanumeric_chars_count_for_url_shiny
-    params_url = url_shiny_hash_params
 
+  def type_for_url_shiny
+    url_parts = url_shiny_hash_params
+    # result = 0
+    size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0
+    diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0
+    brand = url_parts[:tyre_brand].present? ? 10 : 0
+    season = url_parts[:tyre_season]
+    # puts "url_parts === #{url_parts.inspect}"
+    # puts "size === #{size}"
+    # puts "diameter === #{diameter}"
+    # puts "brand === #{brand}"
+    # puts "season === #{season}"
+    result = size + diameter + season + brand
+    result
+  end
+
+  def alphanumeric_chars_count_for_url_shiny
+    # минимальное количество знаков в статье по урл
+    result = 0
+    puts "type_for_url_shiny = #{type_for_url_shiny}"
+    case type_for_url_shiny
+
+    when 100..150
+      # варианты по размеру
+      # when 110, 101, 102, 103, 111, 112, 113
+      result = 3500
+
+    when 200..250
+      # варианты по диаметру
+      # when 200, 210, 201, 202, 203, 211, 212, 213
+      result = 2500
+
+    when 10
+      # варианты по бренду
+      result = 1000
+
+    when 11, 12, 13
+      # варианты по бренду с сезоном
+      result = 500
+    else
+      result = 0
+    end
+
+    result
 
   end
 
