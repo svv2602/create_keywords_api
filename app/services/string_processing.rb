@@ -7,7 +7,7 @@ module StringProcessing
     when 1
       result = "#{ww} #{hh}r#{rr}"
     when 2
-      result = "#{ww}/#{hh} P#{rr}"
+      result = "#{ww}/#{hh} р#{rr}"
     when 3
       result = "#{ww} #{hh} r#{rr}"
     when 4
@@ -39,7 +39,7 @@ module StringProcessing
       when 1
         result << "#{ww} #{hh}r#{rr}"
       when 2
-        result << "#{ww}/#{hh} P#{rr}"
+        result << "#{ww}/#{hh} р#{rr}"
       when 3
         result << "#{ww} #{hh} r#{rr}"
       when 4
@@ -71,7 +71,7 @@ module StringProcessing
       when 1
         result = "#{ww}/#{hh} на #{rr}"
       when 2
-        result = "#{ww}/#{hh} P#{rr}"
+        result = "#{ww}/#{hh} р#{rr}"
       when 3
         result = "#{ww} #{hh} r#{rr}"
       when 4
@@ -94,12 +94,8 @@ module StringProcessing
       case rand(1..12)
       when 1
         result = "р"
-      when 2
-        result = "Р"
       when 3
         result = "p"
-      when 4
-        result = "P"
       when 5, 6, 7
         result = "r"
       else
@@ -453,24 +449,33 @@ module StringProcessing
   end
 
   def alphanumeric_chars_count_for_url_shiny
-    # минимальное количество знаков в статье по урл
+    # минимальное количество знаков в статье по урл без учета текста по сезонности
     result = 0
     puts "type_for_url_shiny = #{type_for_url_shiny}"
     case type_for_url_shiny
 
-    when 100..150
+    when 100, 110
       # варианты по размеру
-      # when 110, 101, 102, 103, 111, 112, 113
+      # размер и размер+бренд
       result = 3500
 
-    when 200..250
-      # варианты по диаметру
-      # when 200, 210, 201, 202, 203, 211, 212, 213
+    when  101, 102, 103, 111, 112, 113
+      # варианты по размеру
+      # размер+сезон и размер+бренд+сезон
       result = 2500
+
+    when 200, 210
+      # варианты по диаметру
+      # диаметр и диаметр+бренд
+      result = 1000
+    when 201, 202, 203, 211, 212, 213
+      # варианты по диаметру
+      # диаметр+сезон и диаметр+бренд+сезон
+      result = 500
 
     when 10
       # варианты по бренду
-      result = 1000
+      result = 800
 
     when 11, 12, 13
       # варианты по бренду с сезоном

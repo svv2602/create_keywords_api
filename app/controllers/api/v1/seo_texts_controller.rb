@@ -546,7 +546,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       rest_of_array.map! do |string|
         sentences = string.split(/(?<=\?|\.|!)\s/)
-        shuffled_sentences = sentences.shuffle
+        shuffled_sentences = sentences#.shuffle.shuffle
         string_new = shuffled_sentences.join(" ")
         string_new = string_new.gsub('[size]', replace_name_size(url_params))
         string_new = "<#{tag_li}>" + string_new + "</#{tag_li}>"
