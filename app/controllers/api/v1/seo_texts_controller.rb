@@ -30,7 +30,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     total_arr_to_table(5, 5)
     # удаление мусорных записей с латиницей и др
-    delete_all_trash_records_ai
+    # delete_all_trash_records_ai
     # второй рерайт текстов по предложениям
     total_arr_to_table_sentence(5, 5)
     # Итоговое удаление записей с несанкционированной ))) латиницей
