@@ -50,6 +50,22 @@ class CopyTextOptimization
 
     puts "Percentage of Latin letters: #{percentage.round(2)}%"
   end
+
+  def trash_words(text)
+    result = 0
+    marker1 = "копирайт"
+    marker2 = "моск(|о)в|росс"
+    regexp_string = "(?:#{marker1}|#{marker2})"
+    regexp = Regexp.new(regexp_string, 1)
+
+    percentage =  text =~ regexp ? 1 : 0
+
+    percentage
+  end
+
+
+
+
 end
 
 test = CopyTextOptimization.new
@@ -59,7 +75,9 @@ puts "result = #{result}"
 puts "=" * 120
 
 # text = " [size] летние покрышки отличает прочная конструкция, которая сохраняет свою форму даже при высоких температурах, не подвергаясь износу. Встроенные компоненты материала направлены на уменьшение сопротивления качению в условиях летнего периода, что способствует экономии топлива и снижению выбросов harmful emissions in the atmosphere around us fuel consumption and reduce harmful emissions into the atmosphere. The tread pattern of these tires typically features shallow grooves and a minimal number of lateral slits to improve handling and provide acoustic comfort."
-text = " [size] летние покрышки R18 Kumho, HANKOOK отличает прочная конструкция"
+text = " [size] летние моС квский покрышки R18 Kumho, HANKOOK отличает прочная конструкция"
 
 
-test.percent_of_latin_chars(text)
+
+result = test.trash_words(text)
+puts "result = #{result}"

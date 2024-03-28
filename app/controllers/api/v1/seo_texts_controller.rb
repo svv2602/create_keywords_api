@@ -32,6 +32,7 @@ class Api::V1::SeoTextsController < ApplicationController
     #===========================================================
 
     total_arr_to_table(5, 5)
+    # удаление мусорных записей с латиницей и др
     delete_all_trash_records_ai
     # второй рерайт текстов по предложениям
     total_arr_to_table_sentence(5, 5)
@@ -64,10 +65,7 @@ class Api::V1::SeoTextsController < ApplicationController
     general_array_without_season = general_array_without_seasonality.shuffle
     puts "common_items - #{general_array_without_season.inspect}"
 
-    # ================= alphanumeric_chars_count < 3000 =====================
-    # Добавить метод для определения базового количества символов в зависимости от урла
-    # +++++++++++++++++++++++++++++++++++++++++++++
-    # ========================================
+    # alphanumeric_chars_count_for_url_shiny - метод для определения базового количества символов в зависимости от урла
     min_chars = alphanumeric_chars_count_for_url_shiny
 
     while alphanumeric_chars_count < min_chars && general_array_without_season.any?
@@ -90,12 +88,9 @@ class Api::V1::SeoTextsController < ApplicationController
     content_type = general_array_with_seasonality.first
     result += generator_text(content_type) + "\n"
 
-
     # Добавление текста об ошибках в зависимости от диаметра колес, если в url есть размер
-    # result += arr_url_result_str if print_errors_text?
-    # result += min_errors_text(arr_size)
     if size_present_in_url?
-      result += print_errors_text?  ? arr_url_result_str : min_errors_text(arr_size)
+      result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
     end
 
     # Добавляем ссылки:
@@ -136,22 +131,25 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def general_array_without_seasonality
+    # подбор текстов по урлу
+    # переписать потом, если надо будет убрать еще типы статей для разных урлов,
+    # сделать вначале отбор записей таблицы, а потом отбор по сезонам и .pluck
 
     if (10..14).include?(type_for_url_shiny)
-      # puts "Значение в диапазоне от 1 до 10"
+      # puts "Значение в диапазоне от 10 до 14"
+      # убираем статьи с сезоном и ассортиметом для брендов
 
       unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
                                                "%season%", "%letnie%", "%zimnie%", "%vsesezonie%", "%ассортимент%")
                                         .pluck(:type_text)
                                         .uniq
-
     else
-      # puts "Значение вне диапазона от 1 до 10"
-
-    unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
-                                             "%season%", "%letnie%", "%zimnie%", "%vsesezonie%")
-                                      .pluck(:type_text)
-                                      .uniq
+      # puts "Значение вне диапазона от 10 до 14"
+      # просто убираем статьи с сезоном
+      unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
+                                               "%season%", "%letnie%", "%zimnie%", "%vsesezonie%")
+                                        .pluck(:type_text)
+                                        .uniq
     end
     result = general_array(unique_type_texts)
     result

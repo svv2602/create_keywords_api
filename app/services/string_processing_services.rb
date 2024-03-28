@@ -1,7 +1,6 @@
 module StringProcessingServices
 
-
-  def  array_after_error_from_seo_content_text
+  def array_after_error_from_seo_content_text
 
     text_last_record_in_table_sentence = SeoContentTextSentence.last&.str_seo_text
     id_record_content_text_in_table_text = SeoContentText.find_by(content_type: text_last_record_in_table_sentence)&.id
@@ -11,13 +10,14 @@ module StringProcessingServices
     filtered_records
 
   end
+
   def array_after_error_from_json
     hash_new = {}
     hash = data_json_to_hash
     return hash_new unless hash # return early if hash is nil
 
     content_last_element_hash = last_element_hash_json(hash)
-    return hash_new unless content_last_element_hash  # return early if content_last_element_hash is nil
+    return hash_new unless content_last_element_hash # return early if content_last_element_hash is nil
 
     last_content_type = ""
 
@@ -54,12 +54,12 @@ module StringProcessingServices
   # Доработать удаление мусорных записей AI
   def delete_all_trash_records_ai
     SeoContentText.all.each do |record|
-      SeoContentText.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.str)
+      SeoContentText.where(id: record.id).destroy_all if check_trash_words_invalid?(record.str)
       # puts record.str if is_the_percent_of_Latin_chars_invalid?(record.str)
     end
 
     SeoContentTextSentence.all.each do |record|
-      SeoContentTextSentence.where(id: record.id).destroy_all if is_the_percent_of_Latin_chars_invalid?(record.sentence)
+      SeoContentTextSentence.where(id: record.id).destroy_all if check_trash_words_invalid?(record.sentence)
     end
   end
 
@@ -77,9 +77,25 @@ module StringProcessingServices
     exclude_words
   end
 
-  def is_the_percent_of_Latin_chars_invalid?(text)
+  def check_trash_words_invalid?(text)
+    # is_the_percent_of_Latin_chars_invalid? in delete_all_trash_records_ai
+    result = 0
     # проверка на допустимое наличие букв латинского алфавита (% от общего количества знаков)
-    percent_of_latin_chars(text) > 1
+    result += 1 if percent_of_latin_chars(text) > 1
+    result += 1 if trash_words(text) == 1
+    result
+  end
+
+  def trash_words(text)
+
+    marker1 = "копирайт"
+    marker2 = "моск(в|ов)|росс"
+    regexp_string = "(?:#{marker1}|#{marker2})"
+    regexp = Regexp.new(regexp_string, 1)
+
+    percentage = text =~ regexp ? 1 : 0
+
+    percentage
   end
 
   def percent_of_latin_chars(text)
@@ -92,22 +108,19 @@ module StringProcessingServices
 
     # Создаем регулярное выражение, объединяя все слова и регулярные выражения, из которых нужно избавиться
     regexp_string = "\\b(?:size|prokoleso|#{exclude_words.split(' ').join("|")}|ua|#{marker})\\b"
-    regexp = Regexp.new(regexp_string, "i")
-
+    regexp = Regexp.new(regexp_string, 1)
 
     filtered_text = text.gsub(regexp, '') # удаляем указанные слова из текста
     filtered_text = filtered_text.gsub(/(R|r)(|\s*)\d+/, '')
     filtered_text = filtered_text.gsub(/call|visa|Doudlestar|MasterCard|liqpay/i, '')
 
-
     latin_letters = filtered_text.scan(/[a-zA-Z]/).size
     total_chars = text.gsub(/\s+/, "").size
     percentage = (latin_letters.to_f / total_chars) * 100 if total_chars > 0
 
-    puts "Percentage of Latin letters: #{percentage.round(2)}%"
+    # puts "Percentage of Latin letters: #{percentage.round(2)}%"
     percentage
+
   end
-
-
 
 end
