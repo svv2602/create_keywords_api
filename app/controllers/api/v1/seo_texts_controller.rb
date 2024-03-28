@@ -18,9 +18,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
 
-    # result = array_after_error_from_json
-    # puts result
-
     txt_file_to_json
     # первый рерайт текстов по абзацам _
     #===========================================================
