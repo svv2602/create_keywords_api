@@ -9,7 +9,9 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def mytest
     # curl http://localhost:3000/api/v1/mytest?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
-    result = alphanumeric_chars_count_for_url_shiny
+    text = " size [size] size  моС size летние. [size] летние моСк овский покрышки R18 Kumho, HANKOOK отличает прочная конструкция. И я,апаппа. летние моСковский покрышки R18 Kumho, HANKOOK"
+
+    result = remove_small_sentences(text, min_count = 3)
     puts "Все сделано! =====  #{result.inspect}"
     render json: { result: result }
   end
@@ -120,6 +122,7 @@ class Api::V1::SeoTextsController < ApplicationController
     puts "Было:" + "=" * 80
     puts adjust_keyword_stuffing(result)
     result = replace_text_by_hash(result)
+    result = replace_text_by_hash_minus(result)
     puts "Стало:" + "=>" * 40
     puts adjust_keyword_stuffing(result)
     puts result
@@ -560,8 +563,9 @@ class Api::V1::SeoTextsController < ApplicationController
 
       text += first_str + arr_body_text
     end
-    text = text.gsub(/\.\s*\./, ".")
+    text = standardization_of_punctuation(text)
     text
+
   end
 
   def ends_with_punctuation?(str)

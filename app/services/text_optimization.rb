@@ -134,7 +134,12 @@ module TextOptimization
     sentences.join('.')
   end
 
+
+
   def replace_text_by_hash_minus(text)
+    # метод возвращает текст с заменами, заданными в KEYWORD_STUFFING_TEMPLATE, с учетом лимитов и регуляций,
+    # установленных функцией adjust_keyword_stuffing.
+
     hash = KEYWORD_STUFFING_TEMPLATE
     sentences = text.split(/\.|!|\?|\\n/)
     count = Hash.new(0)
@@ -168,6 +173,45 @@ module TextOptimization
     sentences.join('.')
   end
 
+  def prepositions_conjunctions
+    # Весь список предлогов, союзов русского языка и служебных слов
+    Set.new %w[http https prokoleso h1 h2 h3 h4 h5 h6 li ul ol p br а без благодаря близ в вблизи ввиду вглубь вдобавок вдоль взамен включая вкруг вместо вне внизу внутри внутрь во вовнутрь вокруг вопреки вперед впереди вплоть вразрез вроде вслед вследствие встречу втечение для до за из из-за из-под изнутри изо к как касательно кроме кругом между мимо на над надо наперекор наподобие напротив насчет насчёт несмотря ниже о об обо обок около от относительно ото перед пред предо прежде при применительно к про ради с среди средь у чрез через со под над после по без от до при то потому аль а будто как бы не если благо буде будто ведь выну да да дабы да что до тех пор пока ежели едва ежели едва ежелибо если бы еслить есмь затем что зато зачем и ибо идеже как как бы как будто как бы не когда коль коль скоро как какой бы ни лишь бы только на что не пусть чтобы нежели нежли не затем ли неужели ни но однако оттого отчего пока почему потому что притом притому причем промежду тем просто пусть раз разве как так тогда то есть точно тоже хоть хотя]
+  end
+
+  def remove_small_sentences(original_text, min_count = 3)
+    # метод для удаления предложений в которых кол-во слов <= 3, без учета предлогов
+    original_text = original_text.gsub(/(>|\u003e)\s*(\u003c|<)/, '><')
+    tag_regex = /(<\/(p|li|h\d|ul)>(|<\/(p|li|h\d|ul)>)(|<br>))$/
+
+    regex = /моск(ов|в)|росси/i
+    # Разбить текст на предложения используя точку, восклицательный и вопросительный знак в качестве разделителей
+    sentences = original_text.split(/[.!?]/)
+
+    sentences.each do |sentence|
+      tags_at_end =''
+      tags_at_end = sentence.match(/(#{tag_regex})/)[0] if sentence =~ tag_regex
+
+      # Создание временной копии исходного текста с заменой знаков препинания на пробелы
+      text = sentence.gsub(/[,;:'"(){}\[\]<>]/, ' ')
+      # Очистить каждое слово от знаков препинания и привести его к нижнему регистру
+      words = text.split(' ').reject { |word| prepositions_conjunctions.include?(word.strip.downcase) }.uniq
+      if words.count <= min_count || text =~ regex
+        original_text.sub!(sentence, '')
+        puts "tags_at_end = = = #{tags_at_end}"
+        original_text = original_text + tags_at_end #if original_text !~ /#{tags_at_end[1]}/
+      end
+    end
+    original_text.strip
+  end
+
+  def standardization_of_punctuation(text)
+    text = text.gsub(/(\.|,|\:)\s*\./, ".") # двойные точки или запятая-пробелы-точка
+    text = text.gsub(/(,|\:)\s*,/, ",") # двойные запятые
+    text = text.gsub(/\s*\/\s*/, " ") # убрать одиночные слеши
+    text = text.gsub(/\.\s*,/, ".") # точка-пробелы-запятая
+    text = text.gsub(/^[.!?]+/, '')  # Удалить лишние знаки препинания c начала строки
+    text
+  end
 
 
 
