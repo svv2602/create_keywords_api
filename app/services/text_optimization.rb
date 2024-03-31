@@ -205,11 +205,91 @@ module TextOptimization
   end
 
   def standardization_of_punctuation(text)
-    text = text.gsub(/(\.|,|\:)\s*\./, ".") # двойные точки или запятая-пробелы-точка
+
     text = text.gsub(/(,|\:)\s*,/, ",") # двойные запятые
-    text = text.gsub(/\s*\/\s*/, " ") # убрать одиночные слеши
+    text = text.gsub(/ \/ /, "") # убрать одиночные слеши
     text = text.gsub(/\.\s*,/, ".") # точка-пробелы-запятая
     text = text.gsub(/^[.!?]+/, '')  # Удалить лишние знаки препинания c начала строки
+    text = text.gsub(/((\.|,|\:)\s*\.)+/, ".") # двойные точки или запятая-пробелы-точка
+    text
+
+  end
+
+
+  def similar_sentences(text)
+    # результат хеш с проверкой предложений на похожесть
+    text = text.gsub(/(>|\u003e)\s*(\u003c|<)/, '><')
+    sentences = text.split(/\.|!|\?|\\n|(<\/h\d>)/)
+
+    number_rubric = 0
+    number_str_of_rubric = 0
+    # Создаем массив 'sentence_elements', где каждый элемент - это хэш с предложением и его массивом уникальных слов
+    sentence_elements = sentences.map do |sentence|
+      # puts sentence
+      # Создаем временную копию предложения с заменой знаков препинания на пробелы
+      txt = sentence.gsub(/[,;:'"(){}\[\]<>\/]/, ' ')
+      if sentence =~ /\/h\d/
+        number_rubric += 1
+        number_str_of_rubric = 0
+      else
+        number_str_of_rubric += 1
+      end
+
+      # Очистить каждое слово от знаков препинания, привести его к нижнему регистру и проверить, что остаток содержит больше одного символа
+      words = txt.split(' ').map do |word|
+        word_without_last_two = word.strip[0...-2].downcase
+        word_without_last_two unless prepositions_conjunctions.include?(word_without_last_two) or word_without_last_two.length <= 2
+      end.uniq
+      { sentence: sentence, words: words.compact, number_rubric: number_rubric, number_str_of_rubric: number_str_of_rubric }
+    end
+
+    # Для каждого элемента в sentence_elements, сравниваем его с остальными элементами
+    comparisons = []
+    sentence_elements.each_with_index do |element1, i|
+      (i + 1...sentence_elements.length).each do |j|
+        element2 = sentence_elements[j]
+        common_words = element1[:words] & element2[:words]
+        comparisons << { sentence_1: [element1[:sentence], element1[:number_rubric], element1[:number_str_of_rubric]],
+                         sentence_2: [element2[:sentence], element2[:number_rubric], element2[:number_str_of_rubric]],
+                         common_words: common_words }
+      end
+    end
+
+    # Возвращаем все сравнения
+    comparisons
+  end
+
+  def rating_sentence(arr_sentence)
+    rating = 0
+    str = arr_sentence[0]
+    # number_rubric = arr_sentence[1]
+    number_str_of_rubric = arr_sentence[2]
+
+    if number_str_of_rubric <= 2
+      rating = -5
+    else
+      # № предложения ближе к концу абзаца
+      rating += 1 if number_str_of_rubric > 2
+      # в предложении содержится размер, понижаем рейтинг
+      rating += ((str =~ SEARCH_SIZE_1) || (str =~ SEARCH_SIZE_2)) ? -1 : 0
+      # при равном рейтинге удаляем большее по символам
+      rating += str.size/100
+    end
+    rating
+  end
+
+
+  def similar_sentences_delete(text)
+    # удаление предложения с большим рейтингом
+    hash = similar_sentences(text)
+    hash.each do |el|
+      str = rating_sentence(el[:sentence_2])< rating_sentence(el[:sentence_1]) ? el[:sentence_1][0]: el[:sentence_2][0]
+      if el[:common_words].size >= 4 && text =~ /#{str}/
+        text = text.sub(str, '')
+        # puts "el = #{el.inspect}"
+        # puts " = = ==  = = #{str}"
+      end
+    end
     text
   end
 

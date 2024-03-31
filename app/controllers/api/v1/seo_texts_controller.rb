@@ -87,10 +87,18 @@ class Api::V1::SeoTextsController < ApplicationController
     content_type = general_array_with_seasonality.first
     result += generator_text(content_type) + "\n"
 
+    # удаляем похожие предложения
+    result = similar_sentences_delete(result)
+
+
     # Добавление текста об ошибках в зависимости от диаметра колес, если в url есть размер
     if size_present_in_url?
       result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
     end
+
+    # убираем лишние знаки пунктуации
+    result = standardization_of_punctuation(result)
+
 
     # Добавляем ссылки:
     insert_brand_url(result) if !size_only_brand_in_url?
@@ -563,7 +571,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       text += first_str + arr_body_text
     end
-    text = standardization_of_punctuation(text)
+
     text
 
   end
