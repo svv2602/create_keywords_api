@@ -20,26 +20,26 @@ class Api::V1::SeoTextsController < ApplicationController
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
 
-    txt_file_to_json
-    # первый рерайт текстов по абзацам _
-    #===========================================================
-    # ВНИМАНИЕ!!!
-    #===========================================================
-    # для полной обработки набирать с параметром params[:type_proc] = 1
-    # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
-    # В total_arr_to_table, иначе обработке файла data.json - будет неполной
-    #===========================================================
-
-    total_arr_to_table(5, 5)
-    # удаление мусорных записей с латиницей и др
+    # txt_file_to_json
+    # # первый рерайт текстов по абзацам _
+    # #===========================================================
+    # # ВНИМАНИЕ!!!
+    # #===========================================================
+    # # для полной обработки набирать с параметром params[:type_proc] = 1
+    # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
+    # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
+    # #===========================================================
+    #
+    # total_arr_to_table(5, 5)
+    # # удаление мусорных записей с латиницей и др
+    # # delete_all_trash_records_ai
+    # # второй рерайт текстов по предложениям
+    # total_arr_to_table_sentence(5, 5)
+    # # Итоговое удаление записей с несанкционированной ))) латиницей
     # delete_all_trash_records_ai
-    # второй рерайт текстов по предложениям
-    total_arr_to_table_sentence(5, 5)
-    # Итоговое удаление записей с несанкционированной ))) латиницей
-    delete_all_trash_records_ai
     # puts "array_after_error_from_seo_content_text = #{array_after_error_from_seo_content_text.inspect}"
     # array_after_error_from_seo_content_text
-    puts "Все сделано!"
+    # puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
   end
@@ -100,12 +100,14 @@ class Api::V1::SeoTextsController < ApplicationController
     result = standardization_of_punctuation(result)
 
 
-    # Добавляем ссылки:
-    insert_brand_url(result) if !size_only_brand_in_url?
-    result = insert_season_url_new(result)
+    # # Добавляем ссылки:
+    # insert_brand_url(result) if !size_only_brand_in_url?
+    # result = insert_season_url_new(result)
+    #
+    # result = generate_title_h2 + result + "<br>"
+    # result = result.gsub(/\s+/, ' ')
 
-    result = generate_title_h2 + result + "<br>"
-    result = result.gsub(/\s+/, ' ')
+
     result
   end
 
@@ -131,7 +133,16 @@ class Api::V1::SeoTextsController < ApplicationController
     puts adjust_keyword_stuffing(result)
     result = replace_text_by_hash(result)
     result = replace_text_by_hash_minus(result)
+
     puts "Стало:" + "=>" * 40
+
+    # Добавляем ссылки:
+    insert_brand_url(result) if !size_only_brand_in_url?
+    result = insert_season_url_new(result)
+
+    result = generate_title_h2 + result + "<br>"
+    result = result.gsub(/\s+/, ' ')
+
     puts adjust_keyword_stuffing(result)
     puts result
     render json: { result: result }

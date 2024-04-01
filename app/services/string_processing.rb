@@ -1,7 +1,8 @@
 # app/services/string_processing.rb
-require_relative '../../app/services/dictionaries/const_regex'
+
 
 module StringProcessing
+  require_relative '../../app/services/dictionaries/const_regex'
   def arr_size_name_min(ww, hh, rr, i)
     result = ''
 
