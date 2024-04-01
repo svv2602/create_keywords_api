@@ -1,17 +1,30 @@
 module StringProcessingServices
 
-  def array_after_error_from_seo_content_text
+  def array_after_error_from_seo_content_text(all_recods = 0)
+    # all_recods - количество обрабатываемых записей: 1 - все записи, 0- с последнего id текста в SeoContentTextSentence
 
-    text_last_record_in_table_sentence = SeoContentTextSentence.last&.str_seo_text
-    id_record_content_text_in_table_text = SeoContentText.find_by(content_type: text_last_record_in_table_sentence)&.id
+    all_recods = params[:all_recods] if params.key?(:all_recods)
+
     records = SeoContentText.all
-    filtered_records = records.drop_while { |record| record.id <= id_record_content_text_in_table_text } if id_record_content_text_in_table_text
-    filtered_records ||= records # Если предыдущая строка вернула nil, то присваиваем filtered_records все записи
+    if all_recods == 1
+      filtered_records = records
+    else
+      # id текста в  последняя запись по предложениям
+      id_last_text_in_table_sentence = (SeoContentTextSentence.last&.id_text||0)
+      puts "id_last_text_in_table_sentence ====== #{id_last_text_in_table_sentence}"
+      id_record_content_text_in_table_text = (SeoContentText.find_by(id: id_last_text_in_table_sentence)&.id || SeoContentText.first&.id)
+      puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
+      filtered_records = records.drop_while { |record| record.id < id_record_content_text_in_table_text }
+
+    end
+
     filtered_records
 
   end
 
   def array_after_error_from_json
+    # Данный метод array_after_error_from_json обрабатывает содержимое JSON-файла и возвращает новый хэш,
+    # содержащий только те элементы, которые идут после последнего обработанного элемента
     hash_new = {}
     hash = data_json_to_hash
     return hash_new unless hash # return early if hash is nil
@@ -24,7 +37,8 @@ module StringProcessingServices
     last_rec = SeoContentText.order(:created_at).last
     last_content_type = last_rec.content_type if last_rec
 
-    # last_content_type = "Легкий выбор  шин  для вашего автомобиля"
+    # Если last_content_type все еще пуст, возвратить полный исходный хэш
+    return hash if last_content_type.empty?
 
     if last_content_type && last_content_type != content_last_element_hash
       delete_flag = false
@@ -82,7 +96,7 @@ module StringProcessingServices
     result = 0
     # проверка на допустимое наличие букв латинского алфавита (% от общего количества знаков)
     result += 1 if percent_of_latin_chars(text) > 1
-    result += 1 if trash_words(text) == 1
+    # result += 1 if trash_words(text) == 1
     result
   end
 
@@ -112,6 +126,7 @@ module StringProcessingServices
 
     filtered_text = text.gsub(regexp, '') # удаляем указанные слова из текста
     filtered_text = filtered_text.gsub(/(R|r)(|\s*)\d+/, '')
+    filtered_text = filtered_text.gsub(/(R|r|c|x|o|e|a)/, '')
     filtered_text = filtered_text.gsub(/call|visa|Doudlestar|MasterCard|liqpay/i, '')
 
     latin_letters = filtered_text.scan(/[a-zA-Z]/).size

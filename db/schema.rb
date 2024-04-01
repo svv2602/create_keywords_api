@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_22_115308) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_01_040201) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -116,6 +116,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_22_115308) do
     t.integer "num_snt_in_str"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "id_text"
+    t.string "type_text"
   end
 
   create_table "seo_content_texts", force: :cascade do |t|

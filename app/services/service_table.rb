@@ -29,5 +29,39 @@ module ServiceTable
   end
 
 
+  def duplicated_in_data_json?(file_path)
+    # require 'json'
+
+    # Предположим, что ваш файл находится в этом местоположении
+    # file_path = 'path_to_your_file.json'
+
+    # Разбираем JSON из файла
+    data = JSON.parse(File.read(file_path))
+
+    # Извлекаем значения "TextTitle"
+    titles = data.values.map { |block| block["TextTitle"] }
+
+    # Проверяем, уникальны ли значения "TextTitle"
+    titles_are_unique = titles.uniq.length == titles.length
+
+    if titles_are_unique
+      puts 'Все значения TextTitle - unique'
+      result = true
+    else
+      puts 'Некоторые значения TextTitle - дублированы'
+      # Извлекаем значения "TextTitle"
+      titles = data.values.map { |block| block["TextTitle"] }
+
+      # Группируем по значениям и фильтруем, оставляя только те, которые встречаются более 1 раза
+      duplicates = titles.group_by { |v| v }.select { |k, v| v.size > 1 }.keys
+
+      duplicates.each do |duplicate|
+        puts "Duplicate title: #{duplicate}"
+      end
+      result = false
+    end
+    result
+  end
+
 
 end

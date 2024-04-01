@@ -6,6 +6,7 @@ class Api::V1::SeoTextsController < ApplicationController
   include StringErrorsProcessing
   include TextOptimization
   include StringProcessingServices
+  include ServiceTable
 
   def mytest
     # curl http://localhost:3000/api/v1/mytest?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
@@ -17,29 +18,34 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def total_generate_seo_text
+
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
 
     # txt_file_to_json
-    # # первый рерайт текстов по абзацам _
-    # #===========================================================
-    # # ВНИМАНИЕ!!!
-    # #===========================================================
-    # # для полной обработки набирать с параметром params[:type_proc] = 1
-    # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
-    # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
-    # #===========================================================
-    #
-    # total_arr_to_table(5, 5)
-    # # удаление мусорных записей с латиницей и др
-    # # delete_all_trash_records_ai
-    # # второй рерайт текстов по предложениям
-    # total_arr_to_table_sentence(5, 5)
-    # # Итоговое удаление записей с несанкционированной ))) латиницей
-    # delete_all_trash_records_ai
-    # puts "array_after_error_from_seo_content_text = #{array_after_error_from_seo_content_text.inspect}"
-    # array_after_error_from_seo_content_text
-    # puts "Все сделано!"
+
+    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+    if duplicated_in_data_json?(file_path)
+      # # первый рерайт текстов по абзацам _
+      # #===========================================================
+      # # ВНИМАНИЕ!!!
+      # #===========================================================
+      # # для полной обработки набирать с параметром params[:type_proc] = 1
+      # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
+      # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
+      # #===========================================================
+
+      total_arr_to_table(1, 1)
+      # # удаление мусорных записей с латиницей и др
+      # delete_all_trash_records_ai
+      # второй рерайт текстов по предложениям
+
+      total_arr_to_table_sentence(1, 1)
+      # Итоговое удаление записей с несанкционированной ))) латиницей и россией
+      # delete_all_trash_records_ai
+    end
+
+    puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
   end
@@ -90,7 +96,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # удаляем похожие предложения
     result = similar_sentences_delete(result)
 
-
     # Добавление текста об ошибках в зависимости от диаметра колес, если в url есть размер
     if size_present_in_url?
       result += print_errors_text? ? arr_url_result_str : min_errors_text(arr_size)
@@ -99,14 +104,13 @@ class Api::V1::SeoTextsController < ApplicationController
     # убираем лишние знаки пунктуации
     result = standardization_of_punctuation(result)
 
-
-    # # Добавляем ссылки:
+    # # Добавляем ссылки: - - -  перенесено в  seo_text - - - - - - - - -
     # insert_brand_url(result) if !size_only_brand_in_url?
     # result = insert_season_url_new(result)
     #
     # result = generate_title_h2 + result + "<br>"
     # result = result.gsub(/\s+/, ' ')
-
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     result
   end
@@ -239,8 +243,21 @@ class Api::V1::SeoTextsController < ApplicationController
     count_record = 0 # подсчет обработанных записей
     h.each do |key, value|
       ind += 1
-      array = h["Block_" + ind.to_s]["TextBody"]
-      array.unshift(h["Block_" + ind.to_s]["TextTitle"])
+      # array = h["Block_" + ind.to_s]["TextBody"]
+      # array.unshift(h["Block_" + ind.to_s]["TextTitle"])
+
+      block_key = "Block_" + ind.to_s
+      block_data = h[block_key]
+
+      # если блока с нужным индексом нет в хеше или это не хеш - пропускаем итерацию
+      if block_data.nil? || !block_data.is_a?(Hash)
+        puts "Can't find key #{block_key} in hash or it's not a hash."
+        next
+      end
+
+      array = block_data["TextBody"]
+      array.unshift(block_data["TextTitle"])
+
       data_table_hash = {
         number_of_repeats_for_text: number_of_repeats_for_text,
         number_of_repeats: number_of_repeats,
@@ -259,7 +276,7 @@ class Api::V1::SeoTextsController < ApplicationController
     result = "В таблицу базы данных SeoContentText добавлены записи. === Кол-во: #{count_record}  "
 
     puts result
-    render json: { result: result }
+    # render json: { result: result }
 
   end
 
@@ -280,6 +297,8 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def total_arr_to_table_sentence(number_of_repeats_for_text = 1, number_of_repeats = 1)
+    # вызов c параметром all_recods=1
+    # обрабатывает все тексты, без параметра с последней записи в sentence и до последней записи в text
     # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
     # number_of_repeats = 5 # количество вариантов написания каждого предложения
     #========================================================
@@ -289,7 +308,7 @@ class Api::V1::SeoTextsController < ApplicationController
     arr_to_table_sentence = array_after_error_from_seo_content_text
 
     # SeoContentText.all.each do |record|
-    arr_to_table_sentence.each do |record|
+    arr_to_table_sentence&.each do |record|
       array = record[:str].split(/[.?!]/)
       array.map!(&:strip) # Удалить пробелы в начале и в конце каждого предложения
       content_type = record[:content_type]
@@ -298,7 +317,9 @@ class Api::V1::SeoTextsController < ApplicationController
         number_of_repeats_for_text: number_of_repeats_for_text,
         number_of_repeats: number_of_repeats,
         str_seo_text: content_type,
-        str_number: record[:str_number]
+        str_number: record[:str_number],
+        id_text: record[:id],
+        type_text: record[:type_text]
       }
 
       # puts " array ==== #{array}"
@@ -311,7 +332,7 @@ class Api::V1::SeoTextsController < ApplicationController
     result = "В таблицу базы данных SeoContentTextSentence добавлены записи. === Кол-во: #{count_record}  "
 
     puts result
-    render json: { result: result }
+    # render json: { result: result }
 
   end
 
@@ -326,6 +347,7 @@ class Api::V1::SeoTextsController < ApplicationController
         arr_result = make_array_phrase(txt, i)
         data_table_hash[:str_number] = i if select_number_table == 1
         data_table_hash[:num_snt_in_str] = i if select_number_table == 2
+
         arr_to_table(arr_result, data_table_hash, select_number_table)
         count_record += 1
       end
@@ -355,7 +377,8 @@ class Api::V1::SeoTextsController < ApplicationController
     topics = ''
     topics += element_array.to_s
     if ind > 0
-      topics += "\n Сделай #{number_of_repeats} вариантов этого предложения."
+      topics += "\n Сделай #{number_of_repeats} вариантов этого предложения. "
+      topics += "\n Каждый вариант должен состоять из одного предложения. "
       topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
       topics += "\n а водность текста должна быть не больше 60%"
       topics += "\n Если в предложении используются названия шинных брендов, то их из текста не убирать."
@@ -389,7 +412,8 @@ class Api::V1::SeoTextsController < ApplicationController
     topics = ''
     topics += element_array.to_s
     if ind > 0
-      topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов."
+      topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов. "
+      topics += "\n Количество  предложений в каждом варианте нужно сделать таким же, как в образце. "
       topics += "\n Количество печатных символов в ответе может быть больше, чем количество знаков в образце."
       topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
       topics += "\n а водность текста должна быть не больше 60%"
@@ -439,21 +463,32 @@ class Api::V1::SeoTextsController < ApplicationController
       str = el.sub(/^\d+(\.|\))\s/, '')
       str = str.gsub(/^('|")|('|")$/, '')
       replace_size_to_template(str)
-      case select_number_table
-      when 1
-        SeoContentText.create(str: str,
-                              order_out: data_table_hash[:order_out],
-                              type_tag: data_table_hash[:type_tag],
-                              type_text: data_table_hash[:type_text],
-                              content_type: data_table_hash[:content_type],
-                              str_number: data_table_hash[:str_number]
-        ) if el.present? && el.length > 20
-      when 2
-        SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
-                                      str_number: data_table_hash[:str_number],
-                                      sentence: str,
-                                      num_snt_in_str: data_table_hash[:num_snt_in_str]
-        ) if el.present? && el.length > 20
+      puts "str 11 ==== #{str}"
+      # проверка на корректность ответов AI, если все ок, то записываем в таблицы
+      unless check_trash_words_invalid?(str)
+
+        case select_number_table
+        when 1
+          SeoContentText.create(str: str,
+                                order_out: data_table_hash[:order_out],
+                                type_tag: data_table_hash[:type_tag],
+                                type_text: data_table_hash[:type_text],
+                                content_type: data_table_hash[:content_type],
+                                str_number: data_table_hash[:str_number]
+          ) if el.present? && el.length > 20
+        when 2
+          SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
+                                        str_number: data_table_hash[:str_number],
+                                        sentence: str,
+                                        num_snt_in_str: data_table_hash[:num_snt_in_str],
+                                        id_text: data_table_hash[:id_text],
+                                        type_text: data_table_hash[:type_text]
+
+          ) if el.present? && el.length > 20
+        end
+      else
+        puts "str 12 ==== #{str}"
+
       end
 
     end
@@ -565,7 +600,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       rest_of_array.map! do |string|
         sentences = string.split(/(?<=\?|\.|!)\s/)
-        shuffled_sentences = sentences#.shuffle.shuffle
+        shuffled_sentences = sentences #.shuffle.shuffle
         string_new = shuffled_sentences.join(" ")
         string_new = string_new.gsub('[size]', replace_name_size(url_params))
         string_new = "<#{tag_li}>" + string_new + "</#{tag_li}>"
