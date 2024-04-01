@@ -51,3 +51,8 @@ endpoint:
 * /export_text - Экспорт данных в json из SeoContentText
 * /export_sentence - Экспорт данных в json из SeoContentTextSentence
 * /count_records - количество записей в таблицах 
+* /clear_tables_texts c параметром `table`
+  * table=1 -  SeoContentText.delete_all
+  * table=2 -  SeoContentTextSentence.delete_all 
+  * table=12 - SeoContentText и SeoContentTextSentence
+  

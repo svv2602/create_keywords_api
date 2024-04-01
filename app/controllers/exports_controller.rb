@@ -4,10 +4,25 @@ class ExportsController < ApplicationController
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data records.to_json, filename: "export_text_#{timestamp}.json"
   end
+
   def export_sentence
     records = SeoContentTextSentence.all.as_json
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data records.to_json, filename: "export_sentence_#{timestamp}.json"
+  end
+
+  def clear_tables_texts
+
+    case params[:table].to_i
+    when 1
+      SeoContentText.delete_all
+    when 2
+      SeoContentTextSentence.delete_all
+    when 12
+      SeoContentTextSentence.delete_all
+      SeoContentText.delete_all
+    end
+    render plain: "Все удалено "
   end
 
   def count_records
@@ -17,7 +32,6 @@ class ExportsController < ApplicationController
                    SeoContentTextSentence: "#{SeoContentTextSentence.count}"
     }
   end
-
 
   def readme
     readme_file_path = Rails.root.join('README.md')

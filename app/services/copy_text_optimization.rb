@@ -94,31 +94,7 @@ class CopyTextOptimization
 
   #================== не перенесено =====================================
 
-  def percent_of_latin_chars(text)
-    percentage = 0
-    # Подсчет латинских символов в тексте
-    # регулярное для маркировки
-    marker = "Z|W|Y|\(Y\)|ZR|XL|Reinforced|SL|Standard\sLoad|AS|All-Season|AT|All-Terrain|MT|M\+S|M/S|LT|P|C|ST|RF|DOT|ECE|ISO|UTQG|M&S|ATP|AWD"
-    # список брендов
-    exclude_words = "Toyo|Michelin"
 
-    # Создаем регулярное выражение, объединяя все слова и регулярные выражения, из которых нужно избавиться
-    regexp_string = "\\b(?:size|prokoleso|#{exclude_words.split(' ').join("|")}|ua|#{marker})\\b"
-    regexp = Regexp.new(regexp_string, 1)
-
-    filtered_text = text.gsub(regexp, '') # удаляем указанные слова из текста
-    filtered_text = filtered_text.gsub(/(R|r)(|\s*)\d+/, '')
-    filtered_text = filtered_text.gsub(/(R|r|c|x|o|e|a)/, '')
-    filtered_text = filtered_text.gsub(/call|visa|Doudlestar|MasterCard|liqpay/i, '')
-
-    latin_letters = filtered_text.scan(/[a-zA-Z]/).size
-    total_chars = text.gsub(/\s+/, "").size
-    percentage = (latin_letters.to_f / total_chars) * 100 if total_chars > 0
-
-    # puts "Percentage of Latin letters: #{percentage.round(2)}%"
-    percentage
-
-  end
 
 end
 
@@ -169,7 +145,7 @@ text = "
 #   puts el if el[:common_words].size > 3
 # end
 
-result = test.percent_of_latin_chars(text)
+result = test.similar_sentences_delete(text)
 puts result
 # ====================================================
 

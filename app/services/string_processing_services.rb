@@ -95,8 +95,8 @@ module StringProcessingServices
     # is_the_percent_of_Latin_chars_invalid? in delete_all_trash_records_ai
     result = 0
     # проверка на допустимое наличие букв латинского алфавита (% от общего количества знаков)
-    result += 1 if percent_of_latin_chars(text) > 1
-    # result += 1 if trash_words(text) == 1
+    # result += 1 if percent_of_latin_chars(text) > 1
+    result += 1 if trash_words(text) == 1
     result
   end
 

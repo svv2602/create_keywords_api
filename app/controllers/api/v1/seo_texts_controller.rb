@@ -37,12 +37,12 @@ class Api::V1::SeoTextsController < ApplicationController
 
       total_arr_to_table(1, 1)
       # # удаление мусорных записей с латиницей и др
-      # delete_all_trash_records_ai
+      # delete_all_trash_records_ai - -  переработать
       # второй рерайт текстов по предложениям
 
       total_arr_to_table_sentence(1, 1)
       # Итоговое удаление записей с несанкционированной ))) латиницей и россией
-      # delete_all_trash_records_ai
+      # delete_all_trash_records_ai - переработать
     end
 
     puts "Все сделано!"
@@ -463,32 +463,27 @@ class Api::V1::SeoTextsController < ApplicationController
       str = el.sub(/^\d+(\.|\))\s/, '')
       str = str.gsub(/^('|")|('|")$/, '')
       replace_size_to_template(str)
-      puts "str 11 ==== #{str}"
+
       # проверка на корректность ответов AI, если все ок, то записываем в таблицы
-      unless check_trash_words_invalid?(str)
 
-        case select_number_table
-        when 1
-          SeoContentText.create(str: str,
-                                order_out: data_table_hash[:order_out],
-                                type_tag: data_table_hash[:type_tag],
-                                type_text: data_table_hash[:type_text],
-                                content_type: data_table_hash[:content_type],
-                                str_number: data_table_hash[:str_number]
-          ) if el.present? && el.length > 20
-        when 2
-          SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
-                                        str_number: data_table_hash[:str_number],
-                                        sentence: str,
-                                        num_snt_in_str: data_table_hash[:num_snt_in_str],
-                                        id_text: data_table_hash[:id_text],
-                                        type_text: data_table_hash[:type_text]
+      case select_number_table
+      when 1
+        SeoContentText.create(str: str,
+                              order_out: data_table_hash[:order_out],
+                              type_tag: data_table_hash[:type_tag],
+                              type_text: data_table_hash[:type_text],
+                              content_type: data_table_hash[:content_type],
+                              str_number: data_table_hash[:str_number]
+        ) if el.present? && el.length > 20
+      when 2
+        SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
+                                      str_number: data_table_hash[:str_number],
+                                      sentence: str,
+                                      num_snt_in_str: data_table_hash[:num_snt_in_str],
+                                      id_text: data_table_hash[:id_text],
+                                      type_text: data_table_hash[:type_text]
 
-          ) if el.present? && el.length > 20
-        end
-      else
-        puts "str 12 ==== #{str}"
-
+        ) if el.present? && el.length > 20
       end
 
     end
