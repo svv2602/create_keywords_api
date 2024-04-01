@@ -35,12 +35,12 @@ class Api::V1::SeoTextsController < ApplicationController
       # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
       # #===========================================================
 
-      total_arr_to_table(1, 1)
+      total_arr_to_table(5, 5)
       # # удаление мусорных записей с латиницей и др
       # delete_all_trash_records_ai - -  переработать
       # второй рерайт текстов по предложениям
 
-      total_arr_to_table_sentence(1, 1)
+      total_arr_to_table_sentence(5, 5)
       # Итоговое удаление записей с несанкционированной ))) латиницей и россией
       # delete_all_trash_records_ai - переработать
     end
