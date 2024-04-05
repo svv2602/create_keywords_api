@@ -67,7 +67,7 @@ module ServiceTable
   def remove_empty_sentences(table)
     model = table.classify.constantize
     model.where(sentence: [nil, ""]).delete_all
-    model.where(id_text: [nil, ""]).delete_all
+    # model.where(id_text: [nil, ""]).delete_all
     # replace_size_to_template(str)
 
   end
@@ -107,15 +107,18 @@ module ServiceTable
       # проверка что строка без кириллицы
       if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
         record.destroy
+        i +=1
       end
       if percent_of_latin_chars(record.sentence, exclude_words) > 15
         puts record.sentence
         puts "percent_of_latin_chars(text) -15- #{percent_of_latin_chars(record.sentence, exclude_words)}"
         record.destroy
+        i +=1
       end
 
     end
-    # puts "Количество удаленных зарисей:  #{i} "
+    puts "Количество удаленных записей:  #{i} "
+    return i
   end
 
   def repeat_sentences_generation(table)

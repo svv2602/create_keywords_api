@@ -38,6 +38,15 @@ class ExportsController < ApplicationController
     }
   end
 
+  def count_records_check_title
+    selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0 AND check_title = 0")
+    non_zero_check_title_count = selected_records.count
+    result = "Количество записей с check_title  равным 0: #{non_zero_check_title_count}"
+    puts result
+    render plain: result
+
+  end
+
   def readme
     readme_file_path = Rails.root.join('README.md')
     readme_content = File.read(readme_file_path)
@@ -46,15 +55,15 @@ class ExportsController < ApplicationController
 
   def control_records
     # сделать очистку таблиц
-    # table = 'seo_content_text_sentences'
-    # remove_empty_sentences(table)
-    # replace_errors_size(table)
+    table = 'seo_content_text_sentences'
+    remove_empty_sentences(table)
+    result = replace_errors_size(table)
     # repeat_sentences_generation(table)
 
     # заменяем ошибочные заголовки
     # replace_errors_title_sentence
 
-    render plain: "удалил весь мусор"
+    render plain: "удалил весь мусор. кол-во записей с латиницей =  #{result} "
 
   end
 
