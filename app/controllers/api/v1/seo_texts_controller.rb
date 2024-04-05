@@ -342,10 +342,19 @@ class Api::V1::SeoTextsController < ApplicationController
       data_table_hash[:number_of_repeats_for_text].times do
         el = element
         replace_reverse_size_to_template(el)
-        txt = seo_phrase(el, data_table_hash[:number_of_repeats], i, select_number_table)
+
+        if select_number_table == 1
+          data_table_hash[:str_number] = i
+          txt = seo_phrase(el, data_table_hash[:number_of_repeats], i, select_number_table)
+        end
+        if select_number_table == 2
+          data_table_hash[:num_snt_in_str] = i
+          txt = seo_phrase(el, data_table_hash[:number_of_repeats],
+                           data_table_hash[:str_number].to_i * 10 + i, # чтобы отличить заголовки от простой первой строки абзаца, если 0, то заголовок
+                           select_number_table)
+        end
+
         arr_result = make_array_phrase(txt, i)
-        data_table_hash[:str_number] = i if select_number_table == 1
-        data_table_hash[:num_snt_in_str] = i if select_number_table == 2
 
         arr_to_table(arr_result, data_table_hash, select_number_table)
         count_record += 1
@@ -354,157 +363,157 @@ class Api::V1::SeoTextsController < ApplicationController
     count_record
   end
 
-  # задает количество вариантов написания для каждого абзаца исходного текста
-  def seo_phrase(element_array, number_of_repeats, ind, str_snt)
-    str_snt == 1 ? topics = seo_phrase_str(element_array, number_of_repeats, ind) : topics = seo_phrase_sentence(element_array, number_of_repeats, ind)
-
-    new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
-
-    if new_text
-      begin
-        new_text = new_text['choices'][0]['message']['content'].strip
-      rescue => e
-        puts "Произошла ошибка: #{e.message}"
-      end
-    end
-
-    new_text
-  end
-
-  def seo_phrase_sentence(element_array, number_of_repeats, ind)
-    # задание на рерайт по предложениям
-    # ind - номер строки в текте, если 0 - то заголовок
-    topics = ''
-    topics += element_array.to_s
-    if ind > 0
-      topics += "\n Сделай #{number_of_repeats} вариантов этого предложения. "
-      topics += "\n Каждый вариант должен состоять из одного предложения. "
-      topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
-      topics += "\n а водность текста должна быть не больше 60%"
-      topics += "\n Если в предложении используются названия шинных брендов, то их из текста не убирать."
-      topics += "\n "
-      topics += "\n Избегай построения предложения как рекламный слоган или рекламный заголовок, "
-      topics += "\n а также предложений в которых только один главный член предложения (подлежащее или сказуемое)"
-      topics += "\n Пример - "
-      topics += "\n Неправильно: ProKoleso: Доступные цены на шины - гарантия качества!"
-      topics += "\n Правильно: 'ProKoleso предоставляет доступные цены на шины с гарантией качества.' "
-      topics += "\n "
-      topics += "\n Не использовать личные местоимения в единственном числе "
-      topics += "\n Пример - "
-      topics += "\n Неправильно: 'Я оформлю вам заказ на доставку.'"
-      topics += "\n Правильно: 'Мы оформим вам заказ на доставку'"
-      topics += "\n "
-      topics += "\n Старайтесь избегать употребления местоимений, таких как 'их', 'них', 'его', 'ее' и так далее "
-      topics += "\n Пример - "
-      topics += "\n Неправильно: 'Yokohama - компания, которая славится технологиями. Их продукция пользуется популярностью.'"
-      topics += "\n Правильно: 'Yokohama славится технологиями. Продукция компании пользуется популярностью.' "
-      topics += "\n "
-
-    else
-      topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
-      topics += "\n Заголовок должен состоять из одного предложения. "
-    end
-
-    topics
-  end
-
-  def seo_phrase_str(element_array, number_of_repeats, ind)
-    # ind - номер строки в текте, если 0 - то заголовок
-    topics = ''
-    topics += element_array.to_s
-    if ind > 0
-      topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов. "
-      topics += "\n Количество  предложений в каждом варианте нужно сделать таким же, как в образце. "
-      topics += "\n Количество печатных символов в ответе может быть больше, чем количество знаков в образце."
-      topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
-      topics += "\n а водность текста должна быть не больше 60%"
-      topics += "\n Каждый вариант ответа должен состоять из одного абзаца (не использовать символ переноса каретки)"
-      topics += "\n Предложения в абзаце должны быть самостоятельными по смыслу, т.е. не ссылаться на предыдущие предлжожения"
-      topics += "\n Пример 1. "
-      topics += "\n Неправильно: 'Шины различаются по типу. Каждый из этих типов шин имеет особенности'. "
-      topics += "\n Правильно: 'Шины различаются по типу. Каждый тип шин имеет особенности'. "
-      topics += "\n Пример 2. "
-      topics += "\n Неправильно: 'Когда выбираете резину, не доверяйте низким ценам. Подобные предложения могут быть обманом'. "
-      topics += "\n Правильно: 'Когда выбираете резину, не доверяйте низким ценам, подобные предложения могут быть обманом'. "
-      topics += "\n Пример 3. "
-      topics += "\n Неправильно: 'ProKoleso - надежный партнер для всех, кто ценит качество. Поэтому мы предлагаем лучшее'. "
-      topics += "\n Правильно: 'ProKoleso - надежный партнер для всех, кто ценит качество. Мы предлагаем лучшее'. "
-      topics += "\n Пример 4. "
-      topics += "\n Неправильно: 'Не попадайтесь на предложение шин по недорогой цене. Чаще всего такие предложения обманчивы'. "
-      topics += "\n Правильно: 'Не попадайтесь на предложение шин по недорогой цене. Дешевые предложения обманчивы'. "
-      topics += "\n Пример 5. "
-      topics += "\n Неправильно: 'Приобретение новых шин - залог безопасности. Поэтому выбирать нужно проверенных поставщиков'. "
-      topics += "\n Правильно: 'Приобретение новых шин - залог безопасности. При покупке шин выбирать нужно проверенных поставщиков'. "
-      topics += "\n Старайтесь избегать употребления местоимений, таких как 'их', 'них', 'его', 'ее' и так далее "
-      topics += "\n Пример 6."
-      topics += "\n Неправильно: 'Yokohama - компания, которая славится технологиями. Их продукция пользуется популярностью.'"
-      topics += "\n Правильно: 'Yokohama славится технологиями. Продукция компании пользуется популярностью.' "
-      topics += "\n "
-      # topics += "\n  "
-    else
-      topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
-      topics += "\n Заголовок должен состоять из одного предложения. "
-    end
-
-    topics
-  end
-
-  def make_array_phrase(var_phrase, i)
-    txt = var_phrase.gsub("\n\n", "\n")
-    txt = txt.gsub(/\*|\#/, "")
-    txt = txt.gsub(/^("|)((\d+|)(|\s+))(В|в)ариант((|\s+)(|\d+(\s+|))(\.|\:|\-))/, "")
-    txt = txt.split("\n")
-    txt
-  end
-
-  def arr_to_table(arr, data_table_hash, select_number_table)
-    previous_el = ''
-    i = 0
-    arr.each do |el|
-      str = el.sub(/^\d+(\.|\))\s/, '')
-      str = str.gsub(/^('|")|('|")$/, '')
-      replace_size_to_template(str)
-
-      # проверка на корректность ответов AI, если все ок, то записываем в таблицы
-
-      case select_number_table
-      when 1
-        SeoContentText.create(str: str,
-                              order_out: data_table_hash[:order_out],
-                              type_tag: data_table_hash[:type_tag],
-                              type_text: data_table_hash[:type_text],
-                              content_type: data_table_hash[:content_type],
-                              str_number: data_table_hash[:str_number]
-        ) if el.present? && el.length > 20
-      when 2
-        SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
-                                      str_number: data_table_hash[:str_number],
-                                      sentence: str,
-                                      num_snt_in_str: data_table_hash[:num_snt_in_str],
-                                      id_text: data_table_hash[:id_text],
-                                      type_text: data_table_hash[:type_text]
-
-        ) if el.present? && el.length > 20
-      end
-
-    end
-  end
-
-  def replace_size_tyre(array_of_string, url_params)
-    arr = []
-    size_count = array_of_string.count { |string| string.include?("[size]") }
-    size_count.times do |i|
-      arr << arr_size_name_min(url_params[:tyre_w], url_params[:tyre_h], url_params[:tyre_r], i)
-    end
-    arr
-  end
-
-  def replace_params_w_h_r_tyre(str, url_params)
-    str = str.gsub('[r-]', url_params[:tyre_r])
-    str = str.gsub('[h-]', url_params[:tyre_h])
-    str = str.gsub('[w-]', url_params[:tyre_w])
-    str
-  end
+  # # задает количество вариантов написания для каждого абзаца исходного текста
+  # def seo_phrase(element_array, number_of_repeats, ind, str_snt)
+  #   str_snt == 1 ? topics = seo_phrase_str(element_array, number_of_repeats, ind) : topics = seo_phrase_sentence(element_array, number_of_repeats, ind)
+  #
+  #   new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
+  #
+  #   if new_text
+  #     begin
+  #       new_text = new_text['choices'][0]['message']['content'].strip
+  #     rescue => e
+  #       puts "Произошла ошибка: #{e.message}"
+  #     end
+  #   end
+  #
+  #   new_text
+  # end
+  #
+  # def seo_phrase_sentence(element_array, number_of_repeats, ind)
+  #   # задание на рерайт по предложениям
+  #   # ind - номер строки в текте, если 0 - то заголовок
+  #   topics = ''
+  #   topics += element_array.to_s
+  #   if ind > 0
+  #     topics += "\n Сделай #{number_of_repeats} вариантов этого предложения. "
+  #     topics += "\n Каждый вариант должен состоять из одного предложения. "
+  #     topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
+  #     topics += "\n а водность текста должна быть не больше 60%"
+  #     topics += "\n Если в предложении используются названия шинных брендов, то их из текста не убирать."
+  #     topics += "\n "
+  #     topics += "\n Избегай построения предложения как рекламный слоган или рекламный заголовок, "
+  #     topics += "\n а также предложений в которых только один главный член предложения (подлежащее или сказуемое)"
+  #     topics += "\n Пример - "
+  #     topics += "\n Неправильно: ProKoleso: Доступные цены на шины - гарантия качества!"
+  #     topics += "\n Правильно: 'ProKoleso предоставляет доступные цены на шины с гарантией качества.' "
+  #     topics += "\n "
+  #     topics += "\n Не использовать личные местоимения в единственном числе "
+  #     topics += "\n Пример - "
+  #     topics += "\n Неправильно: 'Я оформлю вам заказ на доставку.'"
+  #     topics += "\n Правильно: 'Мы оформим вам заказ на доставку'"
+  #     topics += "\n "
+  #     topics += "\n Старайтесь избегать употребления местоимений, таких как 'их', 'них', 'его', 'ее' и так далее "
+  #     topics += "\n Пример - "
+  #     topics += "\n Неправильно: 'Yokohama - компания, которая славится технологиями. Их продукция пользуется популярностью.'"
+  #     topics += "\n Правильно: 'Yokohama славится технологиями. Продукция компании пользуется популярностью.' "
+  #     topics += "\n "
+  #
+  #   else
+  #     topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
+  #     topics += "\n Заголовок должен состоять из одного предложения. "
+  #   end
+  #
+  #   topics
+  # end
+  #
+  # def seo_phrase_str(element_array, number_of_repeats, ind)
+  #   # ind - номер строки в текте, если 0 - то заголовок
+  #   topics = ''
+  #   topics += element_array.to_s
+  #   if ind > 0
+  #     topics += "\n На тему, заданную в образце, Сделай #{number_of_repeats} вариантов текстов. "
+  #     topics += "\n Количество  предложений в каждом варианте нужно сделать таким же, как в образце. "
+  #     topics += "\n Количество печатных символов в ответе может быть больше, чем количество знаков в образце."
+  #     topics += "\n Постарайся сохранить количество ключевых слов, при этом тошнотность текста должна быть не больше 20%,"
+  #     topics += "\n а водность текста должна быть не больше 60%"
+  #     topics += "\n Каждый вариант ответа должен состоять из одного абзаца (не использовать символ переноса каретки)"
+  #     topics += "\n Предложения в абзаце должны быть самостоятельными по смыслу, т.е. не ссылаться на предыдущие предлжожения"
+  #     topics += "\n Пример 1. "
+  #     topics += "\n Неправильно: 'Шины различаются по типу. Каждый из этих типов шин имеет особенности'. "
+  #     topics += "\n Правильно: 'Шины различаются по типу. Каждый тип шин имеет особенности'. "
+  #     topics += "\n Пример 2. "
+  #     topics += "\n Неправильно: 'Когда выбираете резину, не доверяйте низким ценам. Подобные предложения могут быть обманом'. "
+  #     topics += "\n Правильно: 'Когда выбираете резину, не доверяйте низким ценам, подобные предложения могут быть обманом'. "
+  #     topics += "\n Пример 3. "
+  #     topics += "\n Неправильно: 'ProKoleso - надежный партнер для всех, кто ценит качество. Поэтому мы предлагаем лучшее'. "
+  #     topics += "\n Правильно: 'ProKoleso - надежный партнер для всех, кто ценит качество. Мы предлагаем лучшее'. "
+  #     topics += "\n Пример 4. "
+  #     topics += "\n Неправильно: 'Не попадайтесь на предложение шин по недорогой цене. Чаще всего такие предложения обманчивы'. "
+  #     topics += "\n Правильно: 'Не попадайтесь на предложение шин по недорогой цене. Дешевые предложения обманчивы'. "
+  #     topics += "\n Пример 5. "
+  #     topics += "\n Неправильно: 'Приобретение новых шин - залог безопасности. Поэтому выбирать нужно проверенных поставщиков'. "
+  #     topics += "\n Правильно: 'Приобретение новых шин - залог безопасности. При покупке шин выбирать нужно проверенных поставщиков'. "
+  #     topics += "\n Старайтесь избегать употребления местоимений, таких как 'их', 'них', 'его', 'ее' и так далее "
+  #     topics += "\n Пример 6."
+  #     topics += "\n Неправильно: 'Yokohama - компания, которая славится технологиями. Их продукция пользуется популярностью.'"
+  #     topics += "\n Правильно: 'Yokohama славится технологиями. Продукция компании пользуется популярностью.' "
+  #     topics += "\n "
+  #     # topics += "\n  "
+  #   else
+  #     topics += "\n Сделай из этого текста #{number_of_repeats} вариантов эффектиного заголовка для статьи. "
+  #     topics += "\n Заголовок должен состоять из одного предложения. "
+  #   end
+  #
+  #   topics
+  # end
+  #
+  # def make_array_phrase(var_phrase, i)
+  #   txt = var_phrase.gsub("\n\n", "\n")
+  #   txt = txt.gsub(/\*|\#/, "")
+  #   txt = txt.gsub(/^("|)((\d+|)(|\s+))(В|в)ариант((|\s+)(|\d+(\s+|))(\.|\:|\-))/, "")
+  #   txt = txt.split("\n")
+  #   txt
+  # end
+  #
+  # def arr_to_table(arr, data_table_hash, select_number_table)
+  #   previous_el = ''
+  #   i = 0
+  #   arr.each do |el|
+  #     str = el.sub(/^\d+(\.|\))\s/, '')
+  #     str = str.gsub(/^('|")|('|")$/, '')
+  #     replace_size_to_template(str)
+  #
+  #     # проверка на корректность ответов AI, если все ок, то записываем в таблицы
+  #
+  #     case select_number_table
+  #     when 1
+  #       SeoContentText.create(str: str,
+  #                             order_out: data_table_hash[:order_out],
+  #                             type_tag: data_table_hash[:type_tag],
+  #                             type_text: data_table_hash[:type_text],
+  #                             content_type: data_table_hash[:content_type],
+  #                             str_number: data_table_hash[:str_number]
+  #       ) if el.present? && el.length > 20
+  #     when 2
+  #       SeoContentTextSentence.create(str_seo_text: data_table_hash[:str_seo_text],
+  #                                     str_number: data_table_hash[:str_number],
+  #                                     sentence: str,
+  #                                     num_snt_in_str: data_table_hash[:num_snt_in_str],
+  #                                     id_text: data_table_hash[:id_text],
+  #                                     type_text: data_table_hash[:type_text]
+  #
+  #       ) if el.present? && el.length > 20
+  #     end
+  #
+  #   end
+  # end
+  #
+  # def replace_size_tyre(array_of_string, url_params)
+  #   arr = []
+  #   size_count = array_of_string.count { |string| string.include?("[size]") }
+  #   size_count.times do |i|
+  #     arr << arr_size_name_min(url_params[:tyre_w], url_params[:tyre_h], url_params[:tyre_r], i)
+  #   end
+  #   arr
+  # end
+  #
+  # def replace_params_w_h_r_tyre(str, url_params)
+  #   str = str.gsub('[r-]', url_params[:tyre_r])
+  #   str = str.gsub('[h-]', url_params[:tyre_h])
+  #   str = str.gsub('[w-]', url_params[:tyre_w])
+  #   str
+  # end
 
   def generate_title_h2
     title_h2 = ""

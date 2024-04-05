@@ -67,14 +67,15 @@ module StringProcessingServices
 
   # Доработать удаление мусорных записей AI
   def delete_all_trash_records_ai
-    SeoContentText.all.each do |record|
-      SeoContentText.where(id: record.id).destroy_all if check_trash_words_invalid?(record.str)
-      # puts record.str if is_the_percent_of_Latin_chars_invalid?(record.str)
-    end
-
-    SeoContentTextSentence.all.each do |record|
-      SeoContentTextSentence.where(id: record.id).destroy_all if check_trash_words_invalid?(record.sentence)
-    end
+    # exclude_words = arr_name_brand_uniq
+    # SeoContentText.all.each do |record|
+    #   SeoContentText.where(id: record.id).destroy_all if check_trash_words_invalid?(record.str, exclude_words)
+    #   # puts record.str if is_the_percent_of_Latin_chars_invalid?(record.str)
+    # end
+    #
+    # SeoContentTextSentence.all.each do |record|
+    #   SeoContentTextSentence.where(id: record.id).destroy_all if check_trash_words_invalid?(record.sentence, exclude_words)
+    # end
   end
 
   def delete_record_with_trash(text)

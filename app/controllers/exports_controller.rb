@@ -45,7 +45,10 @@ class ExportsController < ApplicationController
     table = 'seo_content_text_sentences'
     remove_empty_sentences(table)
     # replace_errors_size(table)
-    repeat_sentences_generation(table)
+    # repeat_sentences_generation(table)
+
+    # заменяем ошибочные заголовки
+    replace_errors_title_sentence
     render plain: "удалил весь мусор"
 
   end

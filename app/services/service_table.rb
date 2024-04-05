@@ -1,5 +1,6 @@
 module ServiceTable
   include StringProcessingServices
+  include StringProcessing
 
   # Копирование таблицы, переменная - объект
   def copy_table_to_table_copy(model, model_copy)
@@ -66,7 +67,7 @@ module ServiceTable
   def remove_empty_sentences(table)
     model = table.classify.constantize
     model.where(sentence: [nil, ""]).delete_all
-
+    model.where(id_text: [nil, ""]).delete_all
     # replace_size_to_template(str)
 
   end
@@ -134,7 +135,7 @@ module ServiceTable
   end
 
   def add_variants_record_to_table_sentence(record_sentence)
-    # обработка предложения
+    # обработка предложения - таблица seo_content_text_sentence
     #========================================================
     select_number_table = 2 # номер таблицы с результатами seo_phrase_sentence - 2
 
@@ -148,16 +149,34 @@ module ServiceTable
       num_snt_in_str: record_sentence[:num_snt_in_str]
     }
 
-    txt = seo_phrase(record_sentence[:sentence], data_table_hash[:number_of_repeats], record_sentence[:num_snt_in_str], select_number_table)
+    txt = seo_phrase(record_sentence[:sentence],
+                     data_table_hash[:number_of_repeats],
+                     record_sentence[:str_number] * 10 + record_sentence[:num_snt_in_str],
+                     select_number_table)
+
     arr_result = make_array_phrase(txt, 1)
 
     arr_to_table(arr_result, data_table_hash, select_number_table)
 
-    # result = "В таблицу базы данных SeoContentTextSentence добавлены записи. === Кол-во: #{count_record}  "
-    #
-    # puts result
-    # render json: { result: result }
+  end
 
+  def replace_errors_title_sentence
+    # Создаем выборку по заданным условиям
+    selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0")
+    i = 0
+
+    # Выполняем метод для каждого элемента выборки
+    selected_records.find_each(batch_size: 1000) do |record_sentence|
+      break if i > 3
+      add_variants_record_to_table_sentence(record_sentence)
+      i += 1
+      record_sentence.destroy
+    end
+
+    puts "count = #{i}"
+
+    unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
+    puts "Количество уникальных значений: #{unique_count}"
   end
 
 end
