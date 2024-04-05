@@ -10,7 +10,7 @@ module StringProcessingServices
       filtered_records = records
     else
       # id текста в  последняя запись по предложениям
-      id_last_text_in_table_sentence = (SeoContentTextSentence.last&.id_text||0)
+      id_last_text_in_table_sentence = (SeoContentTextSentence.last&.id_text || 0)
       puts "id_last_text_in_table_sentence ====== #{id_last_text_in_table_sentence}"
       id_record_content_text_in_table_text = (SeoContentText.find_by(id: id_last_text_in_table_sentence)&.id || SeoContentText.first&.id)
       puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
@@ -91,12 +91,12 @@ module StringProcessingServices
     exclude_words
   end
 
-  def check_trash_words_invalid?(text)
+  def check_trash_words_invalid?(text, exclude_words)
     # is_the_percent_of_Latin_chars_invalid? in delete_all_trash_records_ai
     result = 0
     # проверка на допустимое наличие букв латинского алфавита (% от общего количества знаков)
-    # result += 1 if percent_of_latin_chars(text) > 1
-    result += 1 if trash_words(text) == 1
+    result += 1 if percent_of_latin_chars(text, exclude_words) > 10
+    # result += 1 if trash_words(text) == 1
     result
   end
 
@@ -112,13 +112,14 @@ module StringProcessingServices
     percentage
   end
 
-  def percent_of_latin_chars(text)
+  def percent_of_latin_chars(text, exclude_words = '')
+    # список брендов
+    # exclude_words по умолчанию "", для проверки с наименованиями брендов передавать параметр = arr_name_brand_uniq
     percentage = 0
     # Подсчет латинских символов в тексте
     # регулярное для маркировки
-    marker = "Z|W|Y|\(Y\)|ZR|XL|Reinforced|SL|Standard\sLoad|AS|All-Season|AT|All-Terrain|MT|M\+S|M/S|LT|P|C|ST|RF|DOT|ECE|ISO|UTQG|M&S|ATP|AWD"
-    # список брендов
-    exclude_words = arr_name_brand_uniq
+    marker = "Z|W|Y|\(Y\)|ZR|XL|Reinforced|SL|Standard\sLoad|AS|All-Season|AT|All\-Terrain|MT|M\+S|3PMSF|M/S|LT|P|C|ST|RF|DOT|ECE|ISO|UTQG|M&S|ATP|AWD"
+
 
     # Создаем регулярное выражение, объединяя все слова и регулярные выражения, из которых нужно избавиться
     regexp_string = "\\b(?:size|prokoleso|#{exclude_words.split(' ').join("|")}|ua|#{marker})\\b"
@@ -127,7 +128,8 @@ module StringProcessingServices
     filtered_text = text.gsub(regexp, '') # удаляем указанные слова из текста
     filtered_text = filtered_text.gsub(/(R|r)(|\s*)\d+/, '')
     filtered_text = filtered_text.gsub(/(R|r|c|x|o|e|a)/, '')
-    filtered_text = filtered_text.gsub(/call|visa|Doudlestar|MasterCard|liqpay/i, '')
+    filtered_text = filtered_text.gsub(/call|visa|Doudlestar|vs|TOP|MasterCard|liqpay/i, '')
+    filtered_text = filtered_text.gsub(/sms|pos|mud and snow|Visa\/MasterCard|must\-have|online/i, '')
 
     latin_letters = filtered_text.scan(/[a-zA-Z]/).size
     total_chars = text.gsub(/\s+/, "").size

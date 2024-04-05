@@ -1,4 +1,5 @@
 class ExportsController < ApplicationController
+  include ServiceTable
   def export_text
     records = SeoContentText.all.as_json
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
@@ -40,19 +41,13 @@ class ExportsController < ApplicationController
   end
 
   def control_records
-    count_previus = 0
-    # loop do
-    #   count = SeoContentText.count
-    #   if count < 30000 && count == count_previus
-    #     # rt = ends_with_punctuation?("str")
-    #     puts "я тут #{}"
-    #     sleep 5  # ждем 5 минут - 300
-    #   else
-    #     count_previus = count
-    #     puts "В таблице SeoContentText сейчас #{count_previus} записей."
-    #     sleep 5  # ждем 5 минут - 300
-    #   end
-    # end
+    # сделать очистку таблиц
+    table = 'seo_content_text_sentences'
+    remove_empty_sentences(table)
+    # replace_errors_size(table)
+    repeat_sentences_generation(table)
+    render plain: "удалил весь мусор"
+
   end
 
 end

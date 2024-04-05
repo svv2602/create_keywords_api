@@ -37,7 +37,6 @@ class Api::V1::SeoTextsController < ApplicationController
 
       total_arr_to_table(5, 5)
       # # удаление мусорных записей с латиницей и др
-      # delete_all_trash_records_ai - -  переработать
       # второй рерайт текстов по предложениям
 
       total_arr_to_table_sentence(5, 5)
@@ -374,6 +373,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def seo_phrase_sentence(element_array, number_of_repeats, ind)
     # задание на рерайт по предложениям
+    # ind - номер строки в текте, если 0 - то заголовок
     topics = ''
     topics += element_array.to_s
     if ind > 0
@@ -409,6 +409,7 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def seo_phrase_str(element_array, number_of_repeats, ind)
+    # ind - номер строки в текте, если 0 - то заголовок
     topics = ''
     topics += element_array.to_s
     if ind > 0
