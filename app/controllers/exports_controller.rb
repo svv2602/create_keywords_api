@@ -29,8 +29,12 @@ class ExportsController < ApplicationController
   def count_records
     puts "Number of records in SeoContentTextSentence: #{SeoContentTextSentence.count}"
     puts "Number of records in SeoContentText: #{SeoContentText.count}"
+
+    non_zero_check_title_count = SeoContentTextSentence.where('check_title != ?', 0).count
+    puts "Количество записей с check_title не равным 0: #{non_zero_check_title_count}"
+
     render json: { SeoContentText: "#{SeoContentText.count}",
-                   SeoContentTextSentence: "#{SeoContentTextSentence.count}"
+                   SeoContentTextSentence: "#{non_zero_check_title_count}"
     }
   end
 
