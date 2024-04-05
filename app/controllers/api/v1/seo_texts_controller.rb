@@ -44,33 +44,11 @@ class Api::V1::SeoTextsController < ApplicationController
       # delete_all_trash_records_ai - переработать
     end
 
-    replace_errors_title_sentence_duplicate
+    replace_errors_title_sentence
 
     puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
-  end
-
-
-  def replace_errors_title_sentence_duplicate
-    # задвоено - оригинал в service_table
-    # перезаполнение title
-    # Создаем выборку по заданным условиям
-    selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0 AND check_title = 0")
-    i = 0
-
-    # Выполняем метод для каждого элемента выборки
-    selected_records.find_each(batch_size: 1000) do |record_sentence|
-      break if i > 3
-      add_variants_record_to_table_sentence(record_sentence)
-      i += 1
-      record_sentence.destroy
-    end
-
-    puts "count = #{i}"
-
-    unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
-    puts "Количество уникальных значений: #{unique_count}"
   end
 
   def json_write_for_read
@@ -342,7 +320,9 @@ class Api::V1::SeoTextsController < ApplicationController
         str_seo_text: content_type,
         str_number: record[:str_number],
         id_text: record[:id],
-        type_text: record[:type_text]
+        type_text: record[:type_text],
+        check_title: 0
+
       }
 
       # puts " array ==== #{array}"

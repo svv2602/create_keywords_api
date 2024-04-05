@@ -146,7 +146,8 @@ module ServiceTable
       str_number: record_sentence[:str_number],
       id_text: record_sentence[:id_text],
       type_text: record_sentence[:type_text],
-      num_snt_in_str: record_sentence[:num_snt_in_str]
+      num_snt_in_str: record_sentence[:num_snt_in_str],
+      check_title: 1
     }
 
     txt = seo_phrase(record_sentence[:sentence],

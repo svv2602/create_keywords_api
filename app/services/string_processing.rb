@@ -662,7 +662,9 @@ module StringProcessing
                                       sentence: str,
                                       num_snt_in_str: data_table_hash[:num_snt_in_str],
                                       id_text: data_table_hash[:id_text],
-                                      type_text: data_table_hash[:type_text]
+                                      type_text: data_table_hash[:type_text],
+                                      check_title: data_table_hash[:check_title]
+
 
         ) if el.present? && el.length > 20
       end
