@@ -21,7 +21,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
-
+    # bb?
     txt_file_to_json
 
     file_path = Rails.root.join('lib', 'template_texts', 'data.json')
