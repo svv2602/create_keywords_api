@@ -42,13 +42,14 @@ class ExportsController < ApplicationController
 
   def control_records
     # сделать очистку таблиц
-    table = 'seo_content_text_sentences'
-    remove_empty_sentences(table)
+    # table = 'seo_content_text_sentences'
+    # remove_empty_sentences(table)
     # replace_errors_size(table)
     # repeat_sentences_generation(table)
 
     # заменяем ошибочные заголовки
-    replace_errors_title_sentence
+    # replace_errors_title_sentence
+    SeoContentTextSentence.update_all(check_title: 0)
     render plain: "удалил весь мусор"
 
   end
