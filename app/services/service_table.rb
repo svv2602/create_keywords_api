@@ -162,7 +162,7 @@ module ServiceTable
 
   def replace_errors_title_sentence
     # Создаем выборку по заданным условиям
-    selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0")
+    selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0 AND check_title = 0")
     i = 0
 
     # Выполняем метод для каждого элемента выборки

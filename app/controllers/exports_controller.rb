@@ -53,7 +53,7 @@ class ExportsController < ApplicationController
 
     # заменяем ошибочные заголовки
     # replace_errors_title_sentence
-    SeoContentTextSentence.update_all(check_title: 0)
+
     render plain: "удалил весь мусор"
 
   end
