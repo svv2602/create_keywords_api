@@ -67,7 +67,7 @@ module ServiceTable
   def remove_empty_sentences(table)
     model = table.classify.constantize
     model.where(sentence: [nil, ""]).delete_all
-    # model.where(id_text: [nil, ""]).delete_all
+    model.where(id_text: [nil, ""]).delete_all
     # replace_size_to_template(str)
 
   end

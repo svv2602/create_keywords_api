@@ -44,6 +44,10 @@ class Api::V1::SeoTextsController < ApplicationController
       # delete_all_trash_records_ai - переработать
     end
 
+    table = 'seo_content_text_sentences'
+    remove_empty_sentences(table)
+    # replace_errors_size(table)
+
     replace_errors_title_sentence
 
     puts "Все сделано!"
