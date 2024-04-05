@@ -168,16 +168,16 @@ module ServiceTable
 
     # Выполняем метод для каждого элемента выборки
     selected_records.find_each(batch_size: 1000) do |record_sentence|
-      break if i > 3
+      # break if i > 3
       add_variants_record_to_table_sentence(record_sentence)
-      i += 1
+      # i += 1
       record_sentence.destroy
     end
 
-    puts "count = #{i}"
+    # puts "count = #{i}"
 
-    unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
-    puts "Количество уникальных значений: #{unique_count}"
+    # unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
+    # puts "Количество уникальных значений: #{unique_count}"
   end
 
 end
