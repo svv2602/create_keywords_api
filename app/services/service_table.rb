@@ -163,7 +163,12 @@ module ServiceTable
       check_title: 1
     }
 
-    txt = seo_phrase(record_sentence[:sentence],
+    record_original = SeoContentText.find(record_sentence[:id_text])
+    sentences = record_original[:str].split(/(?<=[.!?])\s+/)
+    first_sentence = sentences.first
+    puts "id_text = #{record_sentence[:id_text]}"
+    puts "first_sentence = #{first_sentence}"
+    txt = seo_phrase(first_sentence,
                      data_table_hash[:number_of_repeats],
                      record_sentence[:str_number] * 10 + record_sentence[:num_snt_in_str], # номер  для определения заголовок(0) или текст
                      select_number_table)

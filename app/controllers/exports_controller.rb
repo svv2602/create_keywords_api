@@ -54,14 +54,16 @@ class ExportsController < ApplicationController
   end
 
   def control_records
+    result = ""
     # сделать очистку таблиц
     table = 'seo_content_text_sentences'
+    SeoContentTextSentence.update_all(check_title: 0)
     # обязательная часть, проверенная
     # ==========================================================
     # ==========================================================
 
-    remove_empty_sentences(table)
-    result = replace_errors_size(table)
+    # remove_empty_sentences(table)
+    # result = replace_errors_size(table)
 
     # ==========================================================
     # ==========================================================
