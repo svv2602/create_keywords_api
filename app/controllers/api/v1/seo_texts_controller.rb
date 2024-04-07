@@ -10,7 +10,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def mytest
     # curl http://localhost:3000/api/v1/mytest?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
-    text = " size [size] size  моС size летние. [size] летние моСк овский покрышки R18 Kumho, HANKOOK отличает прочная конструкция. И я,апаппа. летние моСковский покрышки R18 Kumho, HANKOOK"
+    text = "<p> size [size] size  моС size летние. [size] летние моСк овский покрышки R18 Kumho, HANKOOK отличает прочная конструкция. И я,апаппа. летние моСковский покрышки R18 Kumho, HANKOOK"
 
     result = remove_small_sentences(text, min_count = 3)
     puts "Все сделано! =====  #{result.inspect}"
@@ -133,7 +133,7 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def seo_text
-
+    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
     result = replace_trash(raw_text)
 
     alphanumeric_chars_count = result&.scan(/[\p{L}\p{N}]/)&.length
@@ -582,6 +582,7 @@ class Api::V1::SeoTextsController < ApplicationController
     array = []
     url_params = url_shiny_hash_params
 
+
     unless max_str_number.nil?
       processed_record = ''
       max_str_number += 1
@@ -589,6 +590,8 @@ class Api::V1::SeoTextsController < ApplicationController
 
         max_str_number_sentence = SeoContentTextSentence.where(str_seo_text: content_type, str_number: i).maximum(:num_snt_in_str)
         processed_record = ''
+        puts "max_str_number = #{max_str_number}: max_str_number_sentence = #{max_str_number_sentence} "
+        puts "content_type = #{content_type}  : processed_record = #{processed_record} "
         (max_str_number_sentence + 1).times do |j|
           random_sentence = SeoContentTextSentence.where(str_seo_text: content_type, str_number: i, num_snt_in_str: j)
                                                   .order("RANDOM()")

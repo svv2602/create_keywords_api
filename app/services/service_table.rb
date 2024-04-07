@@ -1,6 +1,7 @@
 module ServiceTable
   include StringProcessingServices
   include StringProcessing
+  include TextOptimization
 
   # Копирование таблицы, переменная - объект
   def copy_table_to_table_copy(model, model_copy)
@@ -68,16 +69,26 @@ module ServiceTable
     model = table.classify.constantize
     model.where(sentence: [nil, ""]).delete_all
     model.where(id_text: [nil, ""]).delete_all
-    # replace_size_to_template(str)
+  end
 
+  def small_is_sentence?(original_text, min_count = 3)
+    result = false
+    # Создание временной копии исходного текста с заменой знаков препинания на пробелы
+    text = original_text.gsub(/[,;:'"(){}\[\]<>]/, ' ')
+    # Очистить каждое слово от знаков препинания и привести его к нижнему регистру
+    words = text.split(' ').reject { |word| prepositions_conjunctions.include?(word.strip.downcase) }.uniq
+    result = true if words.count <= min_count
+    result
   end
 
   def replace_errors_size(table)
     # очистка таблиц от мусора после первой генерации текстов
     model = table.classify.constantize
     exclude_words = arr_name_brand_uniq
+    arr_test=[]
     i = 0
     model.find_each do |record|
+
       if record.sentence.include?("195/65R15")
         record.update(sentence: record.sentence.gsub("195/65R15", "[size]"))
       end
@@ -98,25 +109,24 @@ module ServiceTable
         record.destroy
       end
 
-      # Аккуратно с заголовками
-      # if record.sentence.match?(/\:/) && record.str_number > 0
-      #   record.destroy
-      #   # i +=1
-      # end
-
       # проверка что строка без кириллицы
       if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
         record.destroy
-        i +=1
-      end
-      if percent_of_latin_chars(record.sentence, exclude_words) > 15
-        puts record.sentence
-        puts "percent_of_latin_chars(text) -15- #{percent_of_latin_chars(record.sentence, exclude_words)}"
-        record.destroy
-        i +=1
+        i += 1
       end
 
+      if percent_of_latin_chars(record.sentence, exclude_words) > 15
+        record.destroy
+      end
+
+      if  record.str_number != 0
+        # arr_test << record.sentence if small_is_sentence?(record.sentence)
+        record.destroy
+      end
+
+
     end
+    puts "arr_test = = = #{arr_test}"
     puts "Количество удаленных записей:  #{i} "
     return i
   end
