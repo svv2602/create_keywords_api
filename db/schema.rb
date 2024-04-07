@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_05_133513) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_07_025644) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -119,6 +119,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_05_133513) do
     t.integer "id_text"
     t.string "type_text"
     t.integer "check_title", default: 0
+    t.string "sentence_ua", default: ""
   end
 
   create_table "seo_content_texts", force: :cascade do |t|

@@ -48,7 +48,9 @@ class Api::V1::SeoTextsController < ApplicationController
     remove_empty_sentences(table)
     # replace_errors_size(table)
 
-    replace_errors_title_sentence
+    # заново =============
+    # replace_errors_title_sentence
+    # заново =============
 
     puts "Все сделано!"
     render json: { result: "Все сделано!" }

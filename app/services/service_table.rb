@@ -140,7 +140,7 @@ module ServiceTable
         puts "id_text: #{id_text}; num_snt_in_str: #{num_snt_in_str}; count: #{count}"
         record_sentence = model.where(id_text: id_text, num_snt_in_str: num_snt_in_str).limit(1).first
         puts "record === #{record_sentence.inspect}"
-        add_variants_record_to_table_sentence(record_sentence)
+        # add_variants_record_to_table_sentence(record_sentence)
         i += 1
       end
     end
@@ -148,7 +148,7 @@ module ServiceTable
   end
 
   def add_variants_record_to_table_sentence(record_sentence)
-    # обработка предложения - таблица seo_content_text_sentence
+    # обработка предложения  и добавление его в таблицу seo_content_text_sentence
     #========================================================
     select_number_table = 2 # номер таблицы с результатами seo_phrase_sentence - 2
 
@@ -165,7 +165,7 @@ module ServiceTable
 
     txt = seo_phrase(record_sentence[:sentence],
                      data_table_hash[:number_of_repeats],
-                     record_sentence[:str_number] * 10 + record_sentence[:num_snt_in_str],
+                     record_sentence[:str_number] * 10 + record_sentence[:num_snt_in_str], # номер  для определения заголовок(0) или текст
                      select_number_table)
 
     arr_result = make_array_phrase(txt, 1)
