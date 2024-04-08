@@ -71,14 +71,14 @@ class Api::V1::SeoTextsController < ApplicationController
     # пример:
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
     result = ''
-
+    min_chars = 0
     arr_size = arr_size_to_error
     alphanumeric_chars_count = 0
     general_array_without_season = general_array_without_seasonality.shuffle
-    puts "common_items - #{general_array_without_season.inspect}"
+    # puts "common_items - #{general_array_without_season.inspect}"
 
     # alphanumeric_chars_count_for_url_shiny - метод для определения базового количества символов в зависимости от урла
-    min_chars = alphanumeric_chars_count_for_url_shiny
+    min_chars = alphanumeric_chars_count_for_url_shiny if url_type_by_parameters == 0
 
     while alphanumeric_chars_count < min_chars && general_array_without_season.any?
       content_type = general_array_without_season.first
@@ -96,9 +96,13 @@ class Api::V1::SeoTextsController < ApplicationController
     # ================= content_type = general_array_with_seasonality.first =====================
     # Добавить условие в зависимости от урла по сезонности (нужен ли текст вообще?)
     # +++++++++++++++++++++++++++++++++++++++++++++
-    # ========================================
-    content_type = general_array_with_seasonality.first
-    result += generator_text(content_type) + "\n"
+
+    # ============ сезонность для легковых шин ============================
+    if url_type_by_parameters == 0
+      content_type = general_array_with_seasonality.first
+      result += generator_text(content_type) + "\n"
+    end
+
 
     # удаляем похожие предложения
     result = similar_sentences_delete(result)
@@ -165,7 +169,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # подбор текстов по урлу
     # переписать потом, если надо будет убрать еще типы статей для разных урлов,
     # сделать вначале отбор записей таблицы, а потом отбор по сезонам и .pluck
-
     patterns = []
     case url_type_by_parameters
     when 0 # легковые
@@ -187,9 +190,8 @@ class Api::V1::SeoTextsController < ApplicationController
       query = "order_out = 2 "
     end
 
-
     unique_type_texts = SeoContentText.where(query, *patterns).pluck(:type_text).uniq
-
+    puts "unique_type_texts ================ #{unique_type_texts.inspect}"
     result = general_array(unique_type_texts)
     result
   end
@@ -607,7 +609,8 @@ class Api::V1::SeoTextsController < ApplicationController
                                                   .order("RANDOM()")
                                                   .first
           if random_sentence && random_sentence[:sentence]
-            str = random_sentence[:sentence]
+            # выбираем язык предложения
+            str = url_type_ua? ? random_sentence[:sentence_ua] : random_sentence[:sentence]
             str += "." if ends_with_punctuation?(str)
             processed_record += " #{str}"
           end

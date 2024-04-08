@@ -161,9 +161,23 @@ module StringProcessing
 
   def insert_brand_url(text)
     brands = Brand.all
+    str_site = "<a href='https://prokoleso.ua/"
+    str_site_ua =  url_type_ua? ? "ua/" : ""
+
+    case url_type_by_parameters
+    when 0
+      str_site_type = "shiny/"
+    when 1
+      str_site_type = "diski/"
+    when 2
+      str_site_type = "gruzovye-shiny/"
+    else
+      str_site_type = ''
+    end
+    str_base = str_site + str_site_ua + str_site_type
     # Создать хэш с именами брендов в качестве ключей и URL в качестве значений
     brand_urls = brands.each_with_object({}) do |brand, hash|
-      hash[brand.name] = "<a href='https://prokoleso.ua/shiny/#{brand.url}/'>#{brand.name}</a>"
+      hash[brand.name] = "#{str_base}#{brand.url}/'>#{brand.name}</a>"
     end
 
     # Проверить, есть ли названия брендов в тексте и заменить их на URL
@@ -374,10 +388,13 @@ module StringProcessing
     url = params[:url]
     url_parts = ''
     if url.present?
-      CGI::unescape(url)
+      url = CGI::unescape(url)
       url_parts = url.split('/')
       # удаляем из массива ["https:","","prokoleso.ua","shiny","w-255","h-55","r-20","zimnie"] первые 4 элемента
-      result = url_parts.drop(4)
+      url_parts.delete("prokoleso.ua")
+      url_parts.delete("https:")
+      url_parts.delete("")
+      result = url_parts
     end
 
     result
@@ -385,6 +402,7 @@ module StringProcessing
 
   def url_type_by_parameters
     url_parts = arr_params_url
+    # puts "url_parts! ========= #{url_parts.inspect} "
     case
     when url_parts.include?("diski")
       1
@@ -397,7 +415,7 @@ module StringProcessing
 
   def url_type_ua?
     url_parts = arr_params_url
-    url_parts.any?{|part| part == "ua"}
+    url_parts.any? { |part| part == "ua" }
   end
 
   def url_shiny_hash_params
@@ -463,11 +481,6 @@ module StringProcessing
     diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0
     brand = url_parts[:tyre_brand].present? ? 10 : 0
     season = url_parts[:tyre_season]
-    # puts "url_parts === #{url_parts.inspect}"
-    # puts "size === #{size}"
-    # puts "diameter === #{diameter}"
-    # puts "brand === #{brand}"
-    # puts "season === #{season}"
     result = size + diameter + season + brand
     result
   end
