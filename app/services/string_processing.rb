@@ -1,8 +1,8 @@
 # app/services/string_processing.rb
 
-
 module StringProcessing
   require_relative '../../app/services/dictionaries/const_regex'
+
   def arr_size_name_min(ww, hh, rr, i)
     result = ''
 
@@ -123,7 +123,7 @@ module StringProcessing
     # search_size_1 = /\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
     # search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
     search_size_1 = SEARCH_SIZE_1
-    search_size_2  = SEARCH_SIZE_2
+    search_size_2 = SEARCH_SIZE_2
 
     return str if str.nil? # Убедитесь что str не nil
 
@@ -209,8 +209,7 @@ module StringProcessing
     # search_size = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
     # search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
     search_size = SEARCH_SIZE_1
-    search_size_2  = SEARCH_SIZE_2
-
+    search_size_2 = SEARCH_SIZE_2
 
     replaced = {}
     text = text.each_line.map do |line|
@@ -384,6 +383,23 @@ module StringProcessing
     result
   end
 
+  def url_type_by_parameters
+    url_parts = arr_params_url
+    case
+    when url_parts.include?("diski")
+      1
+    when url_parts.include?("gruzovye-shiny")
+      2
+    else
+      0
+    end
+  end
+
+  def url_type_ua?
+    url_parts = arr_params_url
+    url_parts.any?{|part| part == "ua"}
+  end
+
   def url_shiny_hash_params
     # Делаем хеш из параметров полученного url
     url_parts = arr_params_url
@@ -467,7 +483,7 @@ module StringProcessing
       # размер и размер+бренд
       result = 3500
 
-    when  101, 102, 103, 111, 112, 113
+    when 101, 102, 103, 111, 112, 113
       # варианты по размеру
       # размер+сезон и размер+бренд+сезон
       result = 2500
@@ -499,7 +515,7 @@ module StringProcessing
   def print_errors_text?
     url_param = url_shiny_hash_params
     case url_param[:tyre_r].to_i
-    when  14, 15, 16, 17, 18, 19
+    when 14, 15, 16, 17, 18, 19
       true
     else
       false
@@ -664,7 +680,6 @@ module StringProcessing
                                       id_text: data_table_hash[:id_text],
                                       type_text: data_table_hash[:type_text],
                                       check_title: data_table_hash[:check_title]
-
 
         ) if el.present? && el.length > 20
       end

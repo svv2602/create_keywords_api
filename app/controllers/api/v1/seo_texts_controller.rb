@@ -136,7 +136,8 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def seo_text
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
-    result = replace_trash(raw_text)
+    text = raw_text
+    result = replace_trash(text)
 
     alphanumeric_chars_count = result&.scan(/[\p{L}\p{N}]/)&.length
     puts "количество значимых символов - #{alphanumeric_chars_count}"
@@ -165,22 +166,30 @@ class Api::V1::SeoTextsController < ApplicationController
     # переписать потом, если надо будет убрать еще типы статей для разных урлов,
     # сделать вначале отбор записей таблицы, а потом отбор по сезонам и .pluck
 
-    if (10..14).include?(type_for_url_shiny)
-      # puts "Значение в диапазоне от 10 до 14"
-      # убираем статьи с сезоном и ассортиметом для брендов
+    patterns = []
+    case url_type_by_parameters
+    when 0 # легковые
+      query = "order_out = 0 "
+      if (10..14).include?(type_for_url_shiny)
+        # puts "Значение в диапазоне от 10 до 14"
+        # убираем статьи с сезоном и ассортиметом для брендов
+        patterns = ['%season%', '%letnie%', '%zimnie%', '%vsesezonie%', '%ассортимент%']
+      else
+        # puts "Значение вне диапазона от 10 до 14"
+        # просто убираем статьи с сезоном
+        patterns = ['%season%', '%letnie%', '%zimnie%', '%vsesezonie%']
+      end
+      query += " AND " + patterns.map{ "type_text NOT LIKE ?" }.join(" AND ")
 
-      unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
-                                               "%season%", "%letnie%", "%zimnie%", "%vsesezonie%", "%ассортимент%")
-                                        .pluck(:type_text)
-                                        .uniq
-    else
-      # puts "Значение вне диапазона от 10 до 14"
-      # просто убираем статьи с сезоном
-      unique_type_texts = SeoContentText.where("type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ? AND type_text NOT LIKE ?",
-                                               "%season%", "%letnie%", "%zimnie%", "%vsesezonie%")
-                                        .pluck(:type_text)
-                                        .uniq
+    when 1 # легковые диски
+      query = "order_out = 1 "
+    when 2 # грузовые шины
+      query = "order_out = 2 "
     end
+
+
+    unique_type_texts = SeoContentText.where(query, *patterns).pluck(:type_text).uniq
+
     result = general_array(unique_type_texts)
     result
   end
@@ -583,7 +592,6 @@ class Api::V1::SeoTextsController < ApplicationController
     text = ""
     array = []
     url_params = url_shiny_hash_params
-
 
     unless max_str_number.nil?
       processed_record = ''
