@@ -85,7 +85,7 @@ module ServiceTable
     # очистка таблиц от мусора после первой генерации текстов
     model = table.classify.constantize
     exclude_words = arr_name_brand_uniq
-    arr_test=[]
+    arr_test = []
     i = 0
     model.find_each do |record|
 
@@ -119,11 +119,10 @@ module ServiceTable
         record.destroy
       end
 
-      if  record.str_number != 0
+      if record.str_number != 0 # строка не заголовок
         # arr_test << record.sentence if small_is_sentence?(record.sentence)
-        record.destroy
+        record.destroy if small_is_sentence?(record.sentence)
       end
-
 
     end
     puts "arr_test = = = #{arr_test}"
@@ -131,24 +130,9 @@ module ServiceTable
     return i
   end
 
-  def repeat_sentences_generation(table)
-    i = 0
-    model = table.classify.constantize
-    counts = model.group(:id_text, :num_snt_in_str).count
-    counts.each do |(id_text, num_snt_in_str), count|
-      if count < 5
-        puts "id_text: #{id_text}; num_snt_in_str: #{num_snt_in_str}; count: #{count}"
-        record_sentence = model.where(id_text: id_text, num_snt_in_str: num_snt_in_str).limit(1).first
-        puts "record === #{record_sentence.inspect}"
-        # add_variants_record_to_table_sentence(record_sentence)
-        i += 1
-      end
-    end
-    puts "i: #{i}"
-  end
-
   def add_variants_record_to_table_sentence(record_sentence)
-    # обработка предложения  и добавление его в таблицу seo_content_text_sentence
+    # ВНИМАНИЕ = только первая строка для ошибочных заголовков.
+    # обработка предложения  и добавление нового варианта в таблицу seo_content_text_sentence
     #========================================================
     select_number_table = 2 # номер таблицы с результатами seo_phrase_sentence - 2
 
@@ -179,6 +163,59 @@ module ServiceTable
 
   end
 
+  def repeat_sentences_generation
+    i = 0
+    counts_new = []
+    counts = SeoContentTextSentence.group(:id_text, :num_snt_in_str).count
+    counts.each do |(id_text, num_snt_in_str), count|
+
+      if count < 25
+        record_sentence = SeoContentTextSentence.where(id_text: id_text, num_snt_in_str: num_snt_in_str).limit(1).first
+        number_of_repeats_for_text = 25 - count > 5 ? 2 : 1
+        number_of_repeats = number_of_repeats_for_text == 1 ? 25 - count : (25 - count) / 2
+        add_variants_record_to_table_sentence_for_all(record_sentence, number_of_repeats_for_text, number_of_repeats)
+
+        # i += 1
+        # break if i > 3
+        # puts "id_text: #{id_text}; num_snt_in_str: #{num_snt_in_str}; count: #{count}"
+        # puts "record === #{record_sentence.inspect}"
+        # counts_new << record_sentence
+      end
+    end
+    # puts "i: #{i}"
+    # puts "counts_new ===== #{counts_new.inspect}"
+  end
+
+  def add_variants_record_to_table_sentence_for_all(record_sentence, number_of_repeats_for_text = 1, number_of_repeats = 1)
+    # обработка предложения  и добавление нового варианта в таблицу seo_content_text_sentence
+    #========================================================
+    select_number_table = 2 # номер таблицы с результатами seo_phrase_sentence - 2
+
+    data_table_hash = {
+      number_of_repeats_for_text: number_of_repeats_for_text,
+      number_of_repeats: number_of_repeats,
+      str_seo_text: record_sentence[:str_seo_text],
+      str_number: record_sentence[:str_number],
+      id_text: record_sentence[:id_text],
+      type_text: record_sentence[:type_text],
+      num_snt_in_str: record_sentence[:num_snt_in_str],
+      check_title: 2
+    }
+
+    data_table_hash[:number_of_repeats_for_text].times do
+
+      txt = seo_phrase(record_sentence[:sentence],
+                       data_table_hash[:number_of_repeats],
+                       record_sentence[:str_number] * 10 + record_sentence[:num_snt_in_str], # номер  для определения заголовок(0) или текст
+                       select_number_table)
+
+      arr_result = make_array_phrase(txt, 1)
+      arr_to_table(arr_result, data_table_hash, select_number_table)
+
+    end
+
+  end
+
   def replace_errors_title_sentence
     # Создаем выборку по заданным условиям
     selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0 AND check_title = 0")
@@ -196,6 +233,34 @@ module ServiceTable
 
     # unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
     # puts "Количество уникальных значений: #{unique_count}"
+  end
+
+  def add_sentence_ua
+    # Добавление украинского текста (перевод с русского)
+    # Создаем выборку по заданным условиям (записи без украинского текста)
+    selected_records = SeoContentTextSentence.where("sentence_ua = ''")
+    i = 0
+
+    # Выполняем метод для каждого элемента выборки
+    selected_records.find_each(batch_size: 1000) do |record_sentence|
+      # break if i > 3
+      topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
+      topics += "\n Сделай перевод этого предложения на украинский язык"
+      topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
+      new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
+
+      if new_text
+        begin
+          new_text = new_text['choices'][0]['message']['content'].strip
+        rescue => e
+          puts "Произошла ошибка: #{e.message}"
+        end
+      end
+
+      record_sentence.update(sentence_ua: new_text)
+      # i += 1
+    end
+
   end
 
 end
