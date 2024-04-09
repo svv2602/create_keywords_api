@@ -187,6 +187,7 @@ module TextOptimization
     text = text.gsub(/\.\s*,/, ".") # точка-пробелы-запятая
     text = text.gsub(/^[.!?]+/, '')  # Удалить лишние знаки препинания c начала строки
     text = text.gsub(/((\.|,|\:)\s*\.)+/, ".") # двойные точки или запятая-пробелы-точка
+    text = text.gsub(/\s+/, ' ')
     text
 
   end

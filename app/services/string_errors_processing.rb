@@ -34,11 +34,11 @@ module StringErrorsProcessing
     result = ''
     4.times do |i|
       str = send("str_size#{i + 1}", tyre_r, tyre_w, tyre_h)
-      str.gsub!(/(^[^:]*):/, '<b>\1:</b>')
-      str.gsub!('<b><p>', '<p><b>')
-      str.gsub!('<b><li>', '<li><b>')
-      str.gsub!('<b><ul>', '<ul><b>')
-      str.gsub!("<b>\n<i>", "\n<i><b>")
+      # str.gsub!(/(^[^:]*):/, '<b>\1:</b>')
+      # str.gsub!('<b><p>', '<p><b>')
+      # str.gsub!('<b><li>', '<li><b>')
+      # str.gsub!('<b><ul>', '<ul><b>')
+      # str.gsub!("<b>\n<i>", "\n<i><b>")
       arr << str
     end
     arr.shuffle!
@@ -61,58 +61,58 @@ module StringErrorsProcessing
 
   def str_size1(tyre_r, tyre_w, tyre_h)
     result = ''
-    result += "<li>"
+    result += "<p>"
     result += TextError.where(type_line: "size1").order("RANDOM()").first&.line
-    result += "\n<ul>\n"
+    result += "\n</p>\n<ul>\n<li>\n"
     result += "<i>Пример:  купить шины на  R#{tyre_r} #{tyre_w} #{tyre_h},  #{tyre_h}R#{tyre_r} на #{tyre_w}, р#{tyre_r} #{tyre_w} #{tyre_h} </i>"
-    result += "</ul>\n"
     result += "</li>\n"
+    result += "</ul>\n"
     result
   end
 
   def str_size2(tyre_r, tyre_w, tyre_h)
     result = ''
-    result += "<li>"
+    result += "<p>"
     result += TextError.where(type_line: "size2").order("RANDOM()").first&.line
-    result += "\n<ul>\n"
+    result += "\n</p>\n<ul>\n<li>\n"
     result += "<i>Пример:  резину #{tyre_w}-#{tyre_h}-#{tyre_r},  #{tyre_w}х#{tyre_h} р#{tyre_r}, #{tyre_w}x#{tyre_h} r#{tyre_r} купить в Киеве</i>"
-    result += "</ul>\n"
     result += "</li>\n"
+    result += "</ul>\n"
     result
   end
 
   def str_size3(tyre_r, tyre_w, tyre_h)
     result = ''
-    result += "<li>"
+    result += "<p>"
     result += TextError.where(type_line: "size3").order("RANDOM()").first&.line
-    result += "\n<ul>\n"
+    result += "\n</p>\n<ul>\n<li>\n"
     result += "<i>Пример:  #{tyre_w}/#{tyre_h}/#{tyre_r} в Киеве, #{tyre_w} #{tyre_h} #{tyre_r} купить.</i>"
-    result += "</ul>\n"
     result += "</li>\n"
+    result += "</ul>\n"
     result
   end
 
   #  175/70r13, 175 70 r 13 82t, 175 70 р 13,
   def str_size4(tyre_r, tyre_w, tyre_h)
     result = ''
-    result += "<li>"
+    result += "<p>"
     result += TextError.where(type_line: "size4").order("RANDOM()").first&.line
-    result += "\n<ul>\n"
+    result += "\n</p>\n<ul>\n<li>\n"
     result += "<i>Пример: Сколько стоит #{tyre_w} на #{tyre_r}?\n  Какая цена  #{tyre_w} #{tyre_h} r #{tyre_r} ?</i>"
-    result += "</ul>\n"
     result += "</li>\n"
+    result += "</ul>\n"
     result
   end
 
   def str_brand(tyre_brand)
     result = ''
-    result += "<li>"
+    result += "<p>"
     result += TextError.where(type_line: "brand").order("RANDOM()").first&.line
-    result += "\n<ul>\n"
+    result += "\n</p><ul><li>\n"
     result += "<i>Пример: #{convert_to_cyrillic(tyre_brand)} - набор наименования бренда кириллицей, \n"
     result += "а '#{to_cyrillic(tyre_brand)}' - не была переключена раскладка клавиатуры при наборе '#{tyre_brand}'. </i>"
-    result += "</ul>\n"
     result += "</li>\n"
+    result += "</ul>\n"
     result
   end
 

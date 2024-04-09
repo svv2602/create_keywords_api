@@ -90,6 +90,7 @@ module StringProcessing
       else
         result = "#{ww} #{hh} #{rr}"
       end
+      result = result + " " + random_name_brand(url_params[:tyre_brand]) if url_params[:tyre_brand].present?
     end
 
     if size_only_diameter_in_url?
@@ -459,6 +460,13 @@ module StringProcessing
     url_hash
   end
 
+  def size_present_in_popular?
+    url_parts = url_shiny_hash_params
+    size = url_parts[:tyre_w]+"/" + url_parts[:tyre_h] + " R" +url_parts[:tyre_r]
+    key = url_parts[:tyre_r].to_sym
+    TIRE_POPULAR_SIZES.key?(key) && TIRE_POPULAR_SIZES[key].include?(size)
+  end
+
   def size_present_in_url?
     url_parts = url_shiny_hash_params
     ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
@@ -476,11 +484,11 @@ module StringProcessing
 
   def type_for_url_shiny
     url_parts = url_shiny_hash_params
-    # result = 0
-    size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0
-    diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0
-    brand = url_parts[:tyre_brand].present? ? 10 : 0
-    season = url_parts[:tyre_season]
+    # распределение по разрядам суммы
+    size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни
+    diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0 # сотни
+    brand = url_parts[:tyre_brand].present? ? 10 : 0 # десятки
+    season = url_parts[:tyre_season] # единицы
     result = size + diameter + season + brand
     result
   end
@@ -496,10 +504,15 @@ module StringProcessing
       # размер и размер+бренд
       result = 3500
 
-    when 101, 102, 103, 111, 112, 113
+    when 101, 102, 103
       # варианты по размеру
-      # размер+сезон и размер+бренд+сезон
-      result = 2500
+      # размер+сезон
+      result = 1500
+
+    when  111, 112, 113
+      # варианты по размеру
+      # размер+бренд+сезон
+      result = 1000
 
     when 200, 210
       # варианты по диаметру
