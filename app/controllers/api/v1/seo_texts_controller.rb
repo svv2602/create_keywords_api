@@ -83,7 +83,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       result += generator_text(content_type) + "\n"
       arr = arr_size.shift(5)
-      result += min_errors_text(arr) if size_present_in_url? && !url_type_ua?
+      result += min_errors_text(arr) if size_present_in_url?
 
       alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     end
@@ -104,8 +104,13 @@ class Api::V1::SeoTextsController < ApplicationController
     result = similar_sentences_delete(result)
 
     # Добавление текста об ошибках , если в url есть размер
-    if size_present_in_url? && !url_type_ua?
-      result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
+    if size_present_in_url?
+      if url_type_ua?
+        result += min_errors_text(arr_size)
+      else
+        result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
+      end
+
     end
 
     # убираем лишние знаки пунктуации
@@ -116,10 +121,12 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def min_errors_text(arr_size)
     result = ''
-    if !print_errors_text? && !arr_size.empty?
+    if !size_present_in_popular? && !arr_size.empty?
       text_err = "<br>\n"
       text_err += "<p class='keywords-size'>"
-      text_err += TEMPLATE_TEXT_ERROR.shuffle.first + " " + arr_size.shift(5).join(', ')
+      url_type_ua?
+      text_err += url_type_ua? ? TEMPLATE_TEXT_ERROR_UA.shuffle.first : TEMPLATE_TEXT_ERROR.shuffle.first
+      text_err += " " + arr_size.shift(5).join(', ')
       text_err += "</p><br>\n"
       result += text_err
     end

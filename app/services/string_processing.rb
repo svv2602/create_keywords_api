@@ -163,7 +163,7 @@ module StringProcessing
   def insert_brand_url(text)
     brands = Brand.all
     str_site = "<a href='https://prokoleso.ua/"
-    str_site_ua =  url_type_ua? ? "ua/" : ""
+    str_site_ua = url_type_ua? ? "ua/" : ""
 
     case url_type_by_parameters
     when 0
@@ -200,6 +200,7 @@ module StringProcessing
                            season_diameter: true
                   },
                   search_str: /((Л|л)етн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/,
+                  search_str_ua: /((Л|л)ітн(і|я|ю|іх|іми)\s+(шин(и|а|у|ами)|резин(а|и|у|ою)))/,
       },
       'зимние': { value: 'zimnie',
                   season: 2,
@@ -207,7 +208,8 @@ module StringProcessing
                            season_size: true,
                            season_diameter: true
                   },
-                  search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
+                  search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/,
+                  search_str_ua: /((З|з)им(ов|н)(у|а|і|я|ю|их|ими|іх|іми)\s+(шин(и|а|у|ами)|резин(а|и|у|ою)))/
       },
       'всесезонные': { value: 'vsesezonie',
                        season: 3,
@@ -215,30 +217,32 @@ module StringProcessing
                                 season_size: true,
                                 season_diameter: true
                        },
-                       search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/
+                       search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|а|у|ами)|резин(а|ы|у|ой)))/,
+                       search_str_ua: /((В|в)сесезонн(і|я|ю|их|ими|іх|іми)\s+(шин(и|а|у|ами)|резин(а|и|у|ою)))/
       }
 
     }
     arr_size = arr_size_to_error
 
-    # search_size = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
-    # search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
     search_size = SEARCH_SIZE_1
     search_size_2 = SEARCH_SIZE_2
-
+    str_url = url_type_ua? ? "<a href='https://prokoleso.ua/ua/shiny" : "<a href='https://prokoleso.ua/shiny"
     replaced = {}
-    text = text.each_line.map do |line|
+
+    text = text.each_line.drop(2).map do |line|
 
       replaced = false
       type_season.each do |key, value|
 
         # if value[:season] != season
         part_url = value[:value] + '/'
-        regex = value[:search_str]
-        match = line.match(regex)
+        regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+        match = line.match(regex_season)
+
         if match && value[:state][:season_url]
-          url = "<a href='https://prokoleso.ua/shiny/#{part_url}'>#{match[0]}</a>"
-          line.sub!(regex, url)
+          puts "match ======== #{match.inspect}"
+          url = "#{str_url}/#{part_url}'>#{match[0]}</a>"
+          line.sub!(regex_season, url)
           value[:state][:season_url] = false
           replaced = true
         end
@@ -247,18 +251,18 @@ module StringProcessing
       end
 
       # ссылки на размеры
+
       type_season.each do |key, value|
 
-        regex = /(#{value[:search_str]}\s*#{search_size})/
+        # regex = /(#{value[:search_str]}\s*#{search_size})/
+        regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+        regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
+
         match = line.match(regex)
-        unless match
-          regex = /(#{value[:search_str]}\s*#{search_size_2})/
-          match = line.match(regex)
-        end
         part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
         part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
         if match && value[:state][:season_size]
-          url = "<a href='https://prokoleso.ua/shiny/#{part_url}#{part_url_size}'>#{match[0]}</a>"
+          url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
           line.sub!(regex, url)
           value[:state][:season_size] = false
           replaced = true
@@ -274,10 +278,10 @@ module StringProcessing
         part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
         txt_season = value[:season].to_i == season.to_i ? '' : key
 
-        if match && value[:state][:season_size]
-          url = "<a href='https://prokoleso.ua/shiny/#{part_url}#{part_url_size}'>#{txt_season} #{match[0]}</a>"
+        if match && value[:state][:season_diameter]
+          url = "#{str_url}/#{part_url}#{part_url_size}'>#{txt_season} #{match[0]}</a>"
           line.sub!(regex, url)
-          value[:state][:season_size] = false
+          value[:state][:season_diameter] = false
           replaced = true
         end
         break if replaced
@@ -462,7 +466,7 @@ module StringProcessing
 
   def size_present_in_popular?
     url_parts = url_shiny_hash_params
-    size = url_parts[:tyre_w]+"/" + url_parts[:tyre_h] + " R" +url_parts[:tyre_r]
+    size = url_parts[:tyre_w] + "/" + url_parts[:tyre_h] + " R" + url_parts[:tyre_r]
     key = url_parts[:tyre_r].to_sym
     TIRE_POPULAR_SIZES.key?(key) && TIRE_POPULAR_SIZES[key].include?(size)
   end
@@ -509,7 +513,7 @@ module StringProcessing
       # размер+сезон
       result = 1500
 
-    when  111, 112, 113
+    when 111, 112, 113
       # варианты по размеру
       # размер+бренд+сезон
       result = 1000
@@ -539,13 +543,14 @@ module StringProcessing
   end
 
   def print_errors_text?
-    url_param = url_shiny_hash_params
-    case url_param[:tyre_r].to_i
-    when 14, 15, 16, 17, 18, 19
-      true
-    else
-      false
-    end
+
+    # url_param = url_shiny_hash_params
+    # case url_param[:tyre_r].to_i
+    # when 14, 15, 16, 17, 18, 19
+    #   true
+    # else
+    #   false
+    # end
   end
 
   def clear_size_in_sentence
