@@ -83,7 +83,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       result += generator_text(content_type) + "\n"
       arr = arr_size.shift(5)
-      result += min_errors_text(arr) if size_present_in_url?
+      result += min_errors_text(arr) if size_present_in_url? && !url_type_ua?
 
       alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     end
@@ -100,12 +100,11 @@ class Api::V1::SeoTextsController < ApplicationController
       result += generator_text(content_type) + "\n"
     end
 
-
     # удаляем похожие предложения
     result = similar_sentences_delete(result)
 
     # Добавление текста об ошибках , если в url есть размер
-    if size_present_in_url?
+    if size_present_in_url? && !url_type_ua?
       result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
     end
 
@@ -164,7 +163,7 @@ class Api::V1::SeoTextsController < ApplicationController
     case url_type_by_parameters
     when 0 # легковые
       query = "order_out = 0 "
-      if (10..14).include?(type_for_url_shiny)||(110..114).include?(type_for_url_shiny)
+      if (10..14).include?(type_for_url_shiny) || (110..114).include?(type_for_url_shiny)
         # puts "Значение в диапазоне от 10 до 14"
         # убираем статьи с сезоном и ассортиметом для брендов
         patterns = ['%season%', '%letnie%', '%zimnie%', '%vsesezonie%', '%ассортимент%']
@@ -173,7 +172,7 @@ class Api::V1::SeoTextsController < ApplicationController
         # просто убираем статьи с сезоном
         patterns = ['%season%', '%letnie%', '%zimnie%', '%vsesezonie%']
       end
-      query += " AND " + patterns.map{ "type_text NOT LIKE ?" }.join(" AND ")
+      query += " AND " + patterns.map { "type_text NOT LIKE ?" }.join(" AND ")
 
     when 1 # легковые диски
       query = "order_out = 1 "
@@ -375,12 +374,12 @@ class Api::V1::SeoTextsController < ApplicationController
     count_record
   end
 
-
   def generate_title_h2
     title_h2 = ""
 
     url_params = url_shiny_hash_params
-    file_path = Rails.root.join('lib', 'template_texts', 'title_h2.json')
+    file_name = url_type_ua? ? 'title_h2_ua.json' : 'title_h2.json'
+    file_path = Rails.root.join('lib', 'template_texts', file_name)
     file_data = File.read(file_path)
     hash_title = JSON.parse(file_data)
 
