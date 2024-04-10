@@ -41,13 +41,18 @@ class Api::V1::SeoTextsController < ApplicationController
 
     end
 
-    # table = 'seo_content_text_sentences'
-    # remove_empty_sentences(table)
-    # replace_errors_size(table)
-
     # заново =============
+    # исправляется ошибка с формированием перввой строки абзацев
     replace_errors_title_sentence
     # заново =============
+
+    # сделать копию базы и запустить
+    table = 'seo_content_text_sentences'
+    # remove_empty_sentences(table) # удаление пустых записей
+    # result = replace_errors_size(table) # удаление записей с ошибками
+    # repeat_sentences_generation # дополнение до 25
+
+
 
     puts "Все сделано!"
     render json: { result: "Все сделано!" }
