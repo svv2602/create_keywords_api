@@ -48,13 +48,13 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # сделать копию базы и запустить
     table = 'seo_content_text_sentences'
-    # remove_empty_sentences(table) # удаление пустых записей
-    # result = replace_errors_size(table) # удаление записей с ошибками
-    # repeat_sentences_generation # дополнение до 25
+    remove_empty_sentences(table) # удаление пустых записей
+    result = replace_errors_size(table) # удаление записей с ошибками
+    repeat_sentences_generation # дополнение до 25
 
 
 
-    puts "Все сделано!"
+    puts "Все сделано! удалено - #{result}"
     render json: { result: "Все сделано!" }
 
   end
