@@ -228,8 +228,9 @@ module StringProcessing
     search_size_2 = SEARCH_SIZE_2
     str_url = url_type_ua? ? "<a href='https://prokoleso.ua/ua/shiny" : "<a href='https://prokoleso.ua/shiny"
     replaced = {}
-
-    text = text.each_line.drop(2).map do |line|
+    i = 0
+    text = text.each_line.map do |line|
+      i += 1
 
       replaced = false
       type_season.each do |key, value|

@@ -33,7 +33,10 @@ class ExportsController < ApplicationController
     non_zero_check_title_count = SeoContentTextSentence.where('check_title != ?', 0).count
     puts "Количество записей с check_title не равным 0: #{non_zero_check_title_count}"
 
-    render json: { SeoContentText: "#{SeoContentText.count}",
+    check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
+    puts "Количество записей с check_title  равным 2: #{non_zero_check_title_count}"
+
+    render json: { SeoContentText: "#{check_title_value2_count}",
                    SeoContentTextSentence: "#{non_zero_check_title_count}"
     }
   end
@@ -77,7 +80,7 @@ class ExportsController < ApplicationController
 
     # remove_empty_sentences(table) # удаление пустых записей
     # result = replace_errors_size(table) # удаление записей с ошибками
-    # repeat_sentences_generation # дополнение до 25
+    repeat_sentences_generation # дополнение до 25
     # ==========================================================
     # 2 часть
     # ==========================================================
