@@ -30,14 +30,14 @@ class ExportsController < ApplicationController
     puts "Number of records in SeoContentTextSentence: #{SeoContentTextSentence.count}"
     puts "Number of records in SeoContentText: #{SeoContentText.count}"
 
-    non_zero_check_title_count = SeoContentTextSentence.where('check_title != ?', 0).count
-    puts "Количество записей с check_title не равным 0: #{non_zero_check_title_count}"
+    # non_zero_check_title_count = SeoContentTextSentence.where('sentence_ua = "" or sentence_ua IS NULL').count
+    check_title_value_ua_count = SeoContentTextSentence.where(sentence_ua: '').count
 
     check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
-    puts "Количество записей с check_title  равным 2: #{non_zero_check_title_count}"
+    puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
 
     render json: { SeoContentText: "#{check_title_value2_count}",
-                   SeoContentTextSentence: "#{non_zero_check_title_count}"
+                   SeoContentTextSentence: "#{check_title_value_ua_count}"
     }
   end
 
