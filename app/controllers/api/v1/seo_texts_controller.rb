@@ -22,10 +22,10 @@ class Api::V1::SeoTextsController < ApplicationController
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
     # bb?
-    txt_file_to_json
+    # txt_file_to_json
 
-    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
-    if duplicated_in_data_json?(file_path)
+    # file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+    # if duplicated_in_data_json?(file_path)
       # # первый рерайт текстов по абзацам _
       # #===========================================================
       # # ВНИМАНИЕ!!!
@@ -39,7 +39,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       # total_arr_to_table_sentence(5, 5)
 
-    end
+    # end
 
     # заново =============
     # исправляется ошибка с формированием перввой строки абзацев
@@ -48,10 +48,11 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # сделать копию базы и запустить
     table = 'seo_content_text_sentences'
-    remove_empty_sentences(table) # удаление пустых записей
-    result = replace_errors_size(table) # удаление записей с ошибками
+    # remove_empty_sentences(table) # удаление пустых записей
+    # result = replace_errors_size(table) # удаление записей с ошибками
     # repeat_sentences_generation # дополнение до 25
     add_sentence_ua
+    # !!!!!!сделать проверку по украинским текстам!!!!!!
 
 
     puts "Все сделано! удалено - #{result}"
