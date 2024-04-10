@@ -469,7 +469,9 @@ module StringProcessing
     url_parts = url_shiny_hash_params
     size = url_parts[:tyre_w] + "/" + url_parts[:tyre_h] + " R" + url_parts[:tyre_r]
     key = url_parts[:tyre_r].to_sym
-    TIRE_POPULAR_SIZES.key?(key) && TIRE_POPULAR_SIZES[key].include?(size)
+    TIRE_POPULAR_SIZES.key?(key) &&
+      TIRE_POPULAR_SIZES[key].include?(size) &&
+      [100, 110, 101, 102, 103].include?(type_for_url_shiny) # если есть размер или размер +бренд или размер+сезон
   end
 
   def size_present_in_url?
