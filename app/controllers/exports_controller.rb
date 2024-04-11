@@ -1,5 +1,6 @@
 class ExportsController < ApplicationController
   include ServiceTable
+
   def export_text
     records = SeoContentText.all.as_json
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
@@ -40,7 +41,6 @@ class ExportsController < ApplicationController
     # now = Time.now
     # total_seconds_and_minutes = now.sec + now.min * 60
 
-
     render json: { SeoContentText: "#{check_title_value_ua_count}",
                    SeoContentTextSentence: "#{check_title_value2_count}"
     }
@@ -66,7 +66,6 @@ class ExportsController < ApplicationController
     # сделать очистку таблиц
     table = 'seo_content_text_sentences'
 
-
     # SeoContentTextSentence.update_all(check_title: 0)
     # ==========================================================
     # 0 часть - исправить ошибку с заголовкоками
@@ -76,7 +75,6 @@ class ExportsController < ApplicationController
     # перерабатывает строки с индексами 0,n - из заголовков в текст
     # replace_errors_title_sentence -- !! не запускать не подумав
     # ==========================================================
-
 
     # обязательная часть, проверенная
     # ==========================================================
@@ -93,8 +91,28 @@ class ExportsController < ApplicationController
     # add_sentence_ua   # украинский перевод - !!! сделать проверку по пустому украинскому тексту!!!
 
     # ==========================================================
-    # ==========================================================
+
+    # Заполнение таблицы
     TextError.delete_all
+    excel_file = "lib/text_errors.xlsx"
+    excel = Roo::Excelx.new(excel_file)
+    i = 0
+    excel.each_row_streaming(pad_cells: true) do |row|
+      begin
+        i += 1
+        line = row[0]&.value
+        type_line = row[1]&.value
+        line_ua = row[2]&.value
+        line_ua = line_ua.gsub("​​",'')
+        puts "№ #{i}    type_line === #{line} "
+        TextError.create(line: line, line_ua: line_ua, type_line: type_line) if line.present?
+      rescue StandardError => e
+        puts "Error on row #{i}: #{e.message}"
+        next
+      end
+    end
+
+    # ==========================================================
 
     render plain: "удалил весь мусор. кол-во записей с латиницей =  #{result} "
 

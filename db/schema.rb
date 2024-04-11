@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_07_025644) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_11_223957) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -156,6 +156,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_07_025644) do
     t.string "type_line"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "line_ua"
+    t.index ["line_ua", "line"], name: "index_text_errors_on_line_ua_and_line", unique: true
   end
 
   create_table "track_tyres_faq_copies", force: :cascade do |t|

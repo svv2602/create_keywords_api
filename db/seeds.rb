@@ -12,7 +12,6 @@ TrackTyresFaq.delete_all
 DiskiFaq.delete_all
 TextError.delete_all
 
-
 DiameterCopy.delete_all
 BrandCopy.delete_all
 CityCopy.delete_all
@@ -24,32 +23,30 @@ TyresFaqCopy.delete_all
 TrackTyresFaqCopy.delete_all
 DiskiFaqCopy.delete_all
 
-
-
 diameter_array = ["12", '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23',
-                  '12c','13c','14c','15c','16c','17c']
+                  '12c', '13c', '14c', '15c', '16c', '17c']
 diameter_array.each do |el|
   Diameter.create(name: el, url: "r-#{el.downcase}")
 end
 
 season_array = [
-                {name: "зимние", url: 'zimnie'}, {name: "зима", url: 'zimnie'},
-                {name: "зимові", url: 'zimnie'}, {name: "на зиму", url: 'zimnie'},
-                {name: "шипованные", url: 'zimnie'}, {name: "шиповані", url: 'zimnie'},
-                {name: "не шипованные", url: 'zimnie'}, {name: "нешиповані", url: 'zimnie'},
-                {name: "с шипами", url: 'zimnie'}, {name: "липучка", url: 'zimnie'},
-                {name: "з шипами", url: 'zimnie'}, {name: "ліпучка", url: 'zimnie'},
-                {name: "для снега", url: 'zimnie'}, {name: "для снігу", url: 'zimnie'},
+  { name: "зимние", url: 'zimnie' }, { name: "зима", url: 'zimnie' },
+  { name: "зимові", url: 'zimnie' }, { name: "на зиму", url: 'zimnie' },
+  { name: "шипованные", url: 'zimnie' }, { name: "шиповані", url: 'zimnie' },
+  { name: "не шипованные", url: 'zimnie' }, { name: "нешиповані", url: 'zimnie' },
+  { name: "с шипами", url: 'zimnie' }, { name: "липучка", url: 'zimnie' },
+  { name: "з шипами", url: 'zimnie' }, { name: "ліпучка", url: 'zimnie' },
+  { name: "для снега", url: 'zimnie' }, { name: "для снігу", url: 'zimnie' },
 
-                {name: "всесезонные", url: 'vsesezonie'},  {name: "всесезонні", url: 'vsesezonie'},
-                {name: "универсальные", url: 'vsesezonie'},  {name: "всепогодные", url: 'vsesezonie'},
-                {name: "універсальні", url: 'vsesezonie'},  {name: "всепогодні", url: 'vsesezonie'},
+  { name: "всесезонные", url: 'vsesezonie' }, { name: "всесезонні", url: 'vsesezonie' },
+  { name: "универсальные", url: 'vsesezonie' }, { name: "всепогодные", url: 'vsesezonie' },
+  { name: "універсальні", url: 'vsesezonie' }, { name: "всепогодні", url: 'vsesezonie' },
 
-                {name: "летние", url: 'letnie'},  {name: "літні", url: 'letnie'},
-                {name: "літо", url: 'letnie'}, {name: "на літо", url: 'letnie'},
-                {name: "для дождя", url: 'letnie'}, {name: "для дощу", url: 'letnie'},
-                {name: "дождевая", url: 'letnie'}, {name: "дощева", url: 'letnie'},
-                {name: "лето", url: 'letnie'}, {name: "на лето", url: 'letnie'}]
+  { name: "летние", url: 'letnie' }, { name: "літні", url: 'letnie' },
+  { name: "літо", url: 'letnie' }, { name: "на літо", url: 'letnie' },
+  { name: "для дождя", url: 'letnie' }, { name: "для дощу", url: 'letnie' },
+  { name: "дождевая", url: 'letnie' }, { name: "дощева", url: 'letnie' },
+  { name: "лето", url: 'letnie' }, { name: "на лето", url: 'letnie' }]
 
 season_array.each do |el|
   Season.create(name: el[:name], url: el[:url].downcase)
@@ -65,19 +62,16 @@ end
 #   CityUrl.create(name: el[:name], url: el[:url].downcase)
 # end
 
-
 excel_file = "lib/cities_url.xlsx"
 excel = Roo::Excelx.new(excel_file)
 
 4.times do |i|
   excel.each_row_streaming(pad_cells: true) do |row|
-    name = row[i+1]&.value
+    name = row[i + 1]&.value
     url = row[0]&.value
     CityUrl.create(name: name, url: url) if name.present?
   end
 end
-
-
 
 # City
 # city_array = [{name: "киев", url: ''},
@@ -99,11 +93,6 @@ excel = Roo::Excelx.new(excel_file)
   end
 end
 
-
-
-
-
-
 # =========================================================
 # Загрузка размеров
 # size_array = [{ww: "175", hh: '70', rr:'13', url: 'w-175/h-70/r-13'},
@@ -112,7 +101,6 @@ end
 # size_array.each do |el|
 #   Size.create(ww: el[:ww], hh: el[:hh], rr: el[:rr],url: el[:url].downcase)
 # end
-
 
 excel_file = "lib/sizes_link.xlsx"
 excel = Roo::Excelx.new(excel_file)
@@ -137,7 +125,7 @@ excel = Roo::Excelx.new(excel_file)
 
 3.times do |i|
   excel.each_row_streaming(pad_cells: true) do |row|
-    name = row[i+1]&.value
+    name = row[i + 1]&.value
     url = row[0]&.value
     Brand.create(name: name, url: url) if name.present?
   end
@@ -187,13 +175,20 @@ excel.each_row_streaming(pad_cells: true) do |row|
   DiskiFaq.create(question: question, theme: theme) if question.present?
 end
 
-# Заполнение таблицы с вопросам по дискам
+# Заполнение таблицы с текстом по ошибкам
 excel_file = "lib/text_errors.xlsx"
 excel = Roo::Excelx.new(excel_file)
-
+i = 0
 excel.each_row_streaming(pad_cells: true) do |row|
-  line = row[0]&.value
-  type_line = row[1]&.value
-  line_ua = row[2]&.value
-  TextError.create(line: line, type_line: type_line) if line.present?
+  begin
+    i += 1
+    line = row[0]&.value
+    type_line = row[1]&.value
+    line_ua = row[2]&.value
+    line_ua = line_ua.gsub("​​",'')
+    TextError.create(line: line, line_ua: line_ua, type_line: type_line) if line.present?
+  rescue StandardError => e
+    puts "Error on row #{i}: #{e.message}"
+    next
+  end
 end
