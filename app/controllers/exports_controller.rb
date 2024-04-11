@@ -34,9 +34,11 @@ class ExportsController < ApplicationController
     check_title_value_ua_count = SeoContentTextSentence.where(sentence_ua: '').count
 
     check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
-    puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
+    now = Time.now
+    total_seconds_and_minutes = now.sec + now.min * 60
+    puts "Количество записей с check_title  равным 2: #{total_seconds_and_minutes}"
 
-    render json: { SeoContentText: "#{check_title_value2_count}",
+    render json: { SeoContentText: "#{total_seconds_and_minutes}",
                    SeoContentTextSentence: "#{check_title_value_ua_count}"
     }
   end
