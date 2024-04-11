@@ -243,11 +243,13 @@ module ServiceTable
 
     # Выполняем метод для каждого элемента выборки
     selected_records.find_each(batch_size: 1000) do |record_sentence|
-      # break if i > 3
+      # puts "record_sentence = ===== === #{record_sentence.inspect}"
+      next if record_sentence[:id] == 501683 # проблема с переводом этой записи
       topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
       topics += "\n Сделай перевод этого предложения на украинский язык"
       topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
-      new_text = ContentWriter.new.write_seo_text(topics, 3500) #['choices'][0]['message']['content'].strip
+      topics += "\n Если с предложением возникают проблемы верни в качестве ответа цифру 9"
+      new_text = ContentWriter.new.write_seo_text_ua(topics, 3500) #['choices'][0]['message']['content'].strip
 
       if new_text
         begin

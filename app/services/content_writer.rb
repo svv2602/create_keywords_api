@@ -84,4 +84,41 @@ class ContentWriter
 
 
 
+
+  def write_seo_text_ua(prompt, max_tokens)
+    attempts = 0
+
+    begin
+
+      # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
+      @client.chat(
+        parameters: {
+          model: MODEL,
+          messages: [
+            { role: "system",
+              content: 'Вы копирайтер мирового уровня с отличным знанием украинского языка.'
+            },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: max_tokens,
+          top_p: 0.9,
+          frequency_penalty: 0.4,
+          presence_penalty: 0.3
+        }
+      )
+    rescue OpenAI::Error => e
+      attempts += 1
+
+      if attempts < MAX_ATTEMPTS
+        puts "Произошла ошибка: #{e.message}. Повторная попытка..."
+        retry
+      else
+        puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
+        nil
+      end
+    end
+  end
+
+
 end
