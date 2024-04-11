@@ -94,7 +94,7 @@ class ExportsController < ApplicationController
 
     # ==========================================================
     # ==========================================================
-    TextError.remove_duplicates
+    TextError.delete_all
 
     render plain: "удалил весь мусор. кол-во записей с латиницей =  #{result} "
 

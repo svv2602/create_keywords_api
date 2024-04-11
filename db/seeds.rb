@@ -194,5 +194,6 @@ excel = Roo::Excelx.new(excel_file)
 excel.each_row_streaming(pad_cells: true) do |row|
   line = row[0]&.value
   type_line = row[1]&.value
+  line_ua = row[2]&.value
   TextError.create(line: line, type_line: type_line) if line.present?
 end
