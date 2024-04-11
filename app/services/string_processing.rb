@@ -254,12 +254,13 @@ module StringProcessing
       # ссылки на размеры
 
       type_season.each do |key, value|
-
+        break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
         # regex = /(#{value[:search_str]}\s*#{search_size})/
         regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
         regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
 
         match = line.match(regex)
+
         part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
         part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
         if match && value[:state][:season_size]

@@ -148,6 +148,8 @@ class Api::V1::SeoTextsController < ApplicationController
     puts "количество значимых символов - #{alphanumeric_chars_count}"
     puts "Было:" + "=" * 80
     puts adjust_keyword_stuffing(result)
+
+    # оптимизация текста по ключевым словам
     result = replace_text_by_hash(result)
     result = replace_text_by_hash_minus(result)
 
