@@ -261,9 +261,4 @@ module ServiceTable
     end
   end
 
-  end
-
-
-
-
 end
