@@ -244,7 +244,6 @@ module ServiceTable
     # Выполняем метод для каждого элемента выборки
     selected_records.find_each(batch_size: 1000) do |record_sentence|
       # puts "record_sentence = ===== === #{record_sentence.inspect}"
-      next if record_sentence[:id] == 501683 # проблема с переводом этой записи
       topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
       topics += "\n Сделай перевод этого предложения на украинский язык"
       topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
@@ -259,10 +258,18 @@ module ServiceTable
         end
       end
 
-      record_sentence.update(sentence_ua: new_text)
+      begin
+        record_sentence.update(sentence_ua: new_text)
+      rescue => e
+        puts "Произошла ошибка при обновлении записи: #{e.message}"
+        next
+      end
       # i += 1
     end
 
   end
+
+
+
 
 end

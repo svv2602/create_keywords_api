@@ -93,24 +93,24 @@ class ExportsController < ApplicationController
     # ==========================================================
 
     # Заполнение таблицы
-    TextError.delete_all
-    excel_file = "lib/text_errors.xlsx"
-    excel = Roo::Excelx.new(excel_file)
-    i = 0
-    excel.each_row_streaming(pad_cells: true) do |row|
-      begin
-        i += 1
-        line = row[0]&.value
-        type_line = row[1]&.value
-        line_ua = row[2]&.value
-        line_ua = line_ua.gsub("​​",'')
-        puts "№ #{i}    type_line === #{line} "
-        TextError.create(line: line, line_ua: line_ua, type_line: type_line) if line.present?
-      rescue StandardError => e
-        puts "Error on row #{i}: #{e.message}"
-        next
-      end
-    end
+    # TextError.delete_all
+    # excel_file = "lib/text_errors.xlsx"
+    # excel = Roo::Excelx.new(excel_file)
+    # i = 0
+    # excel.each_row_streaming(pad_cells: true) do |row|
+    #   begin
+    #     i += 1
+    #     line = row[0]&.value
+    #     type_line = row[1]&.value
+    #     line_ua = row[2]&.value
+    #     line_ua = line_ua.gsub("​​",'')
+    #     puts "№ #{i}    type_line === #{line} "
+    #     TextError.create(line: line, line_ua: line_ua, type_line: type_line) if line.present?
+    #   rescue StandardError => e
+    #     puts "Error on row #{i}: #{e.message}"
+    #     next
+    #   end
+    # end
 
     # ==========================================================
 
