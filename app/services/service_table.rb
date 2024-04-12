@@ -246,7 +246,6 @@ module ServiceTable
         topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
         topics += "\n Сделай перевод этого предложения на украинский язык"
         topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
-        topics += "\n Если с предложением возникают проблемы верни в качестве ответа цифру 9"
 
         new_text = ContentWriter.new.write_seo_text_ua(topics, 3500)
         if new_text
@@ -260,5 +259,84 @@ module ServiceTable
       end
     end
   end
+
+  def clear_trash_ua
+    selected_records = SeoContentTextSentence.where("sentence_ua != ''")
+    exclude_words = arr_name_brand_uniq
+    lowercase_cyrillic_letters = 'а-яєїґіё'
+    arr = []
+    sentence_ua_updated_empty = ""
+
+    selected_records.find_each(batch_size: 1000) do |record_sentence|
+
+      if record_sentence[:sentence_ua].start_with?(' ')
+        # Удаляем пробелы в начале строки
+        sentence_ua_updated = record_sentence[:sentence_ua].lstrip
+        record_sentence.update(sentence_ua: sentence_ua_updated)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+      first_char = record_sentence[:sentence_ua].strip[0]
+      if first_char && lowercase_cyrillic_letters.include?(first_char)&&!record_sentence[:sentence_ua].start_with?('-')
+        # Удаляем предложения, которые начинаются с маленькой буквы
+        record_sentence.update(sentence_ua: sentence_ua_updated_empty)
+        record_sentence.reload # Перезагрузка записи
+        arr << record_sentence[:sentence_ua].strip # Вывод предложения, начинающегося с маленькой буквы
+      end
+
+
+      regex1 = "(П|п)ере(кл|вів)"
+      regex2 = "(П|п)еревод"
+      regex = "(" + regex1 +"|" + regex2 + ")"
+      regex_dop = regex + "(|.+)(|\s+)(:|\'|\")"
+      if record_sentence[:sentence_ua] =~ /#{regex}/
+        sentence_ua_updated = record_sentence[:sentence_ua].gsub(/#{regex_dop}/, '')
+        sentence_ua_updated =~ /#{regex}/ ? record_sentence.update(sentence_ua: sentence_ua_updated_empty) : record_sentence.update(sentence_ua: sentence_ua_updated)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+      regex1 = "(|Я)(|\s)(М|м)(аю|аємо|аючи)\sпропозицію" # Маємо пропозицію
+      regex2 = "(У|у)\s((М|м)ен(е|я)|нас)\s(есть|є)\sпропозиція"
+      regex3 = "(|(Ц|ц)е(|й))(|\s)(|(М|м)оє|моя)\sпропозиція"
+      regex = "(" + regex1 +"|" + regex2 +"|" + regex3 + ")"
+      regex_dop = regex + "(|.+)(|\s+)(:|\'|\")"
+      if record_sentence[:sentence_ua] =~ /#{regex}/
+        sentence_ua_updated = record_sentence[:sentence_ua].gsub(/#{regex_dop}/, '')
+        sentence_ua_updated =~ /#{regex}/ ? record_sentence.update(sentence_ua: sentence_ua_updated_empty) : record_sentence.update(sentence_ua: sentence_ua_updated)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+      # проверка что строка без кириллицы
+      if !!(record_sentence[:sentence_ua] =~ /\A[^а-яєїґіёА-ЯЄЇҐІЁ]*\z/)
+        record_sentence.update(sentence_ua: sentence_ua_updated_empty)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+      if percent_of_latin_chars(record_sentence[:sentence_ua], exclude_words) > 15
+        record_sentence.update(sentence_ua: sentence_ua_updated_empty)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+      if record_sentence[:str_number] != 0 # строка не заголовок
+        # arr_test << record.sentence if small_is_sentence?(record.sentence)
+        record_sentence.update(sentence_ua: sentence_ua_updated_empty) if small_is_sentence?(record_sentence[:sentence_ua])
+        record_sentence.reload # Перезагрузка записи
+      end
+
+
+
+      if record_sentence[:sentence_ua] =~ /(\'|\")/
+        sentence_ua_updated = record_sentence[:sentence_ua].gsub(/(\'|\")/, '')
+        record_sentence.update(sentence_ua: sentence_ua_updated)
+        record_sentence.reload # Перезагрузка записи
+      end
+
+    end
+
+    puts "arr = = = = = #{arr.inspect}"
+  end
+
+
+
 
 end

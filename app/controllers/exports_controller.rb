@@ -113,7 +113,7 @@ class ExportsController < ApplicationController
     # end
 
     # ==========================================================
-
+    clear_trash_ua # =очистка украинского текста
     render plain: "удалил весь мусор. кол-во записей с латиницей =  #{result} "
 
   end

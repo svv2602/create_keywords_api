@@ -111,12 +111,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # Добавление текста об ошибках , если в url есть размер
     if size_present_in_url?
-      if url_type_ua?
-        result += min_errors_text(arr_size)
-      else
         result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
-      end
-
     end
 
     # убираем лишние знаки пунктуации
