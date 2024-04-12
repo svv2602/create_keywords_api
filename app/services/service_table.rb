@@ -230,7 +230,6 @@ module ServiceTable
     end
 
     # puts "count = #{i}"
-
     # unique_count = SeoContentTextSentence.pluck(:str_seo_text).uniq.count
     # puts "Количество уникальных значений: #{unique_count}"
   end
@@ -238,7 +237,7 @@ module ServiceTable
   def add_sentence_ua
     # Добавление украинского текста (перевод с русского)
     # Создаем выборку по заданным условиям (записи без украинского текста)
-    selected_records = SeoContentTextSentence.where("sentence_ua = ''")
+    selected_records = SeoContentTextSentence.where("sentence_ua = ''").order(id: :asc)
 
     # Выполняем метод для каждого элемента выборки
     selected_records.find_each(batch_size: 1000) do |record_sentence|
@@ -318,13 +317,12 @@ module ServiceTable
       end
 
       if record_sentence[:str_number] != 0 # строка не заголовок
-        # arr_test << record.sentence if small_is_sentence?(record.sentence)
         record_sentence.update(sentence_ua: sentence_ua_updated_empty) if small_is_sentence?(record_sentence[:sentence_ua])
         record_sentence.reload # Перезагрузка записи
       end
 
 
-
+      # убираем из текста кавычки
       if record_sentence[:sentence_ua] =~ /(\'|\")/
         sentence_ua_updated = record_sentence[:sentence_ua].gsub(/(\'|\")/, '')
         record_sentence.update(sentence_ua: sentence_ua_updated)
