@@ -239,33 +239,27 @@ module ServiceTable
     # Добавление украинского текста (перевод с русского)
     # Создаем выборку по заданным условиям (записи без украинского текста)
     selected_records = SeoContentTextSentence.where("sentence_ua = ''")
-    i = 0
 
     # Выполняем метод для каждого элемента выборки
     selected_records.find_each(batch_size: 1000) do |record_sentence|
-      # puts "record_sentence = ===== === #{record_sentence.inspect}"
-      topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
-      topics += "\n Сделай перевод этого предложения на украинский язык"
-      topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
-      topics += "\n Если с предложением возникают проблемы верни в качестве ответа цифру 9"
-      new_text = ContentWriter.new.write_seo_text_ua(topics, 3500) #['choices'][0]['message']['content'].strip
-
-      if new_text
-        begin
-          new_text = new_text['choices'][0]['message']['content'].strip
-        rescue => e
-          puts "Произошла ошибка: #{e.message}"
-        end
-      end
-
       begin
+        topics = "У меня есть предложение '#{record_sentence[:sentence]}'"
+        topics += "\n Сделай перевод этого предложения на украинский язык"
+        topics += "\n Все, что написано латинским шрифтом, нужно оставить без изменения"
+        topics += "\n Если с предложением возникают проблемы верни в качестве ответа цифру 9"
+
+        new_text = ContentWriter.new.write_seo_text_ua(topics, 3500)
+        if new_text
+          new_text = new_text['choices'][0]['message']['content'].strip
+        end
+
         record_sentence.update(sentence_ua: new_text)
       rescue => e
-        puts "Произошла ошибка при обновлении записи: #{e.message}"
+        puts "Произошла ошибка: #{e.message}"
         next
       end
-      # i += 1
     end
+  end
 
   end
 
