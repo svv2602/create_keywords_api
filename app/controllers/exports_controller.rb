@@ -39,10 +39,10 @@ class ExportsController < ApplicationController
 
     # ================ Временный счетчик ===============================
     now = Time.now
-    total_seconds_and_minutes = now.sec + now.min * 60
+    total_seconds_and_minutes = now.sec + now.min * 160
 
-    render json: { SeoContentText: "#{check_title_value_ua_count}",
-                   SeoContentTextSentence: "#{total_seconds_and_minutes}"
+    render json: { SeoContentText: "#{total_seconds_and_minutes}",
+                   SeoContentTextSentence: "#{check_title_value_ua_count}"
     }
   end
 
