@@ -38,11 +38,11 @@ class ExportsController < ApplicationController
     puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
 
     # ================ Временный счетчик ===============================
-    # now = Time.now
-    # total_seconds_and_minutes = now.sec + now.min * 60
+    now = Time.now
+    total_seconds_and_minutes = now.sec + now.min * 60
 
     render json: { SeoContentText: "#{check_title_value_ua_count}",
-                   SeoContentTextSentence: "#{check_title_value2_count}"
+                   SeoContentTextSentence: "#{total_seconds_and_minutes}"
     }
   end
 
@@ -120,7 +120,7 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 20000 # количество выгружаемых записей
-    max_id = 1189926
+    max_id = 1169890
     @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
                                               .order(id: :desc)
                                               .limit(count)
