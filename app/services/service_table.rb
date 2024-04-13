@@ -89,12 +89,12 @@ module ServiceTable
     i = 0
     model.find_each do |record|
 
-      # if record.sentence.include?("195/65R15")
-      #   record.update(sentence: record.sentence.gsub("195/65R15", "[size]"))
-      # end
-      # if record.sentence.include?(" X:")
-      #   record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
-      # end
+      if record.sentence.include?("195/65R15")
+        record.update(sentence: record.sentence.gsub("195/65R15", "[size]"))
+      end
+      if record.sentence.include?(" X:")
+        record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
+      end
       if record.sentence.include?("15-дюймовый обод")
         record.update(sentence: record.sentence.gsub("15-дюймовый обод", "Цифры после R обозначают диск, который "))
       end
@@ -135,34 +135,34 @@ module ServiceTable
       end
 
 
-      # if record.sentence.include?("(торговая марка)")
-      #   record.update(sentence: record.sentence.gsub("(торговая марка)", ""))
-      # end
-      #
-      # if record.sentence.match?(/195|65|(\ |\")15|15 (-|дюймов)/)
-      #   record.destroy
-      # end
-      # if record.sentence.match?(/\d{1,}\s*символ(|а|ов)|20\d{2}/)
-      #   record.destroy
-      # end
-      # if record.sentence.match?(/\[((М|м)одель|(w|h|r)(|-))\]/)
-      #   record.destroy
-      # end
-      #
-      # # проверка что строка без кириллицы
-      # if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
-      #   record.destroy
-      #   i += 1
-      # end
-      #
-      # if percent_of_latin_chars(record.sentence, exclude_words) > 15
-      #   record.destroy
-      # end
-      #
-      # if record.str_number != 0 # строка не заголовок
-      #   # arr_test << record.sentence if small_is_sentence?(record.sentence)
-      #   record.destroy if small_is_sentence?(record.sentence)
-      # end
+      if record.sentence.include?("(торговая марка)")
+        record.update(sentence: record.sentence.gsub("(торговая марка)", ""))
+      end
+
+      if record.sentence.match?(/195|65|(\ |\")15|15 (-|дюймов)/)
+        record.destroy
+      end
+      if record.sentence.match?(/\d{1,}\s*символ(|а|ов)|20\d{2}/)
+        record.destroy
+      end
+      if record.sentence.match?(/\[((М|м)одель|(w|h|r)(|-))\]/)
+        record.destroy
+      end
+
+      # проверка что строка без кириллицы
+      if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
+        record.destroy
+        i += 1
+      end
+
+      if percent_of_latin_chars(record.sentence, exclude_words) > 15
+        record.destroy
+      end
+
+      if record.str_number != 0 # строка не заголовок
+        # arr_test << record.sentence if small_is_sentence?(record.sentence)
+        record.destroy if small_is_sentence?(record.sentence)
+      end
 
     end
     puts "arr_test = = = #{arr_test}"
