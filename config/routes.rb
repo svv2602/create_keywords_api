@@ -28,8 +28,8 @@ Rails.application.routes.draw do
   get '/clear_tables_texts', to: 'exports#clear_tables_texts'
   get '/control_records', to: 'exports#control_records'
   get '/count_records_check_title', to: 'exports#count_records_check_title'
-
-
+  get '/export_xlsx', to: 'exports#export_xlsx'
+  get '/process_files_ua', to: 'exports#process_files_ua'
 
 
 end

@@ -118,4 +118,56 @@ class ExportsController < ApplicationController
 
   end
 
+  def export_xlsx
+    count = 20000 # количество выгружаемых записей
+    @selected_records = SeoContentTextSentence.where("sentence_ua = ''").order(id: :desc).limit(count)
+
+    package = Axlsx::Package.new
+    workbook = package.workbook
+
+    workbook.add_worksheet(name: "Seo Content Text Sentences") do |sheet|
+      # Заголовки колонок
+      sheet.add_row ["ID", "Sentence"]
+
+      # Запись данных
+      @selected_records.each do |record|
+        sheet.add_row [record.id, record.sentence]
+      end
+    end
+    timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+    send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{timestamp}.xlsx", :type => "application/xlsx"
+  end
+
+
+  def process_files_ua
+    path = Rails.root.join('lib', 'text_ua', '*.xlsx')
+    Dir.glob(path).each do |filename|
+      import_text_ua(filename)
+    end
+  end
+
+  def import_text_ua(filename)
+    # Заполнение таблицы с текстом по ошибкам
+    # lib/text_ua/seo_content_text_sentences_20240412170218.xlsx
+
+    # excel_file = "lib/text_errors.xlsx"
+    excel = Roo::Excelx.new(filename)
+    i = 0
+    excel.each_row_streaming(pad_cells: true) do |row|
+      begin
+        i += 1
+        id = row[0]&.value
+        sentence_ua = row[2]&.value
+        sentence_ua = sentence_ua.gsub("​​",'')
+        sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
+        sentence_ua_updated.update(sentence_ua: sentence_ua) if sentence_ua.present?
+      rescue StandardError => e
+        puts "Error on row #{i}: #{e.message}"
+        next
+      end
+    end
+
+
+  end
+
 end
