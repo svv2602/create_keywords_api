@@ -120,7 +120,7 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 20000 # количество выгружаемых записей
-    max_id = 1169890
+    max_id = 1149884
     @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
                                               .order(id: :desc)
                                               .limit(count)
