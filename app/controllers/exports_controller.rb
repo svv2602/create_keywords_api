@@ -120,7 +120,10 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 20000 # количество выгружаемых записей
-    @selected_records = SeoContentTextSentence.where("sentence_ua = ''").order(id: :desc).limit(count)
+    max_id = 1189926
+    @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
+                                              .order(id: :desc)
+                                              .limit(count)
 
     package = Axlsx::Package.new
     workbook = package.workbook
@@ -140,6 +143,7 @@ class ExportsController < ApplicationController
 
 
   def process_files_ua
+    # добавление в записи украинского тексто
     path = Rails.root.join('lib', 'text_ua', '*.xlsx')
     Dir.glob(path).each do |filename|
       import_text_ua(filename)
