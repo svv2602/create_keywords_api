@@ -119,8 +119,8 @@ class ExportsController < ApplicationController
   end
 
   def export_xlsx
-    count = 20000 # количество выгружаемых записей
-    max_id = 1149884
+    count = 50000 # количество выгружаемых записей
+    max_id = 1129882
     @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
                                               .order(id: :desc)
                                               .limit(count)
@@ -137,8 +137,11 @@ class ExportsController < ApplicationController
         sheet.add_row [record.id, record.sentence]
       end
     end
-    timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{timestamp}.xlsx", :type => "application/xlsx"
+
+    max_id = max_id.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
+
+    # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+    send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
 
