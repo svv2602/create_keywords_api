@@ -89,40 +89,80 @@ module ServiceTable
     i = 0
     model.find_each do |record|
 
-      if record.sentence.include?("195/65R15")
-        record.update(sentence: record.sentence.gsub("195/65R15", "[size]"))
+      # if record.sentence.include?("195/65R15")
+      #   record.update(sentence: record.sentence.gsub("195/65R15", "[size]"))
+      # end
+      # if record.sentence.include?(" X:")
+      #   record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
+      # end
+      if record.sentence.include?("15-дюймовый обод")
+        record.update(sentence: record.sentence.gsub("15-дюймовый обод", "Цифры после R обозначают диск, который "))
       end
-      if record.sentence.include?(" X:")
-        record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
+      if record.sentence.include?("15-дюймовый диск")
+        record.update(sentence: record.sentence.gsub("15-дюймовый диск", "Цифры после R указывают на размер диска в дюймах, который "))
       end
-      if record.sentence.include?("(торговая марка)")
-        record.update(sentence: record.sentence.gsub("(торговая марка)", ""))
+      if record.sentence.include?("15-дюймовые диски")
+        record.update(sentence: record.sentence.gsub("15-дюймовые диски", "Цифры после R указывают на размер дисков в дюймах, которые "))
+      end
+      if record.sentence.include?("15-дюймовые обода")
+        record.update(sentence: record.sentence.gsub("15-дюймовые обода", "Цифры после R указывают на размер дисков, которые "))
+      end
+      if record.sentence.include?("15-дюймовые ободы")
+        record.update(sentence: record.sentence.gsub("15-дюймовые ободы", "после R цифрами указывается размер дисков, которые "))
+      end
+      if record.sentence.include?("15-дюймовый диаметр")
+        record.update(sentence: record.sentence.gsub("15-дюймовый диаметр", "Рядом с R цифрами указывается размер диска, который "))
+      end
+      if record.sentence.include?("15\"")
+        record.update(sentence: record.sentence.gsub("15\"", "Две цифры после буквы R "))
+      end
+      if record.sentence.include?("(R)15")
+        record.update(sentence: record.sentence.gsub("15", ""))
       end
 
-      if record.sentence.match?(/195|65|(\ |\")15|15 (-|дюймов)/)
-        record.destroy
-      end
-      if record.sentence.match?(/\d{1,}\s*символ(|а|ов)|20\d{2}/)
-        record.destroy
-      end
-      if record.sentence.match?(/\[((М|м)одель|(w|h|r)(|-))\]/)
-        record.destroy
-      end
-
-      # проверка что строка без кириллицы
-      if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
-        record.destroy
-        i += 1
-      end
-
-      if percent_of_latin_chars(record.sentence, exclude_words) > 15
+      if record &&
+        record.sentence &&
+        (record.sentence.include?("15-дюймовый радиус обода") ||
+          record.sentence.include?("15-дюймовое колесо ") ||
+          record.sentence.include?("15-дюймовую шину") ||
+          record.sentence.include?("15-дюймовая шина") ||
+          record.sentence.include?("15-дюймовый размер") ||
+          record.sentence.include?("долла") ||
+          record.sentence.include?("55") ||
+          record.sentence.include?("215") ||
+          record.sentence.include?("15-дюймовые шины"))
         record.destroy
       end
 
-      if record.str_number != 0 # строка не заголовок
-        # arr_test << record.sentence if small_is_sentence?(record.sentence)
-        record.destroy if small_is_sentence?(record.sentence)
-      end
+
+      # if record.sentence.include?("(торговая марка)")
+      #   record.update(sentence: record.sentence.gsub("(торговая марка)", ""))
+      # end
+      #
+      # if record.sentence.match?(/195|65|(\ |\")15|15 (-|дюймов)/)
+      #   record.destroy
+      # end
+      # if record.sentence.match?(/\d{1,}\s*символ(|а|ов)|20\d{2}/)
+      #   record.destroy
+      # end
+      # if record.sentence.match?(/\[((М|м)одель|(w|h|r)(|-))\]/)
+      #   record.destroy
+      # end
+      #
+      # # проверка что строка без кириллицы
+      # if !(record.sentence.match?(/[а-яА-ЯёЁ]/))
+      #   record.destroy
+      #   i += 1
+      # end
+      #
+      # if percent_of_latin_chars(record.sentence, exclude_words) > 15
+      #   record.destroy
+      # end
+      #
+      # if record.str_number != 0 # строка не заголовок
+      #   # arr_test << record.sentence if small_is_sentence?(record.sentence)
+      #   record.destroy if small_is_sentence?(record.sentence)
+      # end
 
     end
     puts "arr_test = = = #{arr_test}"

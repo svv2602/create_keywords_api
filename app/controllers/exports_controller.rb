@@ -15,15 +15,15 @@ class ExportsController < ApplicationController
 
   def clear_tables_texts
 
-    case params[:table].to_i
-    when 1
-      SeoContentText.delete_all
-    when 2
-      SeoContentTextSentence.delete_all
-    when 12
-      SeoContentTextSentence.delete_all
-      SeoContentText.delete_all
-    end
+    # case params[:table].to_i
+    # when 1
+    #   SeoContentText.delete_all
+    # when 2
+    #   SeoContentTextSentence.delete_all
+    # when 12
+    #   SeoContentTextSentence.delete_all
+    #   SeoContentText.delete_all
+    # end
     render plain: "Все удалено "
   end
 
@@ -120,7 +120,7 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 50000 # количество выгружаемых записей
-    max_id = 846911
+    max_id = 757887
     @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
                                               .order(id: :desc)
                                               .limit(count)
