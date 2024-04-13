@@ -120,7 +120,7 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 50000 # количество выгружаемых записей
-    max_id = 1079743
+    max_id = 1029718
     @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
                                               .order(id: :desc)
                                               .limit(count)
@@ -167,7 +167,7 @@ class ExportsController < ApplicationController
         sentence_ua = row[2]&.value
         sentence_ua = sentence_ua.gsub("​​",'')
         sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
-        sentence_ua_updated.update(sentence_ua: sentence_ua) if sentence_ua.present?
+        sentence_ua_updated.update(sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
       rescue StandardError => e
         puts "Error on row #{i}: #{e.message}"
         next
