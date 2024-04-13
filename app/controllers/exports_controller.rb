@@ -149,9 +149,13 @@ class ExportsController < ApplicationController
   def process_files_ua
     # добавление в записи украинского тексто
     path = Rails.root.join('lib', 'text_ua', '*.xlsx')
+    j = 0
+    result = 0
     Dir.glob(path).each do |filename|
-      import_text_ua(filename)
+      j += import_text_ua(filename)
+      result += 1
     end
+    render plain: "Обновление завершено. Обработано файлов: #{result};  Обработано строк: #{j}"
   end
 
   def import_text_ua(filename)
@@ -174,7 +178,7 @@ class ExportsController < ApplicationController
         next
       end
     end
-
+    return i
 
   end
 
