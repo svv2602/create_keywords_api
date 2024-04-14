@@ -346,7 +346,7 @@ module ServiceTable
 
     end
 
-    puts "arr = = = = = #{arr.inspect}"
+    # puts "arr = = = = = #{arr.inspect}"
   end
 
   def arr_record_manufacturers
@@ -378,7 +378,11 @@ module ServiceTable
 
     results = SeoContentTextSentence.where(conditions)
     results.each do |el|
-      arr << el.sentence
+      el.destroy
+    end
+
+    results = SeoContentTextSentence.where("sentence like '%фраз%'")
+    results.each do |el|
       el.destroy
     end
 

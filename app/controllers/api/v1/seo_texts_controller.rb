@@ -47,12 +47,11 @@ class Api::V1::SeoTextsController < ApplicationController
     # заново =============
 
     # сделать копию базы и запустить
-    table = 'seo_content_text_sentences'
-    remove_empty_sentences(table) # удаление пустых записей
-    result = replace_errors_size(table) # удаление записей с ошибками
-    delete_records_with_instructions
-    clear_trash_ua
-
+    # table = 'seo_content_text_sentences'
+    # remove_empty_sentences(table) # удаление пустых записей
+    # replace_errors_size(table) # удаление записей с ошибками
+    # clear_trash_ua
+    delete_records_with_instructions  # удаление записей с ошибками
 
     # ===================================================
     # repeat_sentences_generation # дополнение до 25
@@ -61,7 +60,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # !!!!!!сделать проверку по украинским текстам!!!!!!
 
 
-    puts "Все сделано! удалено - #{result}"
+    puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
   end
