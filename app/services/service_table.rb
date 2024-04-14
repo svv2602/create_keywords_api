@@ -81,6 +81,20 @@ module ServiceTable
     result
   end
 
+  def delete_records_for_id
+    array_id = [
+      522427, 532670, 800703, 1207563,
+      1207561, 1181327, 1207559, 429496,
+      439716, 468878, 1078880, 386356,
+      1086032, 1086005, 1198389, 1198395,
+      1198403, 1058253,
+
+    ]
+    array_id.each do |id|
+      SeoContentTextSentence.destroy_by(id: id)
+    end
+  end
+
   def replace_errors_size(table)
     # очистка таблиц от мусора после первой генерации текстов
     model = table.classify.constantize
@@ -96,7 +110,6 @@ module ServiceTable
         record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
       end
 
-
       if record &&
         record.sentence &&
         (record.sentence.include?("15-дюймов") ||
@@ -108,7 +121,6 @@ module ServiceTable
         )
         record.destroy
       end
-
 
       if record.sentence.include?("(торговая марка)")
         record.update(sentence: record.sentence.gsub("(торговая марка)", ""))
@@ -291,13 +303,12 @@ module ServiceTable
       end
 
       first_char = record_sentence[:sentence_ua].strip[0]
-      if first_char && lowercase_cyrillic_letters.include?(first_char)&&!record_sentence[:sentence_ua].start_with?('-')
+      if first_char && lowercase_cyrillic_letters.include?(first_char) && !record_sentence[:sentence_ua].start_with?('-')
         # Удаляем предложения, которые начинаются с маленькой буквы
         record_sentence.update(sentence_ua: sentence_ua_updated_empty)
         record_sentence.reload # Перезагрузка записи
         arr << record_sentence[:sentence_ua].strip # Вывод предложения, начинающегося с маленькой буквы
       end
-
 
       regex1 = "(П|п)ере(кл|вів)"
       regex2 = "(П|п)еревод"
@@ -336,7 +347,6 @@ module ServiceTable
         record_sentence.reload # Перезагрузка записи
       end
 
-
       # убираем из текста кавычки
       if record_sentence[:sentence_ua] =~ /(\'|\")/
         sentence_ua_updated = record_sentence[:sentence_ua].gsub(/(\'|\")/, '')
@@ -359,7 +369,6 @@ module ServiceTable
 
   end
 
-
   def arr_records_for_repeat_ua
     arr = ["15-дюймовый обод", "15-дюймовый диск", "15-дюймовые диски", "15-дюймовые обода",
            "15-дюймовые ободы", "15-дюймовый диаметр", "15\"", "(R)15"]
@@ -369,7 +378,7 @@ module ServiceTable
   end
 
   def delete_records_with_instructions
-    arr =[]
+    arr = []
     arr1 = ["Дайте", "Создайте", "Предложение"]
     conditions1 = arr1.map { |m| "sentence LIKE '%#{m}%'" }.join(" OR ")
     arr2 = (1..25).to_a
@@ -391,15 +400,10 @@ module ServiceTable
     #   # record.destroy
     # end
 
-
-
     puts arr.inspect
   end
 
-
-
-
-  def unload_to_xlsx (array_records,name, type = 0)
+  def unload_to_xlsx (array_records, name, type = 0)
     @selected_records = array_records
 
     package = Axlsx::Package.new
@@ -407,11 +411,11 @@ module ServiceTable
 
     workbook.add_worksheet(name: "Seo Content Text Sentences") do |sheet|
       # Заголовки колонок
-      sheet.add_row ["ID", "Sentence",  "SentenceUA"]
+      sheet.add_row ["ID", "Sentence", "SentenceUA"]
 
       # Запись данных
       @selected_records.each do |record|
-        sentence_ua = type == 0 ?  record.sentence_ua : "SentenceUA"
+        sentence_ua = type == 0 ? record.sentence_ua : "SentenceUA"
         sheet.add_row [record.id, record.sentence, sentence_ua]
       end
     end
@@ -420,6 +424,39 @@ module ServiceTable
 
   end
 
+  def proc_import_text_ua
+    path = Rails.root.join('lib', 'text_ua', '*.xlsx')
+    j = 0
+    result = 0
+    Dir.glob(path).each do |filename|
+      j += import_text_ua(filename)
+      result += 1
+    end
+  end
 
+  def import_text_ua(filename)
+    # Заполнение таблицы с текстом по ошибкам
+    # lib/text_ua/seo_content_text_sentences_20240412170218.xlsx
+
+    # excel_file = "lib/text_errors.xlsx"
+    excel = Roo::Excelx.new(filename)
+    i = 0
+    excel.each_row_streaming(pad_cells: true) do |row|
+      begin
+        i += 1
+        id = row[0]&.value
+        sentence = row[1]&.value
+        sentence_ua = row[2]&.value
+        sentence_ua = sentence_ua.gsub("​​", '')
+        sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
+        sentence_ua_updated.update(sentence: sentence, sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
+      rescue StandardError => e
+        puts "Error on row #{i}: #{e.message}"
+        next
+      end
+    end
+    return i
+
+  end
 
 end

@@ -123,8 +123,9 @@ class ExportsController < ApplicationController
 
   def export_xlsx
     count = 50000 # количество выгружаемых записей
-    max_id = 666514
+    max_id = 2666514
     # @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
+    # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
     @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
                                               .order(id: :desc)
                                               .limit(count)
@@ -151,38 +152,10 @@ class ExportsController < ApplicationController
 
   def process_files_ua
     # добавление в записи украинского тексто
-    path = Rails.root.join('lib', 'text_ua', '*.xlsx')
-    j = 0
-    result = 0
-    Dir.glob(path).each do |filename|
-      j += import_text_ua(filename)
-      result += 1
-    end
+    proc_import_text_ua
     render plain: "Обновление завершено. Обработано файлов: #{result};  Обработано строк: #{j}"
   end
 
-  def import_text_ua(filename)
-    # Заполнение таблицы с текстом по ошибкам
-    # lib/text_ua/seo_content_text_sentences_20240412170218.xlsx
 
-    # excel_file = "lib/text_errors.xlsx"
-    excel = Roo::Excelx.new(filename)
-    i = 0
-    excel.each_row_streaming(pad_cells: true) do |row|
-      begin
-        i += 1
-        id = row[0]&.value
-        sentence_ua = row[2]&.value
-        sentence_ua = sentence_ua.gsub("​​",'')
-        sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
-        sentence_ua_updated.update(sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
-      rescue StandardError => e
-        puts "Error on row #{i}: #{e.message}"
-        next
-      end
-    end
-    return i
-
-  end
 
 end

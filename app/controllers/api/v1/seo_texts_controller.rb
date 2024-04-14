@@ -51,7 +51,9 @@ class Api::V1::SeoTextsController < ApplicationController
     # remove_empty_sentences(table) # удаление пустых записей
     # replace_errors_size(table) # удаление записей с ошибками
     # clear_trash_ua
+    proc_import_text_ua
     delete_records_with_instructions  # удаление записей с ошибками
+    delete_records_for_id
 
     # ===================================================
     # repeat_sentences_generation # дополнение до 25
@@ -130,7 +132,6 @@ class Api::V1::SeoTextsController < ApplicationController
     if !size_present_in_popular? && !arr_size.empty?
       text_err = "<br>\n"
       text_err += "<p class='keywords-size'>"
-      url_type_ua?
       text_err += url_type_ua? ? TEMPLATE_TEXT_ERROR_UA.shuffle.first : TEMPLATE_TEXT_ERROR.shuffle.first
       text_err += " " + arr_size.shift(5).join(', ')
       text_err += "</p><br>\n"
@@ -150,8 +151,17 @@ class Api::V1::SeoTextsController < ApplicationController
     puts adjust_keyword_stuffing(result)
 
     # оптимизация текста по ключевым словам
-    result = replace_text_by_hash(result)
-    result = replace_text_by_hash_minus(result)
+    if url_type_ua?
+      # оптимизация для украинского текста
+    else
+      # оптимизация для русского текста, может потом переделать
+      if url_type_by_parameters == 0
+        # для легковых шин
+        result = replace_text_by_hash(result)
+        result = replace_text_by_hash_minus(result)
+      end
+    end
+
 
     puts "Стало:" + "=>" * 40
 
