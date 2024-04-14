@@ -95,42 +95,17 @@ module ServiceTable
       if record.sentence.include?(" X:")
         record.update(sentence: record.sentence.gsub(" X:", " [size]:"))
       end
-      if record.sentence.include?("15-дюймовый обод")
-        record.update(sentence: record.sentence.gsub("15-дюймовый обод", "Цифры после R обозначают диск, который "))
-      end
-      if record.sentence.include?("15-дюймовый диск")
-        record.update(sentence: record.sentence.gsub("15-дюймовый диск", "Цифры после R указывают на размер диска в дюймах, который "))
-      end
-      if record.sentence.include?("15-дюймовые диски")
-        record.update(sentence: record.sentence.gsub("15-дюймовые диски", "Цифры после R указывают на размер дисков в дюймах, которые "))
-      end
-      if record.sentence.include?("15-дюймовые обода")
-        record.update(sentence: record.sentence.gsub("15-дюймовые обода", "Цифры после R указывают на размер дисков, которые "))
-      end
-      if record.sentence.include?("15-дюймовые ободы")
-        record.update(sentence: record.sentence.gsub("15-дюймовые ободы", "после R цифрами указывается размер дисков, которые "))
-      end
-      if record.sentence.include?("15-дюймовый диаметр")
-        record.update(sentence: record.sentence.gsub("15-дюймовый диаметр", "Рядом с R цифрами указывается размер диска, который "))
-      end
-      if record.sentence.include?("15\"")
-        record.update(sentence: record.sentence.gsub("15\"", "Две цифры после буквы R "))
-      end
-      if record.sentence.include?("(R)15")
-        record.update(sentence: record.sentence.gsub("15", ""))
-      end
+
 
       if record &&
         record.sentence &&
-        (record.sentence.include?("15-дюймовый радиус обода") ||
-          record.sentence.include?("15-дюймовое колесо ") ||
-          record.sentence.include?("15-дюймовую шину") ||
-          record.sentence.include?("15-дюймовая шина") ||
-          record.sentence.include?("15-дюймовый размер") ||
+        (record.sentence.include?("15-дюймов") ||
           record.sentence.include?("долла") ||
+          record.sentence.include?("(R)15") ||
+          record.sentence.include?("15\"") ||
           record.sentence.include?("55") ||
-          record.sentence.include?("215") ||
-          record.sentence.include?("15-дюймовые шины"))
+          record.sentence.include?("215")
+        )
         record.destroy
       end
 
@@ -405,7 +380,7 @@ module ServiceTable
 
       # Запись данных
       @selected_records.each do |record|
-        sentence_ua = type == 0 ?  record.sentence_ua : ""
+        sentence_ua = type == 0 ?  record.sentence_ua : "SentenceUA"
         sheet.add_row [record.id, record.sentence, sentence_ua]
       end
     end
