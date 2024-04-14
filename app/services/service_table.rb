@@ -374,6 +374,45 @@ module ServiceTable
     puts "arr = = = = = #{arr.inspect}"
   end
 
+  def arr_record_manufacturers
+    manufacturers = ["Toyota", "Ford", "Volkswagen", "Honda", "Chevrolet", "BMW", "Mercedes-Benz", "Audi", "Hyundai", "Nissan",
+                     "Fiat", "Renault", "Peugeot", "Citroen", "Volvo", "Skoda", "Seat", "Opel", "Mini", "Jaguar",
+                     "Cadillac", "Jeep", "Dodge", "Chrysler", "Buick", "Tesla", "GMC", "Ram", "Lincoln", "Chevrolet"]
+
+    conditions = manufacturers.map { |m| "sentence LIKE '%#{m}%'" }.join(" OR ")
+    results = SeoContentTextSentence.where(conditions)
+
+  end
+
+
+  def arr_records_for_repeat_ua
+    arr = ["15-дюймовый обод", "15-дюймовый диск", "15-дюймовые диски", "15-дюймовые обода",
+           "15-дюймовые ободы", "15-дюймовый диаметр", "15\"", "(R)15"]
+
+    conditions = arr.map { |m| "sentence LIKE '%#{m}%'" }.join(" OR ")
+    results = SeoContentTextSentence.where(conditions)
+  end
+
+  def unload_to_xlsx (array_records,name, type = 0)
+    @selected_records = array_records
+
+    package = Axlsx::Package.new
+    workbook = package.workbook
+
+    workbook.add_worksheet(name: "Seo Content Text Sentences") do |sheet|
+      # Заголовки колонок
+      sheet.add_row ["ID", "Sentence",  "SentenceUA"]
+
+      # Запись данных
+      @selected_records.each do |record|
+        sentence_ua = type == 0 ?  record.sentence_ua : ""
+        sheet.add_row [record.id, record.sentence, sentence_ua]
+      end
+    end
+
+    send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{name}.xlsx", :type => "application/xlsx"
+
+  end
 
 
 

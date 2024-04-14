@@ -9,12 +9,12 @@ class Api::V1::SeoTextsController < ApplicationController
   include ServiceTable
 
   def mytest
-    # curl http://localhost:3000/api/v1/mytest?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
-    text = "<p> size [size] size  моС size летние. [size] летние моСк овский покрышки R18 Kumho, HANKOOK отличает прочная конструкция. И я,апаппа. летние моСковский покрышки R18 Kumho, HANKOOK"
 
-    result = remove_small_sentences(text, min_count = 3)
+    # unload_to_xlsx(arr_record_manufacturers,"manuf", 0)
+    unload_to_xlsx(arr_records_for_repeat_ua,"repeat_ua", 1)
+    result = "Ok"
     puts "Все сделано! =====  #{result.inspect}"
-    render json: { result: result }
+    # render json: { result: result }
   end
 
   def total_generate_seo_text
@@ -50,7 +50,9 @@ class Api::V1::SeoTextsController < ApplicationController
     table = 'seo_content_text_sentences'
     # remove_empty_sentences(table) # удаление пустых записей
     #
-    # result = replace_errors_size(table) # удаление записей с ошибками
+    result = replace_errors_size(table) # удаление записей с ошибками
+
+
 
     # ===================================================
     # repeat_sentences_generation # дополнение до 25
