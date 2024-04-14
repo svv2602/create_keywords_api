@@ -368,6 +368,33 @@ module ServiceTable
     results = SeoContentTextSentence.where(conditions)
   end
 
+  def delete_records_with_instructions
+    arr =[]
+    arr1 = ["Дайте", "Создайте", "Предложение"]
+    conditions1 = arr1.map { |m| "sentence LIKE '%#{m}%'" }.join(" OR ")
+    arr2 = (1..25).to_a
+    conditions2 = arr2.map { |m| "sentence LIKE '%#{m}%'" }.join(" OR ")
+    conditions = "(" + conditions1 +") AND (" + conditions2 + ")"
+
+    results = SeoContentTextSentence.where(conditions)
+    results.each do |el|
+      arr << el.sentence
+      el.destroy
+    end
+
+    # if record.sentence.match?(/Предложение \d+/)
+    #   arr << el.sentence
+    #   # record.destroy
+    # end
+
+
+
+    puts arr.inspect
+  end
+
+
+
+
   def unload_to_xlsx (array_records,name, type = 0)
     @selected_records = array_records
 

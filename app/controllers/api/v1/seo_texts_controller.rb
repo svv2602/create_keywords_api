@@ -48,10 +48,10 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # сделать копию базы и запустить
     table = 'seo_content_text_sentences'
-    # remove_empty_sentences(table) # удаление пустых записей
-    #
+    remove_empty_sentences(table) # удаление пустых записей
     result = replace_errors_size(table) # удаление записей с ошибками
-
+    delete_records_with_instructions
+    clear_trash_ua
 
 
     # ===================================================
