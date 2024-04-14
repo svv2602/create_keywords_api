@@ -87,12 +87,19 @@ module ServiceTable
       1207561, 1181327, 1207559, 429496,
       439716, 468878, 1078880, 386356,
       1086032, 1086005, 1198389, 1198395,
-      1198403, 1058253,
+      1198403, 1058253, 1214936, 1214939, 1214946,
+      1214949, 535581
 
     ]
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
     end
+
+
+    SeoContentTextSentence.where("sentence like ? ", "%копирайт%").delete_all
+
+
+
   end
 
   def replace_errors_size(table)
@@ -112,7 +119,8 @@ module ServiceTable
 
       if record &&
         record.sentence &&
-        (record.sentence.include?("15-дюймов") ||
+        (
+          record.sentence.include?("15-дюймов") ||
           record.sentence.include?("долла") ||
           record.sentence.include?("(R)15") ||
           record.sentence.include?("15\"") ||
