@@ -54,6 +54,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # proc_import_text_ua
     delete_records_with_instructions  # удаление записей с ошибками
     delete_records_for_id
+    clear_trash_brand
 
     # ===================================================
     # repeat_sentences_generation # дополнение до 25

@@ -90,7 +90,7 @@ module ServiceTable
       1198403, 1058253, 1214936, 1214939, 1214946,
       1214949, 535581,
       517580, 517583, 836485, 836487, 1050763, 1050764,
-      517581, 517584, 1164660, 1164661
+      517581, 517584, 1164660, 1164661, 1152812
 
     ]
     array_id.each do |id|
@@ -296,6 +296,51 @@ module ServiceTable
     end
   end
 
+  def clear_trash_brand
+    selected_records = SeoContentTextSentence.where("LOWER(sentence) like ?", "%[brand]%")
+
+    selected_records.each do |record_sentence|
+
+      if record_sentence.sentence =~ /от \[brand\]/i
+        sentence_updated = record_sentence.sentence.gsub(/от \[brand\]/i, '')
+        record_sentence.update(sentence: sentence_updated)
+      end
+      if record_sentence.sentence_ua =~ /від \[brand\]/i
+        sentence_ua_updated = record_sentence.sentence_ua.gsub(/від \[brand\]/i, '')
+        record_sentence.update(sentence_ua: sentence_ua_updated)
+      end
+
+      if record_sentence.sentence =~ /, как \[brand\],/i
+        sentence_updated = record_sentence.sentence.gsub(/, как \[brand\],/i, ' ')
+        record_sentence.update(sentence: sentence_updated)
+      end
+      if  record_sentence.sentence_ua =~ /, як \[brand\],/i
+        sentence_ua_updated = record_sentence.sentence_ua.gsub(/, як \[brand\],/i, ' ')
+        record_sentence.update(sentence_ua: sentence_ua_updated)
+      end
+
+      record_sentence.reload # Перезагрузка записи
+      if record_sentence.sentence =~ /\[brand\]/i
+        sentence_updated = record_sentence.sentence.gsub(/\[brand\]/i, ' ')
+        record_sentence.update(sentence: sentence_updated)
+      end
+      if  record_sentence.sentence_ua =~ /, як \[brand\],/i
+        sentence_ua_updated = record_sentence.sentence_ua.gsub(/\[brand\]/i, ' ')
+        record_sentence.update(sentence_ua: sentence_ua_updated)
+      end
+      record_sentence.reload # Перезагрузка записи
+
+
+    end
+
+  end
+
+
+
+
+
+
+
   def clear_trash_ua
     selected_records = SeoContentTextSentence.where("sentence_ua != ''")
     exclude_words = arr_name_brand_uniq
@@ -368,6 +413,8 @@ module ServiceTable
 
     # puts "arr = = = = = #{arr.inspect}"
   end
+
+
 
   def arr_record_manufacturers
     manufacturers = ["Toyota", "Ford", "Volkswagen", "Honda", "Chevrolet", "BMW", "Mercedes-Benz", "Audi", "Hyundai", "Nissan",
