@@ -177,7 +177,11 @@ module StringProcessing
     end
     str_base = str_site + str_site_ua + str_site_type
     # Создать хэш с именами брендов в качестве ключей и URL в качестве значений
-    brand_urls = brands.each_with_object({}) do |brand, hash|
+    # brand_urls = brands.each_with_object({}) do |brand, hash|
+    #   hash[brand.name] = "#{str_base}#{brand.url}/'>#{brand.name}</a>"
+    # end
+    filtered_brands = brands.uniq { |brand| brand.url }
+    brand_urls = filtered_brands.each_with_object({}) do |brand, hash|
       hash[brand.name] = "#{str_base}#{brand.url}/'>#{brand.name}</a>"
     end
 
@@ -199,8 +203,8 @@ module StringProcessing
                            season_size: true,
                            season_diameter: true
                   },
-                  search_str: /((Л|л)етн(ие|яя|юю|их|ими)\s+(шин(ы|а|ах|у|ами)|резин(а|ы|у|ой)))/,
-                  search_str_ua: /((Л|л)ітн(і|я|ю|іх|іми)\s+(шин(и|а|ах|у|ами)|резин(а|и|у|ою)))/,
+                  search_str: /((Л|л)етн(ие|яя|юю|их|ими)\s+(шин(ы|ами|ах|у|а)|резин(а|ы|у|ой)))/,
+                  search_str_ua: /((Л|л)ітн(і|я|ю|іх|іми)\s+(шин(и|ами|ах|у|а)|резин(а|и|у|ою)))/,
       },
       'зимние': { value: 'zimnie',
                   season: 2,
@@ -208,8 +212,8 @@ module StringProcessing
                            season_size: true,
                            season_diameter: true
                   },
-                  search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|а|ах|у|ами)|резин(а|ы|у|ой)))/,
-                  search_str_ua: /((З|з)им(ов|н)(у|а|і|я|ю|их|ими|іх|іми)\s+(шин(и|а|ах|у|ами)|резин(а|и|у|ою)))/
+                  search_str: /((З|з)имн(ие|яя|юю|их|ими)\s+(шин(ы|ами|ах|у|а)|резин(а|ы|у|ой)))/,
+                  search_str_ua: /((З|з)им(ов|н)(у|а|і|я|ю|их|ими|іх|іми)\s+(шин(и|ами|ах|у|а)|резин(а|и|у|ою)))/
       },
       'всесезонные': { value: 'vsesezonie',
                        season: 3,
@@ -217,8 +221,8 @@ module StringProcessing
                                 season_size: true,
                                 season_diameter: true
                        },
-                       search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|а|ах|у|ами)|резин(а|ы|у|ой)))/,
-                       search_str_ua: /((В|в)сесезонн(і|я|ю|их|ими|іх|іми)\s+(шин(и|а|ах|у|ами)|резин(а|и|у|ою)))/
+                       search_str: /((В|в)сесезонн(ые|ие|ая|юю|их|ими|ыми)\s+(шин(ы|ами|ах|у|а)|резин(а|ы|у|ой)))/,
+                       search_str_ua: /((В|в)сесезонн(і|я|ю|их|ими|іх|іми)\s+(шин(и|ами|ах|у|а)|резин(а|и|у|ою)))/
       }
 
     }

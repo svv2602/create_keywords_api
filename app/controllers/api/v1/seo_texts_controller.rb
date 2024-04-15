@@ -167,7 +167,7 @@ class Api::V1::SeoTextsController < ApplicationController
     puts "Стало:" + "=>" * 40
 
     # Добавляем ссылки:
-    insert_brand_url(result) if !size_only_brand_in_url?
+    insert_brand_url(result) if type_for_url_shiny != 10
     result = insert_season_url_new(result)
 
     result = generate_title_h2 + result + "<br>"
