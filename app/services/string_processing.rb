@@ -241,16 +241,6 @@ module StringProcessing
           break if replaced
           # if value[:season] != season
           part_url = value[:value] + '/'
-          if  url_type_ua?
-            case value[:value]
-            when 'летние'
-              part_url = 'літні/'
-            when 'зимние'
-              part_url = 'зимові/'
-            when 'всесезонные'
-              part_url = 'всесезонні/'
-            end
-          end
 
           regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
           match = line.match(regex_season)
@@ -294,7 +284,22 @@ module StringProcessing
           match = line.match(regex)
           part_url_size = "r-#{url_shiny[:tyre_r]}/"
           part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
-          txt_season = value[:season].to_i == season.to_i ? '' : key
+
+
+          if url_type_ua?
+            case value[:season].to_i
+            when 1
+              txt_season = 'літні'
+            when 2
+              txt_season = 'зимові'
+            when 3
+              txt_season = 'всесезонні'
+            else
+              txt_season = ''
+            end
+          else
+            txt_season = value[:season].to_i == season.to_i ? '' : key
+          end
 
           if match && value[:state][:season_diameter]
             url = "#{str_url}/#{part_url}#{part_url_size}'>#{txt_season} #{match[0]}</a>"
