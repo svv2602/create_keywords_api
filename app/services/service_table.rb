@@ -324,7 +324,7 @@ module ServiceTable
         sentence_updated = record_sentence.sentence.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence: sentence_updated)
       end
-      if  record_sentence.sentence_ua =~ /, як \[brand\],/i
+      if  record_sentence.sentence_ua =~ /\[brand\]/i
         sentence_ua_updated = record_sentence.sentence_ua.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence_ua: sentence_ua_updated)
       end
