@@ -319,7 +319,7 @@ module ServiceTable
         record_sentence.update(sentence_ua: sentence_ua_updated)
       end
 
-      record_sentence.reload # Перезагрузка записи
+      # record_sentence.reload # Перезагрузка записи
       if record_sentence.sentence =~ /\[brand\]/i
         sentence_updated = record_sentence.sentence.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence: sentence_updated)
@@ -328,7 +328,7 @@ module ServiceTable
         sentence_ua_updated = record_sentence.sentence_ua.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence_ua: sentence_ua_updated)
       end
-      record_sentence.reload # Перезагрузка записи
+      # record_sentence.reload # Перезагрузка записи
 
 
     end
