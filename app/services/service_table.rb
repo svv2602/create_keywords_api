@@ -12,14 +12,24 @@ module ServiceTable
   end
 
   # Имя таблицы - текст!!!
-  def copy_table_to_table_copy_if_empty(table, table_copy)
+  def copy_table_to_table_copy_if_empty(table, table_copy, max_retries = 5)
     model = table.classify.constantize
     model_copy = table_copy.classify.constantize
 
-    if model_copy.count.zero?
-      copy_table_to_table_copy(model, model_copy)
+    begin
+      retry_attempts ||= 0
+      if model_copy.count.zero?
+        copy_table_to_table_copy(model, model_copy)
+      end
+    rescue ActiveRecord::StatementInvalid => e
+      if retry_attempts < max_retries
+        retry_attempts += 1
+        sleep(5) # Задержка на 5 секунд перед следующей попыткой
+        retry
+      else
+        raise e # Если количество попыток превышает max_retries, выбросить исключение
+      end
     end
-
   end
 
   # Находим и удаляем случайную запись
@@ -97,10 +107,7 @@ module ServiceTable
       SeoContentTextSentence.destroy_by(id: id)
     end
 
-
     SeoContentTextSentence.where("sentence like ? ", "%копирайт%").delete_all
-
-
 
   end
 
@@ -123,11 +130,11 @@ module ServiceTable
         record.sentence &&
         (
           record.sentence.include?("15-дюймов") ||
-          record.sentence.include?("долла") ||
-          record.sentence.include?("(R)15") ||
-          record.sentence.include?("15\"") ||
-          record.sentence.include?("55") ||
-          record.sentence.include?("215")
+            record.sentence.include?("долла") ||
+            record.sentence.include?("(R)15") ||
+            record.sentence.include?("15\"") ||
+            record.sentence.include?("55") ||
+            record.sentence.include?("215")
         )
         record.destroy
       end
@@ -314,7 +321,7 @@ module ServiceTable
         sentence_updated = record_sentence.sentence.gsub(/, как \[brand\],/i, ' ')
         record_sentence.update(sentence: sentence_updated)
       end
-      if  record_sentence.sentence_ua =~ /, як \[brand\],/i
+      if record_sentence.sentence_ua =~ /, як \[brand\],/i
         sentence_ua_updated = record_sentence.sentence_ua.gsub(/, як \[brand\],/i, ' ')
         record_sentence.update(sentence_ua: sentence_ua_updated)
       end
@@ -324,18 +331,15 @@ module ServiceTable
         sentence_updated = record_sentence.sentence.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence: sentence_updated)
       end
-      if  record_sentence.sentence_ua =~ /\[brand\]/i
+      if record_sentence.sentence_ua =~ /\[brand\]/i
         sentence_ua_updated = record_sentence.sentence_ua.gsub(/\[brand\]/i, ' ')
         record_sentence.update(sentence_ua: sentence_ua_updated)
       end
       # record_sentence.reload # Перезагрузка записи
 
-
     end
 
   end
-
-
 
   def clear_trash_ua
     selected_records = SeoContentTextSentence.where("sentence_ua != ''")
@@ -409,8 +413,6 @@ module ServiceTable
 
     # puts "arr = = = = = #{arr.inspect}"
   end
-
-
 
   def arr_record_manufacturers
     manufacturers = ["Toyota", "Ford", "Volkswagen", "Honda", "Chevrolet", "BMW", "Mercedes-Benz", "Audi", "Hyundai", "Nissan",
