@@ -106,7 +106,7 @@ module StringErrorsProcessing
     if url_type_ua?
       result += randdom_record&.line_ua
       result += "\n</p>\n<ul>\n<li>\n"
-      result += "<i>Пример:  #{tyre_w}/#{tyre_h}/#{tyre_r} Київ, #{tyre_w} #{tyre_h} #{tyre_r} купити.</i>"
+      result += "<i>Приклад:  #{tyre_w}/#{tyre_h}/#{tyre_r} Київ, #{tyre_w} #{tyre_h} #{tyre_r} купити.</i>"
 
     else
       result += randdom_record&.line
