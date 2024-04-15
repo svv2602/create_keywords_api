@@ -231,10 +231,10 @@ module StringProcessing
     i = 0
     text = text.each_line.map do |line|
       i += 1
-      next if line.include?("<a href=")
+      next if line.include?("<a href=") || line.include?("h2")|| line.include?("h3")
       replaced = false
       type_season.each do |key, value|
-
+        break if replaced
         # if value[:season] != season
         part_url = value[:value] + '/'
         regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
@@ -248,12 +248,13 @@ module StringProcessing
           replaced = true
         end
 
-        break if replaced
+
       end
 
       # ссылки на размеры
 
       type_season.each do |key, value|
+        break if replaced
         break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
         # regex = /(#{value[:search_str]}\s*#{search_size})/
         regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
@@ -269,11 +270,12 @@ module StringProcessing
           value[:state][:season_size] = false
           replaced = true
         end
-        break if replaced
+
       end
 
       # ссылки на диаметры
       type_season.each do |key, value|
+        break if replaced
         regex = /\b((R|r)#{diameter})\b/
         match = line.match(regex)
         part_url_size = "r-#{url_shiny[:tyre_r]}/"
@@ -286,7 +288,7 @@ module StringProcessing
           value[:state][:season_diameter] = false
           replaced = true
         end
-        break if replaced
+        # break if replaced
       end
 
       line
@@ -295,7 +297,8 @@ module StringProcessing
     regex = /(оплат(а|ы)(| и доставк(а|и)))/
     match = text.match(regex)
     if match
-      url = "<a href='https://prokoleso.ua/oplata-i-dostavka/'>#{match[0]}</a>"
+      url_ua = url_type_ua? ? "/ua" : ""
+      url = "<a href='https://prokoleso.ua#{url_ua}/oplata-i-dostavka/'>#{match[0]}</a>"
       text.sub!(regex, url)
     end
 
@@ -303,7 +306,8 @@ module StringProcessing
     regex = /(проконсультироваться|консультаци(я|ю|и)|сотрудничеств(а|о)|ответить на все вопросы|профессионал(ы|ов)|(Н|н)аш(ей|а|у) команд(а|у|ой))/
     match = text.match(regex)
     if match
-      url = "<a href='https://prokoleso.ua/about/'>#{match[0]}</a>"
+      url_ua = url_type_ua? ? "/ua" : ""
+      url = "<a href='https://prokoleso.ua#{url_ua}/about/'>#{match[0]}</a>"
       text.sub!(regex, url)
     end
 
