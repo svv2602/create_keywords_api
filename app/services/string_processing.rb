@@ -231,7 +231,10 @@ module StringProcessing
     i = 0
     text = text.each_line.map do |line|
       i += 1
-      next if line.include?("<a href=") || line.include?("h2")|| line.include?("h3")
+       if line.include?("<a href=") || line.include?("h2")|| line.include?("h3")
+         line
+         next
+       end
       replaced = false
       type_season.each do |key, value|
         break if replaced
