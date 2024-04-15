@@ -297,7 +297,7 @@ module ServiceTable
   end
 
   def clear_trash_brand
-    selected_records = SeoContentTextSentence.where("LOWER(sentence) like ?", "%[brand]%")
+    selected_records = SeoContentTextSentence.where("LOWER(sentence) like ? or LOWER(sentence_ua) like ?", "%[brand]%", "%[brand]%")
 
     selected_records.each do |record_sentence|
 
