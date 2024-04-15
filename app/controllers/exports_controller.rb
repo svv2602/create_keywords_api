@@ -126,9 +126,11 @@ class ExportsController < ApplicationController
     max_id = 2666514
     # @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
     # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
-    @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
-                                              .order(id: :desc)
-                                              .limit(count)
+    # @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
+    @selected_records = SeoContentTextSentence
+                          .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+                          .order(id: :desc)
+                          .limit(count)
 
     package = Axlsx::Package.new
     workbook = package.workbook
