@@ -231,71 +231,73 @@ module StringProcessing
     i = 0
     text = text.each_line.map do |line|
       i += 1
-       if line.include?("<a href=") || line.include?("h2")|| line.include?("h3")
-         line
-         next
-       end
-      replaced = false
-      type_season.each do |key, value|
-        break if replaced
-        # if value[:season] != season
-        part_url = value[:value] + '/'
-        regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
-        match = line.match(regex_season)
+      if line.include?("<a href=") || line.include?("h2") || line.include?("h3")
+        line
+      else
+        replaced = false
+        type_season.each do |key, value|
+          break if replaced
+          # if value[:season] != season
+          part_url = value[:value] + '/'
+          regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+          match = line.match(regex_season)
 
-        if match && value[:state][:season_url]
-          puts "match ======== #{match.inspect}"
-          url = "#{str_url}/#{part_url}'>#{match[0]}</a>"
-          line.sub!(regex_season, url)
-          value[:state][:season_url] = false
-          replaced = true
+          if match && value[:state][:season_url]
+            puts "match ======== #{match.inspect}"
+            url = "#{str_url}/#{part_url}'>#{match[0]}</a>"
+            line.sub!(regex_season, url)
+            value[:state][:season_url] = false
+            replaced = true
+          end
+
         end
 
+        # ссылки на размеры
+
+        type_season.each do |key, value|
+          break if replaced
+          break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
+          # regex = /(#{value[:search_str]}\s*#{search_size})/
+          regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+          regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
+
+          match = line.match(regex)
+
+          part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
+          part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
+          if match && value[:state][:season_size]
+            url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
+            line.sub!(regex, url)
+            value[:state][:season_size] = false
+            replaced = true
+          end
+
+        end
+
+        # ссылки на диаметры
+        type_season.each do |key, value|
+          break if replaced
+          regex = /\b((R|r)#{diameter})\b/
+          match = line.match(regex)
+          part_url_size = "r-#{url_shiny[:tyre_r]}/"
+          part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
+          txt_season = value[:season].to_i == season.to_i ? '' : key
+
+          if match && value[:state][:season_diameter]
+            url = "#{str_url}/#{part_url}#{part_url_size}'>#{txt_season} #{match[0]}</a>"
+            line.sub!(regex, url)
+            value[:state][:season_diameter] = false
+            replaced = true
+          end
+          # break if replaced
+        end
+
+        line
 
       end
 
-      # ссылки на размеры
-
-      type_season.each do |key, value|
-        break if replaced
-        break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
-        # regex = /(#{value[:search_str]}\s*#{search_size})/
-        regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
-        regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
-
-        match = line.match(regex)
-
-        part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
-        part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
-        if match && value[:state][:season_size]
-          url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
-          line.sub!(regex, url)
-          value[:state][:season_size] = false
-          replaced = true
-        end
-
-      end
-
-      # ссылки на диаметры
-      type_season.each do |key, value|
-        break if replaced
-        regex = /\b((R|r)#{diameter})\b/
-        match = line.match(regex)
-        part_url_size = "r-#{url_shiny[:tyre_r]}/"
-        part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
-        txt_season = value[:season].to_i == season.to_i ? '' : key
-
-        if match && value[:state][:season_diameter]
-          url = "#{str_url}/#{part_url}#{part_url_size}'>#{txt_season} #{match[0]}</a>"
-          line.sub!(regex, url)
-          value[:state][:season_diameter] = false
-          replaced = true
-        end
-        # break if replaced
-      end
-
-      line
     end.join("")
+
     # ссылка на страницу оплата и доставка
     regex = /(оплат(а|ы)(| и доставк(а|и)))/
     match = text.match(regex)
@@ -529,7 +531,6 @@ module StringProcessing
       # размер+бренд+сезон
       result = 1500
 
-
       #====================================================
     when 200, 210
       # варианты по диаметру
@@ -541,7 +542,6 @@ module StringProcessing
     when 211, 212, 213
       # варианты по диаметру - диаметр+бренд+сезон
       result = 1200
-
 
       #====================================================
     when 10
