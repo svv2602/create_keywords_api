@@ -51,7 +51,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # remove_empty_sentences(table) # удаление пустых записей
     # replace_errors_size(table) # удаление записей с ошибками
     # clear_trash_ua
-    proc_import_text_ua
+    # proc_import_text_ua
     delete_records_with_instructions  # удаление записей с ошибками
     delete_records_for_id
 
