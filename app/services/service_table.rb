@@ -337,10 +337,6 @@ module ServiceTable
 
 
 
-
-
-
-
   def clear_trash_ua
     selected_records = SeoContentTextSentence.where("sentence_ua != ''")
     exclude_words = arr_name_brand_uniq
