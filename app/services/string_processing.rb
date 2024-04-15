@@ -241,6 +241,17 @@ module StringProcessing
           break if replaced
           # if value[:season] != season
           part_url = value[:value] + '/'
+          if  url_type_ua?
+            case value[:value]
+            when 'летние'
+              part_url = 'літні/'
+            when 'зимние'
+              part_url = 'зимові/'
+            when 'всесезонные'
+              part_url = 'всесезонні/'
+            end
+          end
+
           regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
           match = line.match(regex_season)
 
