@@ -7,13 +7,12 @@ class Api::V1::SeoTextsController < ApplicationController
   include TextOptimization
   include StringProcessingServices
   include ServiceTable
+  include ServiceQuestion
 
   def mytest
 
-    # unload_to_xlsx(arr_record_manufacturers,"manuf", 0)
-    unload_to_xlsx(arr_records_for_repeat_ua,"repeat_ua", 1)
-    result = "Ok"
-    puts "Все сделано! =====  #{result.inspect}"
+    all_questions_for_page
+    puts "Все сделано! =====  " # #{result.inspect}
     # render json: { result: result }
   end
 
@@ -141,8 +140,7 @@ class Api::V1::SeoTextsController < ApplicationController
     result
   end
 
-  def seo_text
-    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+  def raw_text_final
     text = raw_text
     result = replace_trash(text)
 
@@ -177,7 +175,17 @@ class Api::V1::SeoTextsController < ApplicationController
 
     puts adjust_keyword_stuffing(result)
     puts result
-    render json: { result: result }
+    result
+  end
+
+  def seo_text
+    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+    result = raw_text_final
+    result_questions = all_questions_for_page
+    puts result + "\n" + result_questions
+    render json: { result: result,
+                   result_questions: result_questions
+    }
 
   end
 

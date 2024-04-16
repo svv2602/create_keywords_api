@@ -47,6 +47,33 @@ class ContentWriter
     )
   end
 
+  # +++++++++++++++++++++++++++++++++++++++++
+  def rewrite_question(prompt, max_tokens)
+    # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
+    @client.chat(
+      parameters: {
+        model: MODEL,
+        messages: [
+          # { role: "system",
+          #   content: 'Вы копирайтер мирового уровня.'
+          # },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.8,
+        max_tokens: max_tokens,
+        top_p: 0.9,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3
+      }
+    )
+  end
+
+
+
+
+
+  # ++++++++++++++++++++++++++++++++++++++++++++
+
   def write_seo_text(prompt, max_tokens)
     attempts = 0
 

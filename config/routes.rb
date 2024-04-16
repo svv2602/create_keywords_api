@@ -30,6 +30,8 @@ Rails.application.routes.draw do
   get '/count_records_check_title', to: 'exports#count_records_check_title'
   get '/export_xlsx', to: 'exports#export_xlsx'
   get '/process_files_ua', to: 'exports#process_files_ua'
+  get '/control_question', to: 'exports#control_question'
+
 
 
 end
