@@ -39,6 +39,9 @@ module ServiceTable
     random_record = model.order("RANDOM()").first
     random_record&.destroy
     random_record
+  rescue => e
+    puts "Error occurred: #{e.message}"
+    nil
   end
 
   def duplicated_in_data_json?(file_path)
