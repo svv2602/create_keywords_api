@@ -1,8 +1,9 @@
 class Api::V1::KeysController < ApplicationController
-#   def initialize
-#     @service = ServiceTable.new
-#   end
-include ServiceTable
+  #   def initialize
+  #     @service = ServiceTable.new
+  #   end
+  include ServiceTable
+
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -14,16 +15,16 @@ include ServiceTable
     # используется с combinations_with_sorted_ratings, в коментах кол- во элементов
     # arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]
     arr1 = [['Size', 3], ["Addon", 4], ['City', 5]]
-    arr2 = [["Season", 1], ['Size', 3], ["Addon", 4]]   # 29 элементов
+    arr2 = [["Season", 1], ['Size', 3], ["Addon", 4]] # 29 элементов
     arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]
 
     arr4 = []
     2.times do
       arr4 << ["Brand", "Size"]
       arr4 << ["Season", "Size", "Addon"]
-      arr4 << ["Season","Brand", "Size"]
-      arr4 << ["Season","Brand", "Diameter", "Addon"]
-      arr4 << ["Season","Size"]
+      arr4 << ["Season", "Brand", "Size"]
+      arr4 << ["Season", "Brand", "Diameter", "Addon"]
+      arr4 << ["Season", "Size"]
     end
 
     4.times do
@@ -32,7 +33,7 @@ include ServiceTable
 
     arr4 << ["Size"]
     arr4 << ["Size"]
-    arr4 << ["Season","Size"]
+    arr4 << ["Season", "Size"]
     arr4 << ["Size", "Addon"]
     arr4 << ["Season", "Diameter"]
     arr4 << ["Season", "Size"]
@@ -40,15 +41,14 @@ include ServiceTable
     arr4 << ["Diameter", "Addon"]
 
     # добавить города
-    rand(10)%2 == 0 ?  arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
-
+    rand(10) % 2 == 0 ? arr4 << ["CityUrl", "Season", "Addon"] : arr4 << ["CityUrl", "Diameter", "Addon"]
 
     merged_array = combinations_with_sorted_ratings(arr1) + combinations_with_sorted_ratings(arr2)
     unique_values = merged_array + combinations_with_sorted_ratings(arr3) + arr4
     unique_values.each do |arr|
       record = str_hash(arr)
-      h << {keywords: normal_str(record[:keywords]),url: record[:url]}
-      i +=1
+      h << { keywords: normal_str(record[:keywords]), url: record[:url] }
+      i += 1
     end
     puts "===================== #{unique_values.inspect}"
     puts "Количество элементов: #{i}"
@@ -60,6 +60,7 @@ include ServiceTable
   end
 
   private
+
   def normal_str(str)
     keys = ''
     case rand(1..3)
@@ -86,8 +87,6 @@ include ServiceTable
     return keys
 
   end
-
-
 
   # На входе массив таблиц и для каждой таблицы извлекает случайную
   # запись с помощью метода find_and_destroy_random_record,
@@ -130,6 +129,10 @@ include ServiceTable
     # result.shuffle.join(" ")
     rez = { keywords: result.shuffle.join(" "),
             url: url_new }
+
+  rescue => e
+    puts "Error occurred: #{e.message}"
+    nil
 
   end
 

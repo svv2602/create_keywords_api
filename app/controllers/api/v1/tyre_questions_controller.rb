@@ -86,6 +86,10 @@ class Api::V1::TyreQuestionsController < ApplicationController
 
     rezult = { question: question, answer: answer }
 
+  rescue => e
+    puts "Error occurred: #{e.message}"
+    nil
+
   end
 
   def sinonim(str)
