@@ -5,7 +5,7 @@ module ServiceQuestion
 
   def all_questions_for_page
     list_questions = []
-    type_season =  type_for_url_shiny % 10
+    type_season = type_for_url_shiny % 10
 
     puts type_for_url_shiny
     puts type_season
@@ -17,10 +17,9 @@ module ServiceQuestion
     end
 
     questions.each do |record|
-      hash =  url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : { question: record[:question_ru], answer: record[:answer_ru] }
+      hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : { question: record[:question_ru], answer: record[:answer_ru] }
       list_questions << hash
     end
-
 
     # добавляем еще 1-4 вопроса по константам
     list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
@@ -38,8 +37,7 @@ module ServiceQuestion
     nil
   end
 
-
-  def first_filling_of_table(count = 0)
+  def first_filling_of_table(count = 0, type_paragraph = 0, type_season = 1)
     # Заполнение таблицы с текстом по ошибкам
     # type_paragraph: 0 - по легковым шинам
     # type_season: 0 - летние
@@ -59,8 +57,8 @@ module ServiceQuestion
 
         QuestionsBlock.find_or_create_by(question_ru: question,
                                          answer_ru: answer,
-                                         type_paragraph: 0,
-                                         type_season: 1) if question.present?
+                                         type_paragraph: type_paragraph,
+                                         type_season: type_season) if question.present?
       rescue StandardError => e
         puts "Error on row #{i}: #{e.message}"
         next
@@ -69,23 +67,26 @@ module ServiceQuestion
     end
   end
 
-  def second_filling_of_table
+  def second_filling_of_table(count_repeat)
     # Определение количества строк в файле Excel
     excel_file = "lib/text_questions/questions_base.xlsx"
     excel = Roo::Excelx.new(excel_file)
     count = excel.last_row
     puts "количесто строк в ексель: #{count}"
 
-    count = 2 # тестовое значение - удалить
+    # count = 2 # тестовое значение - удалить
     # Выбор первых "count" записей из таблицы
     records = QuestionsBlock.limit(count)
 
-    # 1 - летние, 2 - зимние, 3 - всесезонные
-    (1..3).each do |season|
-      records.each do |record|
-        rewrite_question_and_answer(record[:question_ru], season, 0)
+    count_repeat.times do
+      # 1 - летние, 2 - зимние, 3 - всесезонные
+      (1..3).each do |season|
+        records.each do |record|
+          rewrite_question_and_answer(record[:question_ru], season, 0)
+        end
       end
     end
+
 
   rescue => e
     puts "Error occurred: #{e.message}"

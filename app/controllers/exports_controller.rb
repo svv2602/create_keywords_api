@@ -3,11 +3,11 @@ class ExportsController < ApplicationController
   include ServiceQuestion
 
   def control_question
-    # first_filling_of_table(3)
-    # second_filling_of_table
+    first_filling_of_table(0) # 0 - все записи из файла
+
+    second_filling_of_table
 
   end
-
 
   def export_text
     records = SeoContentText.all.as_json
@@ -125,7 +125,6 @@ class ExportsController < ApplicationController
     # ==========================================================
     # clear_trash_ua # =очистка украинского текста
 
-
     render plain: "удалил весь мусор. кол-во записей с латиницей =  #{result} "
 
   end
@@ -160,15 +159,10 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
-
   def process_files_ua
     # добавление в записи украинского тексто
     proc_import_text_ua
     render plain: "Обновление завершено. Обработано файлов: #{result};  Обработано строк: #{j}"
   end
-
-
-
-
 
 end
