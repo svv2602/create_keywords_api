@@ -13,7 +13,7 @@ module ServiceQuestion
     if type_season == 0
       questions = QuestionsBlock.where(type_paragraph: 0).order("RANDOM()").limit(2)
     else
-      questions = QuestionsBlock.where(type_paragraph: 0, type_season: 0).order("RANDOM()").limit(2)
+      questions = QuestionsBlock.where(type_paragraph: 0, type_season: type_season).order("RANDOM()").limit(2)
     end
 
     questions.each do |record|
@@ -67,7 +67,7 @@ module ServiceQuestion
     end
   end
 
-  def second_filling_of_table(count_repeat)
+  def second_filling_of_table(count_repeat = 5)
     # Определение количества строк в файле Excel
     excel_file = "lib/text_questions/questions_base.xlsx"
     excel = Roo::Excelx.new(excel_file)

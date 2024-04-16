@@ -4,8 +4,7 @@ class ExportsController < ApplicationController
 
   def control_question
     first_filling_of_table(0) # 0 - все записи из файла
-
-    second_filling_of_table
+    second_filling_of_table(5)
 
   end
 
