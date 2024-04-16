@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_11_223957) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_16_102625) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -91,6 +91,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_11_223957) do
   create_table "diski_faqs", force: :cascade do |t|
     t.string "question"
     t.string "theme"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "questions_blocks", force: :cascade do |t|
+    t.integer "type_paragraph", default: 0
+    t.integer "type_season", default: 0
+    t.string "question_ru", default: ""
+    t.string "answer_ru", default: ""
+    t.string "question_ua", default: ""
+    t.string "answer_ua", default: ""
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
