@@ -2,6 +2,7 @@
 module ServiceQustitionProcessing
   include ServiceTable
   include Constants
+  include StringProcessing
 
   def format_question_full(list_questions)
     # форматируем ответ
@@ -20,7 +21,6 @@ module ServiceQustitionProcessing
     table_copy = table + 'Copy' # Преобразуем имя таблицы-копии
     copy_table_to_table_copy_if_empty(table, table_copy)
     question = find_and_destroy_random_record(table_copy).question
-
 
     # Делается рерайт полученного случайного вопроса
     topics = "Сделай, желательно одним предложением, краткий рерайт вопроса: #{question}."
@@ -85,10 +85,6 @@ module ServiceQustitionProcessing
 
   def questions_dop(list1, list2)
 
-
-
-
-
     # формирование количяества доп вопросов
     list_questions = []
     arr = list1.sample(2)
@@ -113,7 +109,7 @@ module ServiceQustitionProcessing
       rezult += "<h4 itemprop='name'> "
       # Убирем лишний текст после знака вопроса
 
-      field_question =  "question"
+      field_question = "question"
       question = hash_question[field_question.to_sym].split("?").first
       rezult += gsub_symbol(question)
       rezult += "</h4> "
@@ -130,9 +126,10 @@ module ServiceQustitionProcessing
   end
 
   def gsub_symbol(str)
+    url_params = url_shiny_hash_params
     str_new = str
     if str && !str.empty?
-      if  str !~ /(• )/
+      if str !~ /(• )/
         str_new = str.downcase
                      .gsub('#', '')
                      .gsub(/\u003c(\/|)h\d\u003e/, '')
@@ -148,6 +145,7 @@ module ServiceQustitionProcessing
                      .gsub(']', '')
                      .gsub(/(|\/)html/, '')
                      .gsub('*', '')
+                     .gsub(/195\/65(R|r)15/, replace_name_size(url_params))
 
         # Разбить строку на предложения
         sentences = str_new.split(". ")

@@ -483,11 +483,16 @@ module ServiceTable
   end
 
   def proc_import_text_ua
+    #  ручное импортирование данных в таблицы базы данных
+    # в lib/text_ua должны находится файлы только для одной загрузки!!!
+
     path = Rails.root.join('lib', 'text_ua', '*.xlsx')
     j = 0
     result = 0
     Dir.glob(path).each do |filename|
-      j += import_text_ua(filename)
+      #  нужный метод раскомментировать!!!
+      # j += import_text_ua(filename) # для таблицы SeoContentTextSentence
+      j += import_questions_ua(filename) # для таблицы QuestionsBlock
       result += 1
     end
   end
@@ -508,6 +513,33 @@ module ServiceTable
         sentence_ua = sentence_ua.gsub("​​", '')
         sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
         sentence_ua_updated.update(sentence: sentence, sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
+      rescue StandardError => e
+        puts "Error on row #{i}: #{e.message}"
+        next
+      end
+    end
+    return i
+
+  end
+
+
+  def import_questions_ua(filename)
+    # Заполнение таблицы с текстом по ошибкам
+    # lib/text_ua/seo_question_ru.xlsx
+
+    excel = Roo::Excelx.new(filename)
+    i = 0
+    excel.each_row_streaming(pad_cells: true) do |row|
+      begin
+        i += 1
+        id = row[0]&.value
+        question_ua = row[3]&.value
+        answer_ua = row[4]&.value
+        question_ua = question_ua.gsub("​​", '')
+        answer_ua = answer_ua.gsub("​​", '')
+
+        sentence_ua_updated = QuestionsBlock.find_by_id(id)
+        sentence_ua_updated.update(question_ua: question_ua, answer_ua: answer_ua)
       rescue StandardError => e
         puts "Error on row #{i}: #{e.message}"
         next

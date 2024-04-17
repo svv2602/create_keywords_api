@@ -648,17 +648,4 @@ module Constants
     ]
   }
 
-  list_questions = [
-    { :question => { :question => "Какие основные различия между летними и зимними шинами размером 195/65R15?",
-                     :answer => "Летние шины 195/65R15 имеют более жесткую резину, что обеспечивает лучшее сцепление с дорогой и более высокую скорость передачи. Зимние шины 195/65R15 имеют мягкую резину с улучшенными характеристиками сцепления на снегу и льду." } },
-    { :question => { :question_ua => "Які розміри всесезонних шин для легкових автомобілів купують найбільше на вашому сайті?", :url => "https://prokoleso.ua/shiny/" },
-      :answer => "[<a href='https://prokoleso.ua/shiny/'>• 235/60R18  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/65R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 215/65R16  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 185/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R15  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R16  </a>    ]" },
-    { :question => { :question_ua => "У які населені пункти здійснюється адресна доставка \"Нової Пошти\"?",
-                     :url => "https://prokoleso.ua/" },
-      :answer => "[<a href='https://prokoleso.ua/ua/'>• Покров  </a>    <a href='https://prokoleso.ua/ua/'>• Тернополь  </a>    <a href='https://prokoleso.ua/ua/'>• Чортков  </a>    <a href='https://prokoleso.ua/ua/'>• Николаев  </a>    <a href='https://prokoleso.ua/ua/'>• Новая Каховка  </a>    <a href='https://prokoleso.ua/ua/'>• Подольск  </a>    <a href='https://prokoleso.ua/ua/'>• Славута  </a>    <a href='https://prokoleso.ua/ua/'>• Каховка  </a>    <a href='https://prokoleso.ua/ua/'>• Желтые Воды  </a>    ]" }]
-  hash_question =
-    { :question => { :question_ua => "Які розміри всесезонних шин для легкових автомобілів купують найбільше на вашому сайті?",
-                     :url => "https://prokoleso.ua/shiny/" },
-      :answer => "[<a href='https://prokoleso.ua/shiny/'>• 235/60R18  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/65R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 215/65R16  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 185/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R15  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R16  </a>    ]" }
-
 end

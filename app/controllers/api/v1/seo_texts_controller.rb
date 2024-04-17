@@ -49,15 +49,16 @@ class Api::V1::SeoTextsController < ApplicationController
     # table = 'seo_content_text_sentences'
     # remove_empty_sentences(table) # удаление пустых записей
     # replace_errors_size(table) # удаление записей с ошибками
+    # ===================================================
+    # repeat_sentences_generation # дополнение до 25 - вставить если нужно
+    # ===================================================
     # clear_trash_ua
     # proc_import_text_ua
-    delete_records_with_instructions  # удаление записей с ошибками
-    delete_records_for_id
-    clear_trash_brand # удаление переменной [brand]
+    # delete_records_with_instructions  # удаление записей с ошибками
+    # delete_records_for_id
+    # clear_trash_brand # удаление переменной [brand]
 
-    # ===================================================
-    # repeat_sentences_generation # дополнение до 25
-    # ===================================================
+
     # add_sentence_ua
     # !!!!!!сделать проверку по украинским текстам!!!!!!
 

@@ -158,10 +158,43 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
+
+  def export_questions_to_xlsx
+    count = 50000 # количество выгружаемых записей
+    max_id = 2666514
+    # @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
+    # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
+    # @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
+    @selected_records = QuestionsBlock
+                          # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+                          .order(id: :desc)
+                          .limit(count)
+
+    package = Axlsx::Package.new
+    workbook = package.workbook
+
+    workbook.add_worksheet(name: "Questions") do |sheet|
+      # Заголовки колонок
+      sheet.add_row ["ID", "Questions", "Answer"]
+
+      # Запись данных
+      @selected_records.each do |record|
+        sheet.add_row [record.id, record.question_ru, record.answer_ru]
+      end
+    end
+
+
+    # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+    send_data package.to_stream.read, :filename => "seo_question_ru.xlsx", :type => "application/xlsx"
+  end
+
+
+
+
   def process_files_ua
     # добавление в записи украинского тексто
     proc_import_text_ua
-    render plain: "Обновление завершено. Обработано файлов: #{result};  Обработано строк: #{j}"
+    render plain: "Обновление завершено.  Обработано строк: #{j}"
   end
 
 end

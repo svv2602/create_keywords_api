@@ -5,9 +5,9 @@ class Api::V1::TyreQuestionsController < ApplicationController
   include Constants
   include ServiceQustitionProcessing
 
-  def questions
-    list_questions = []
-    table = 'TyresFaq'
+  # def questions
+  #   list_questions = []
+  #   table = 'TyresFaq'
 
     # формирование основного блока вопрос ответ
     # rand(2..4).times do
@@ -15,23 +15,23 @@ class Api::V1::TyreQuestionsController < ApplicationController
     # закоменчено , для переделки (в принципе на небольших объемах работает)
     # ============================================================
 
-    2.times do
-      list_questions << question(table) unless question(table)[:question] == ""
-    end
-    # добавляем еще 1-4 вопроса по константам
-    list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
-                                    [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
-
-    result = format_question_full(list_questions)
-    puts result
-    render json: { list_questions: result }
+    # 2.times do
+    #   list_questions << question(table) unless question(table)[:question] == ""
+    # end
+    # # добавляем еще 1-4 вопроса по константам
+    # list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
+    #                                 [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
+    #
+    # result = format_question_full(list_questions)
+    # puts result
+    # render json: { list_questions: result }
 
     # =========================================================
     # ============================================================
-  rescue => e
-    puts "Error occurred: #{e.message}"
-    nil
-  end
+  # rescue => e
+  #   puts "Error occurred: #{e.message}"
+  #   nil
+  # end
 
   # def questions_track
   #   list_questions = []

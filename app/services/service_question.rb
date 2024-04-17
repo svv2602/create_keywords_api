@@ -30,6 +30,7 @@ module ServiceQuestion
                                     [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
 
     result = format_question_full(list_questions)
+
     puts result
     result
     # render json: { list_questions: result }
@@ -114,6 +115,7 @@ module ServiceQuestion
 
   def rewrite_question_and_answer(question, season, type_paragraph = 0)
     # Делается рерайт полученного случайного вопроса
+    # перевод на украинский делается отдельно
     str_season = case season
                  when 1
                    "летних"
