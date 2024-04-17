@@ -3,8 +3,8 @@ class ExportsController < ApplicationController
   include ServiceQuestion
 
   def control_question
-    first_filling_of_table(0) # 0 - все записи из файла
-    second_filling_of_table(5)
+    # first_filling_of_table(0) # 0 - все записи из файла
+    # second_filling_of_table(5)
 
   end
 
