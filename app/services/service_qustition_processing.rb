@@ -171,7 +171,7 @@ module ServiceQustitionProcessing
 
   def format_hash_question_with_head_html(str)
     rezult = "<div itemscope='' itemtype='https://schema.org/FAQPage'>  "
-    str_ua = url_type_ua? ? "<h3>Поширені запитання (FAQ)</h3> " : "<h3>Часто задаваемые вопросы (FAQ)</h3> "
+    str_ua = url_type_ua? ? "Поширені запитання (FAQ)" : "Часто задаваемые вопросы (FAQ)"
     rezult += "<h3>#{str_ua}:</h3> "
     rezult += str
     rezult += "</div><br> "
