@@ -166,7 +166,7 @@ class ExportsController < ApplicationController
     # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
     # @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
     @selected_records = QuestionsBlock
-                          # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+                          .where answer_ua = ""
                           .order(id: :desc)
                           .limit(count)
 
