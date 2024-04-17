@@ -3,7 +3,7 @@ module ServiceQuestion
   include ServiceQustitionProcessing
   include StringProcessing
 
-  def all_questions_for_page
+  def all_questions_for_page(count_limit_size = 3)
     list_questions = []
     type_season = type_for_url_shiny % 10
 
@@ -11,13 +11,17 @@ module ServiceQuestion
     puts type_season
 
     if type_season == 0
-      questions = QuestionsBlock.where(type_paragraph: 0).order("RANDOM()").limit(2)
+      questions = QuestionsBlock.where(type_paragraph: 0).order("RANDOM()").limit(count_limit_size)
     else
-      questions = QuestionsBlock.where(type_paragraph: 0, type_season: type_season).order("RANDOM()").limit(2)
+      questions = QuestionsBlock.where(type_paragraph: 0, type_season: type_season).order("RANDOM()").limit(count_limit_size)
     end
 
+    questions = filter_questions(questions)
+    puts "arrr_test ============= #{ questions.inspect}"
+
+
     questions.each do |record|
-      hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : { question: record[:question_ru], answer: record[:answer_ru] }
+      hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : {  question: record[:question_ru], answer: record[:answer_ru] }
       list_questions << hash
     end
 
@@ -35,6 +39,21 @@ module ServiceQuestion
   rescue => e
     puts "Error occurred: #{e.message}"
     nil
+  end
+
+
+  def filter_questions(questions)
+    filtered_questions = questions.dup.to_a # преобразуем ActiveRecord::Relation в Array
+    filtered_questions.each_with_index do |question1, index1|
+      words1 = question1.question_ru.downcase.split.map { |word| 2.times { word.chop! }; word }
+      filtered_questions.reject! do |question2|
+        next if question1 == question2
+        words2 = question2.question_ru.downcase.split.map { |word| 2.times { word.chop! }; word }
+        common_words = words1 & words2
+        common_words.size >= 5
+      end
+    end
+    filtered_questions
   end
 
   def first_filling_of_table(count = 0, type_paragraph = 0, type_season = 1)
@@ -86,7 +105,6 @@ module ServiceQuestion
         end
       end
     end
-
 
   rescue => e
     puts "Error occurred: #{e.message}"

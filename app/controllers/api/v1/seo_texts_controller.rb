@@ -180,8 +180,8 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def seo_text
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
-    result = raw_text_final
-    result_questions = all_questions_for_page
+    result = raw_text_final || ""
+    result_questions = all_questions_for_page || ""
     puts result + "\n" + result_questions
     render json: { result: result,
                    result_questions: result_questions

@@ -24,6 +24,18 @@ module Constants
       { question: 'В каких городах можно получить товар,  приобретенный в prokoleso.ua?', url: 'https://prokoleso.ua/' },
       { question: 'Где в Украине я могу получить шины, оплаченные наложенным платежом?', url: 'https://prokoleso.ua/' }
     ],
+    questions_ua: [
+      { question_ua: 'Де я можу отримати шини, придбані у вашому магазині?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У які міста ви доставляєте придбаний у вас товар?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'Список населених пунктів України, в які здійснюється доставка', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У які населені пункти здійснюється кур\'єрська доставка?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У які населені пункти здійснюється адресна доставка "Нової Пошти"?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У які населені пункти вже відправлялися товари, придбані у вашому магазині цього року?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У яких містах я можу отримати шини, придбані в prokoleso.ua?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'У яких містах можна отримати товар, придбаний в prokoleso.ua?', url: 'https://prokoleso.ua/' },
+      { question_ua: 'Де в Україні я можу отримати шини, оплачені післяплатою?', url: 'https://prokoleso.ua/' }
+    ],
+
     aliases: [
       { name: 'Александрия', alias: 'shiny-aleksandriya' },
       { name: 'Апостолово', alias: 'shiny-apostolovo' },
@@ -117,6 +129,100 @@ module Constants
       { name: 'Шостка', alias: 'shiny-shostka' },
       { name: 'Энергодар', alias: 'shiny-energodar' },
       { name: 'Южноукраинск', alias: 'shiny-yuzhnoukrainsk' }
+    ],
+    aliases_ua: [
+      { "name_ua": "Олександрія", "alias": "shiny-aleksandriya" },
+      { "name_ua": "Апостолове", "alias": "shiny-apostolovo" },
+      { "name_ua": "Ахтирка", "alias": "shiny-akhtyrka" },
+      { "name_ua": "Біла Церква", "alias": "shiny-belaya-tserkov" },
+      { "name_ua": "Білгород-Дністровський", "alias": "shiny-belgorod-dnestrovskiy" },
+      { "name_ua": "Бердичів", "alias": "shiny-berdichev" },
+      { "name_ua": "Бердянськ", "alias": "shiny-berdyansk" },
+      { "name_ua": "Бориспіль", "alias": "shiny-borispol" },
+      { "name_ua": "Боярка", "alias": "shiny-boyarka" },
+      { "name_ua": "Бровари", "alias": "shiny-brovary" },
+      { "name_ua": "Буча", "alias": "shiny-bucha" },
+      { "name_ua": "Васильків", "alias": "shiny-vasilkov" },
+      { "name_ua": "Вінниця", "alias": "shiny-vinnitsa" },
+      { "name_ua": "Вишневе", "alias": "shiny-vishnevoe" },
+      { "name_ua": "Вознесенськ", "alias": "shiny-voznesensk" },
+      { "name_ua": "Вольногорськ", "alias": "shiny-volnogorsk" },
+      { "name_ua": "Вишгород", "alias": "shiny-vyshgorod" },
+      { "name_ua": "Гайсин", "alias": "shiny-gaysin" },
+      { "name_ua": "Глухів", "alias": "shiny-glukhov-sumskaya-obl-" },
+      { "name_ua": "Горішні Плавні", "alias": "shiny-gorishnie-plavni" },
+      { "name_ua": "Дніпро", "alias": "shiny-dnepr" },
+      { "name_ua": "Дубно", "alias": "shiny-dubno" },
+      { "name_ua": "Жовті Води", "alias": "shiny-zheltye-vody" },
+      { "name_ua": "Житомир", "alias": "shiny-zhitomir" },
+      { "name_ua": "Жмеринка", "alias": "shiny-zhmerinka" },
+      { "name_ua": "Запоріжжя", "alias": "shiny-zaporozhe" },
+      { "name_ua": "Здолбунів", "alias": "shiny-zdolbunov" },
+      { "name_ua": "Знам'янка", "alias": "shiny-znamenka-kirovogradskaya-obl" },
+      { "name_ua": "Івано-Франківськ", "alias": "shiny-ivano-frankovsk" },
+      { "name_ua": "Ізюм", "alias": "shiny-izyum" },
+      { "name_ua": "Ірпінь", "alias": "shiny-irpen" },
+      { "name_ua": "Козятин", "alias": "shiny-kazatin" },
+      { "name_ua": "Кам'янець-Подільський", "alias": "shiny-kamenets-podolskiy" },
+      { "name_ua": "Кам'янське", "alias": "shiny-kamenskoe-dnepropetrovskaya-obl" },
+      { "name_ua": "Канів", "alias": "shiny-kanev" },
+      { "name_ua": "Каховка", "alias": "shiny-kakhovka" },
+      { "name_ua": "Київ", "alias": "shiny-kiev" },
+      { "name_ua": "Кропивницький", "alias": "shiny-kropivnitskiy" },
+      { "name_ua": "Ковель", "alias": "shiny-kovel" },
+      { "name_ua": "Конотоп", "alias": "shiny-konotop" },
+      { "name_ua": "Коростень", "alias": "shiny-korosten" },
+      { "name_ua": "Костопіль", "alias": "shiny-kostopol" },
+      { "name_ua": "Краматорськ", "alias": "shiny-kramatorsk" },
+      { "name_ua": "Кременчук", "alias": "shiny-kremenchug" },
+      { "name_ua": "Кривий Ріг", "alias": "shiny-krivoy-rog" },
+      { "name_ua": "Ладижин", "alias": "shiny-ladyzhin" },
+      { "name_ua": "Лебедин", "alias": "shiny-lebedin-sumskaya-obl-" },
+      { "name_ua": "Лубни", "alias": "shiny-lubny" },
+      { "name_ua": "Луцьк", "alias": "shiny-lutsk" },
+      { "name_ua": "Львів", "alias": "shiny-lvov" },
+      { "name_ua": "Марганець", "alias": "shiny-marganets" },
+      { "name_ua": "Мелітополь", "alias": "shiny-melitopol" },
+      { "name_ua": "Могилів-Подільський", "alias": "shiny-mogilev-podolskiy" },
+      { "name_ua": "Мукачево", "alias": "shiny-mukachevo" },
+      { "name_ua": "Ніжин", "alias": "shiny-nezhin" },
+      { "name_ua": "Нетішин", "alias": "shiny-neteshin" },
+      { "name_ua": "Миколаїв", "alias": "shiny-nikolaev" },
+      { "name_ua": "Нікополь", "alias": "shiny-nikopol-dnepropetrovskaya-obl-" },
+      { "name_ua": "Нова Каховка", "alias": "shiny-novaya-kakhovka" },
+      { "name_ua": "Нововолинськ", "alias": "shiny-novovolynsk" },
+      { "name_ua": "Одеса", "alias": "shiny-odessa" },
+      { "name_ua": "Олешки", "alias": "shiny-alyeshki-khersonskaya-obl" },
+      { "name_ua": "Павлоград", "alias": "shiny-pavlograd" },
+      { "name_ua": "Первомайськ", "alias": "shiny-pervomaysk-nikol-obl-pervomays-r-n" },
+      { "name_ua": "Подільськ", "alias": "shiny-podolsk" },
+      { "name_ua": "Покров", "alias": "shiny-pokrov" },
+      { "name_ua": "Полтава", "alias": "shiny-poltava" },
+      { "name_ua": "Прилуки", "alias": "shiny-priluki" },
+      { "name_ua": "Рівне", "alias": "shiny-rovno" },
+      { "name_ua": "Ромни", "alias": "shiny-romny" },
+      { "name_ua": "Сарни", "alias": "shiny-sarny" },
+      { "name_ua": "Славута", "alias": "shiny-slavuta" },
+      { "name_ua": "Слав'янськ", "alias": "shiny-slavyansk" },
+      { "name_ua": "Сміла", "alias": "shiny-smela" },
+      { "name_ua": "Суми", "alias": "shiny-sumy" },
+      { "name_ua": "Тернопіль", "alias": "shiny-ternopol" },
+      { "name_ua": "Трускавець", "alias": "shiny-trostyanets-sumskaya-obl" },
+      { "name_ua": "Ужгород", "alias": "shiny-uzhgorod" },
+      { "name_ua": "Умань", "alias": "shiny-uman" },
+      { "name_ua": "Харків", "alias": "shiny-kharkov" },
+      { "name_ua": "Херсон", "alias": "shiny-kherson" },
+      { "name_ua": "Хмельник", "alias": "shiny-khmelnik-vinnitskaya-obl" },
+      { "name_ua": "Хмельницький", "alias": "shiny-khmelnitskiy" },
+      { "name_ua": "Хуст", "alias": "shiny-khust" },
+      { "name_ua": "Черкаси", "alias": "shiny-cherkasi" },
+      { "name_ua": "Чернігів", "alias": "shiny-chernigov" },
+      { "name_ua": "Чернівці", "alias": "shiny-chernovtsy" },
+      { "name_ua": "Чорноморськ", "alias": "shiny-chernomorsk" },
+      { "name_ua": "Чортків", "alias": "shiny-chortkov" },
+      { "name_ua": "Шостка", "alias": "shiny-shostka" },
+      { "name_ua": "Енергодар", "alias": "shiny-energodar" },
+      { "name_ua": "Південноукраїнськ", "alias": "shiny-yuzhnoukrainsk" }
     ]
 
   }
@@ -147,6 +253,29 @@ module Constants
       { question: 'Наш рейтинг: Лучшие производители летних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/letnie/' },
       { question: 'Наш рейтинг: Лучшие производители зимних шин, представленные на сайте prokoleso.ua', url: 'https://prokoleso.ua/shiny/zimnie/' },
 
+    ],
+    questions_ua: [
+      { "question_ua": "Топ виробників шин, представлених на сайті Prokoleso", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Топ виробників літніх шин, представлених на сайті Prokoleso", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Топ виробників зимових шин, представлених на сайті Prokoleso", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Топ виробників всесезонних шин, представлених на сайті Prokoleso", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Хто входить до списку кращих виробників шин?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Хто входить до списку кращих виробників літніх шин?", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Хто входить до списку кращих виробників зимових шин?", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Хто входить до списку кращих виробників всесезонних шин?", "url": "https://prokoleso.ua/shiny/vsesezonie/" },
+      { "question_ua": "Які відомі бренди шин представлені на сайті prokoleso.ua?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Список кращих виробників шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Кращі виробники літніх шин", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Кращі виробники зимових шин", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Кращі виробники всесезонних шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Кращі виробники літніх шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Кращі виробники зимових шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Кращі виробники всесезонних шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/shiny/vsesezonie/" },
+      { "question_ua": "Які бренди шин рекомендуються для зими?", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Які бренди шин рекомендуються для літа?", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Наш рейтинг: Кращі виробники всесезонних шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Наш рейтинг: Кращі виробники літніх шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Наш рейтинг: Кращі виробники зимових шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/shiny/zimnie/" }
     ],
 
     aliases: [
@@ -217,6 +346,18 @@ module Constants
       { question: 'Наш рейтинг самых популярных диаметров для зимних шин: ', url: 'https://prokoleso.ua/shiny/zimnie/' },
 
     ],
+    questions_ua: [
+      { "question_ua": "Найпоширеніші посадкові діаметри для шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Найпоширеніші посадкові діаметри для літніх шин: ", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Найпоширеніші посадкові діаметри для зимових шин: ", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "ТОП популярних посадкових діаметрів для шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "ТОП популярних посадкових діаметрів для шин, представлених на prokoleso.ua", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "ТОП популярних діаметрів для літніх шин, представлених на prokoleso.ua", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "ТОП популярних діаметрів для зимових шин, представлених на prokoleso.ua", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Наш рейтинг найпопулярніших діаметрів для легкових автомобілів: ", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Наш рейтинг найпопулярніших діаметрів для літніх шин: ", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Наш рейтинг найпопулярніших діаметрів для зимових шин: ", "url": "https://prokoleso.ua/shiny/zimnie/" }
+    ],
     aliases: [
       { name: 'R12', alias: 'r-12' },
       { name: 'R13', alias: 'r-13' },
@@ -263,6 +404,30 @@ module Constants
       { question: 'Наш рейтинг самых популярных зимних шин для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/zimnie/' },
       { question: 'Наш рейтинг самых популярных всесезонных шин для  легковых автомобилей: ', url: 'https://prokoleso.ua/shiny/' },
 
+    ],
+    questions_ua: [
+      { "question_ua": "Які розміри шин є найбільш популярними серед автолюбителів на вашому сайті?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Які типорозміри шин є найбільш популярними?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Найпоширеніші типорозміри шин", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Популярні розміри шин для легкових автомобілів", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Які розміри шин для легкових автомобілів купують найбільше на вашому сайті?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Які розміри шин для легкових автомобілів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Які типорозміри літніх шин є найбільш популярними?", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Найпоширеніші типорозміри літніх шин", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Розміри літніх шин для легкових автомобілів", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Які розміри літніх шин для легкових автомобілів купують найбільше на вашому сайті?", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Які розміри літніх шин для легкових автомобілів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Які типорозміри зимових шин є найбільш популярними?", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Найпоширеніші типорозміри зимових шин", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Розміри зимових шин для найпопулярніших автомобілів", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Які розміри зимових шин для легкових автомобілів купують найбільше на вашому сайті?", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Які розміри зимових шин для легкових автомобілів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Які типорозміри всесезонних шин є найбільш популярними?", "url": "https://prokoleso.ua/shiny/vsesezonie/" },
+      { "question_ua": "Які розміри всесезонних шин для легкових автомобілів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/shiny/vsesezonie/" },
+      { "question_ua": "Які розміри всесезонних шин для легкових автомобілів купують найбільше на вашому сайті?", "url": "https://prokoleso.ua/shiny/" },
+      { "question_ua": "Наш рейтинг найпопулярніших літніх шин для легкових автомобілів: ", "url": "https://prokoleso.ua/shiny/letnie/" },
+      { "question_ua": "Наш рейтинг найпопулярніших зимових шин для легкових автомобілів: ", "url": "https://prokoleso.ua/shiny/zimnie/" },
+      { "question_ua": "Наш рейтинг найпопулярніших всесезонних шин для легкових автомобілів: ", "url": "https://prokoleso.ua/shiny/" }
     ],
     aliases: [
       { name: '175/70R13', alias: 'w-175/h-70/r-13' },
@@ -311,6 +476,15 @@ module Constants
       { question: 'Какие размеры грузовых шин для самых популярных автомобилей покупают prokoleso.ua?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
       { question: 'Наш рейтинг: Популярные размеры грузовых шин. ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
     ],
+    questions_ua: [
+      { "question_ua": "Які розміри вантажних шин є найбільш популярними на вашому сайті?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які типорозміри вантажних шин є найбільш популярними?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Найпоширеніші типорозміри вантажних шин", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Розміри вантажних шин для найпопулярніших автомобілів", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які розміри вантажних шин для найпопулярніших автомобілів купують у вас на сайті?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які розміри вантажних шин для найпопулярніших автомобілів купують на prokoleso.ua?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Наш рейтинг: Популярні розміри вантажних шин.", "url": "https://prokoleso.ua/gruzovye-shiny/" }
+    ],
     aliases: [
       { name: '295/80R22.5', alias: 'w-295/h-80/r-22.5' },
       { name: '315/80R22.5', alias: 'w-315/h-80/r-22.5' },
@@ -339,6 +513,13 @@ module Constants
       { question: 'Какие диаметры шин для грузовых автомобилей покупают больше всего на вашем сайте?', url: 'https://prokoleso.ua/gruzovye-shiny/' },
 
     ],
+    questions_ua: [
+      { "question_ua": "Найпоширеніші посадкові діаметри шин для вантажних автомобілів", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "ТОП популярних посадкових діаметрів для вантажних шин", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "ТОП популярних посадкових діаметрів для вантажних шин, представлених на prokoleso.ua", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які діаметри шин для вантажних автомобілів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які діаметри шин для вантажних автомобілів купують найбільше на вашому сайті?", "url": "https://prokoleso.ua/gruzovye-shiny/" }
+    ],
     aliases: [
       { name: 'R16', alias: 'r-16' },
       { name: 'R17.5', alias: 'r-17' },
@@ -362,24 +543,31 @@ module Constants
       { question: 'Наш рейтинг: Лучшие производители грузовых шин: ', url: 'https://prokoleso.ua/gruzovye-shiny/' },
 
     ],
+    questions_ua: [
+      { "question_ua": "Топ виробників вантажних шин, представлених на сайті Prokoleso", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Хто входить до списку кращих виробників вантажних шин?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Які відомі бренди шин представлені на сайті prokoleso.ua?", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Список кращих виробників вантажних шин", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Кращі виробники вантажних шин", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Кращі виробники вантажних шин, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/gruzovye-shiny/" },
+      { "question_ua": "Наш рейтинг: Кращі виробники вантажних шин: ", "url": "https://prokoleso.ua/gruzovye-shiny/" }
+    ],
 
     aliases: [
-      {name: 'Aeolus',alias:'aeolus'},
-      {name: 'Barum',alias:'barum'},
-      {name: 'Bridgestone',alias:'bridgestone'},
-      {name: 'Continental',alias:'continental'},
-      {name: 'Crystal',alias:'crystal'},
-      {name: 'Dongfeng',alias:'dongfeng'},
-      {name: 'Hankook',alias:'hankook'},
-      {name: 'Kumho',alias:'kumho'},
-      {name: 'Marcher',alias:'marcher'},
-      {name: 'Rosava',alias:'rosava'},
-      {name: 'Satoya',alias:'satoya'},
-
+      { name: 'Aeolus', alias: 'aeolus' },
+      { name: 'Barum', alias: 'barum' },
+      { name: 'Bridgestone', alias: 'bridgestone' },
+      { name: 'Continental', alias: 'continental' },
+      { name: 'Crystal', alias: 'crystal' },
+      { name: 'Dongfeng', alias: 'dongfeng' },
+      { name: 'Hankook', alias: 'hankook' },
+      { name: 'Kumho', alias: 'kumho' },
+      { name: 'Marcher', alias: 'marcher' },
+      { name: 'Rosava', alias: 'rosava' },
+      { name: 'Satoya', alias: 'satoya' },
 
     ]
   }
-
 
   # ================================
   # Диски - диаметры
@@ -390,6 +578,13 @@ module Constants
       { question: 'ТОП популярных диаметров легкосплавных дисков для легковых автомобилей, представленных на  prokoleso.ua', url: 'https://prokoleso.ua/diski/' },
       { question: 'Легкосплавные диски каких диаметров покупают больше всего на prokoleso.ua?', url: 'https://prokoleso.ua/diski/' },
       { question: 'Колесные диски каких диаметров больше всего покупают на вашем сайте?', url: 'https://prokoleso.ua/diski/' },
+    ],
+    questions_ua: [
+      { "question_ua": "Найпоширеніші діаметри легкосплавних дисків для легкових автомобілів", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "ТОП популярних діаметрів легкосплавних дисків для легкових автомобілів", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "ТОП популярних діаметрів легкосплавних дисків для легкових автомобілів, представлених на prokoleso.ua", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Легкосплавні диски яких діаметрів купують найбільше на prokoleso.ua?", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Колісні диски яких діаметрів найбільше купують на вашому сайті?", "url": "https://prokoleso.ua/diski/" }
     ],
     aliases: [
       { name: 'R13', alias: 'r-13' },
@@ -414,25 +609,33 @@ module Constants
       { question: 'Наш рейтинг: Лучшие производители легковых дисков', url: 'https://prokoleso.ua/diski/' },
 
     ],
+    questions_ua: [
+      { "question_ua": "Топ виробників легкових дисків, представлених на сайті Prokoleso ", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Хто входить до списку кращих виробників дисків для легкових автомобілів?", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Хто з відомих виробників легкових дисків представлений на сайті prokoleso.ua?", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Список кращих виробників легкових дисків", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Найкращі бренди - виробники легкових дисків", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Найкращі виробники легкових дисків, представлені на сайті prokoleso.ua", "url": "https://prokoleso.ua/diski/" },
+      { "question_ua": "Наш рейтинг: Найкращі виробники легкових дисків", "url": "https://prokoleso.ua/diski/" }
+    ],
     aliases: [
-      {name: 'Alst ',alias:'alst '},
-      {name: 'Дорожная Карта',alias:'dk'},
-      {name: 'K7 ',alias:'k7 '},
-      {name: 'Mak ',alias:'mak '},
-      {name: 'MOMO Italy ',alias:'momo'},
-      {name: 'Reds ',alias:'reds '},
-      {name: 'Remain',alias:'remain'},
-      {name: 'Replica',alias:'replica'},
-      {name: 'Racing Wheels ',alias:'rw'},
-      {name: 'Sportmax Racing',alias:'sportmaxracing'},
-      {name: 'Techline ',alias:'techline '},
-      {name: 'Trebl ',alias:'trebl '},
-      {name: 'Vector ',alias:'vector '},
-      {name: 'WSP Italy',alias:'wsp'},
+      { name: 'Alst ', alias: 'alst ' },
+      { name: 'Дорожная Карта', alias: 'dk' },
+      { name: 'K7 ', alias: 'k7 ' },
+      { name: 'Mak ', alias: 'mak ' },
+      { name: 'MOMO Italy ', alias: 'momo' },
+      { name: 'Reds ', alias: 'reds ' },
+      { name: 'Remain', alias: 'remain' },
+      { name: 'Replica', alias: 'replica' },
+      { name: 'Racing Wheels ', alias: 'rw' },
+      { name: 'Sportmax Racing', alias: 'sportmaxracing' },
+      { name: 'Techline ', alias: 'techline ' },
+      { name: 'Trebl ', alias: 'trebl ' },
+      { name: 'Vector ', alias: 'vector ' },
+      { name: 'WSP Italy', alias: 'wsp' },
 
     ]
   }
-
 
   # ================================
   # пусто
@@ -444,5 +647,18 @@ module Constants
 
     ]
   }
+
+  list_questions = [
+    { :question => { :question => "Какие основные различия между летними и зимними шинами размером 195/65R15?",
+                     :answer => "Летние шины 195/65R15 имеют более жесткую резину, что обеспечивает лучшее сцепление с дорогой и более высокую скорость передачи. Зимние шины 195/65R15 имеют мягкую резину с улучшенными характеристиками сцепления на снегу и льду." } },
+    { :question => { :question_ua => "Які розміри всесезонних шин для легкових автомобілів купують найбільше на вашому сайті?", :url => "https://prokoleso.ua/shiny/" },
+      :answer => "[<a href='https://prokoleso.ua/shiny/'>• 235/60R18  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/65R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 215/65R16  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 185/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R15  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R16  </a>    ]" },
+    { :question => { :question_ua => "У які населені пункти здійснюється адресна доставка \"Нової Пошти\"?",
+                     :url => "https://prokoleso.ua/" },
+      :answer => "[<a href='https://prokoleso.ua/ua/'>• Покров  </a>    <a href='https://prokoleso.ua/ua/'>• Тернополь  </a>    <a href='https://prokoleso.ua/ua/'>• Чортков  </a>    <a href='https://prokoleso.ua/ua/'>• Николаев  </a>    <a href='https://prokoleso.ua/ua/'>• Новая Каховка  </a>    <a href='https://prokoleso.ua/ua/'>• Подольск  </a>    <a href='https://prokoleso.ua/ua/'>• Славута  </a>    <a href='https://prokoleso.ua/ua/'>• Каховка  </a>    <a href='https://prokoleso.ua/ua/'>• Желтые Воды  </a>    ]" }]
+  hash_question =
+    { :question => { :question_ua => "Які розміри всесезонних шин для легкових автомобілів купують найбільше на вашому сайті?",
+                     :url => "https://prokoleso.ua/shiny/" },
+      :answer => "[<a href='https://prokoleso.ua/shiny/'>• 235/60R18  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/65R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 215/65R16  </a>    <a href='https://prokoleso.ua/shiny/'>• 175/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 185/70R14  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R15  </a>    <a href='https://prokoleso.ua/shiny/'>• 205/65R16  </a>    ]" }
 
 end
