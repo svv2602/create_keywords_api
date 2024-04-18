@@ -32,6 +32,8 @@ Rails.application.routes.draw do
   get '/process_files_ua', to: 'exports#process_files_ua'
   get '/control_question', to: 'exports#control_question'
   get '/export_questions_to_xlsx', to: 'exports#export_questions_to_xlsx'
+  get '/add_new_brand_entries', to: 'exports#add_new_brand_entries'
+
 
 
 end

@@ -197,4 +197,25 @@ class ExportsController < ApplicationController
     render plain: "Обновление завершено.  Обработано строк: #{j}"
   end
 
+  def add_new_brand_entries
+    # обновление таблицы брендов
+    excel_file = "lib/brands.xlsx"
+    excel = Roo::Excelx.new(excel_file)
+
+    3.times do |i|
+      excel.each_row_streaming(pad_cells: true) do |row|
+        name = row[i + 1]&.value
+        url = row[0]&.value
+        Brand.find_or_create_by(name: name) do |brand|
+          brand.url = url
+        end if name.present?
+      end
+    end
+  end
+
+
+
+
+  # ========================последний end=======================
+
 end
