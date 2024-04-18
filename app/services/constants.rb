@@ -554,18 +554,31 @@ module Constants
     ],
 
     aliases: [
-      { name: 'Aeolus', alias: 'aeolus' },
-      { name: 'Barum', alias: 'barum' },
-      { name: 'Bridgestone', alias: 'bridgestone' },
-      { name: 'Continental', alias: 'continental' },
-      { name: 'Crystal', alias: 'crystal' },
-      { name: 'Dongfeng', alias: 'dongfeng' },
-      { name: 'Hankook', alias: 'hankook' },
-      { name: 'Kumho', alias: 'kumho' },
-      { name: 'Marcher', alias: 'marcher' },
-      { name: 'Rosava', alias: 'rosava' },
-      { name: 'Satoya', alias: 'satoya' },
-
+      { "name": "Aeolus", "alias": "aeolus" },
+      { "name": "Aplus", "alias": "aplus" },
+      { "name": "Barum", "alias": "barum" },
+      { "name": "Bridgestone", "alias": "bridgestone" },
+      { "name": "Compasal", "alias": "compasal" },
+      { "name": "Continental", "alias": "continental" },
+      { "name": "Doublestar", "alias": "doublestar" },
+      { "name": "Dunlop", "alias": "dunlop" },
+      { "name": "Fulda", "alias": "fulda" },
+      { "name": "Hankook", "alias": "hankook" },
+      { "name": "Kormoran", "alias": "kormoran" },
+      { "name": "Kumho", "alias": "kumho" },
+      { "name": "Lassa", "alias": "lassa" },
+      { "name": "LongMarch", "alias": "longmarch" },
+      { "name": "Marcher", "alias": "marcher" },
+      { "name": "Michelin", "alias": "michelin" },
+      { "name": "Ovation", "alias": "ovation" },
+      { "name": "Petlas", "alias": "petlas" },
+      { "name": "Roadshine", "alias": "roadshine" },
+      { "name": "Rosava", "alias": "rosava" },
+      { "name": "Sailun", "alias": "sailun" },
+      { "name": "Satoya", "alias": "satoya" },
+      { "name": "Supercargo", "alias": "supercargo" },
+      { "name": "Triangle", "alias": "triangle" },
+      { "name": "Windforce", "alias": "windforce" }
     ]
   }
 

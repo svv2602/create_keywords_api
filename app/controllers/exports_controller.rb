@@ -211,6 +211,7 @@ class ExportsController < ApplicationController
         end if name.present?
       end
     end
+    render plain: "Обновление таблицы брендов завершено."
   end
 
 
