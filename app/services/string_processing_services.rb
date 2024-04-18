@@ -1,32 +1,33 @@
 module StringProcessingServices
 
-  def array_after_error_from_seo_content_text(all_recods = 0)
-    # all_recods - количество обрабатываемых записей: 1 - все записи, 0- с последнего id текста в SeoContentTextSentence
+  def array_after_error_from_seo_content_text(order_out = 0, all_records = 0 )
+    # all_records - количество обрабатываемых записей: 1 - все записи, 0- с последнего id текста в SeoContentTextSentence
 
-    all_recods = params[:all_recods] if params.key?(:all_recods)
+    all_records = params[:all_records] if params.key?(:all_records)
 
-    records = SeoContentText.all
-    if all_recods == 1
+    # records = SeoContentText.all
+    records = SeoContentText.where(order_out: order_out)
+    if all_records == 1
       filtered_records = records
     else
       # id текста в  последняя запись по предложениям
       id_last_text_in_table_sentence = (SeoContentTextSentence.last&.id_text || 0)
       puts "id_last_text_in_table_sentence ====== #{id_last_text_in_table_sentence}"
-      id_record_content_text_in_table_text = (SeoContentText.find_by(id: id_last_text_in_table_sentence)&.id || SeoContentText.first&.id)
+      id_record_content_text_in_table_text = (SeoContentText.where(order_out: order_out).find_by(id: id_last_text_in_table_sentence)&.id || SeoContentText.first&.id)
       puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
-      filtered_records = records.drop_while { |record| record.id < id_record_content_text_in_table_text }
-
+      # filtered_records = records.drop_while { |record| record.id < id_record_content_text_in_table_text }
+      filtered_records = SeoContentText.where("id >= ? AND order_out = ?", id_record_content_text_in_table_text, order_out)
     end
 
     filtered_records
 
   end
 
-  def array_after_error_from_json
+  def array_after_error_from_json(filename)
     # Данный метод array_after_error_from_json обрабатывает содержимое JSON-файла и возвращает новый хэш,
     # содержащий только те элементы, которые идут после последнего обработанного элемента
     hash_new = {}
-    hash = data_json_to_hash
+    hash = data_json_to_hash(filename)
     return hash_new unless hash # return early if hash is nil
 
     content_last_element_hash = last_element_hash_json(hash)

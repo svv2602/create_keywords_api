@@ -25,18 +25,19 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # file_path = Rails.root.join('lib', 'template_texts', 'data.json')
     # if duplicated_in_data_json?(file_path)
-      # # первый рерайт текстов по абзацам _
-      # #===========================================================
-      # # ВНИМАНИЕ!!!
-      # #===========================================================
-      # # для полной обработки набирать с параметром params[:type_proc] = 1
-      # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
-      # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
-      # #===========================================================
+    # # первый рерайт текстов по абзацам _
+    # #===========================================================
+    # # ВНИМАНИЕ!!!
+    # #===========================================================
+    # # для полной обработки набирать с параметром params[:type_proc] = 1
+    # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
+    # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
+    # #===========================================================
 
-      # total_arr_to_table(5, 5)
+    # total_arr_to_table(5, 5)
 
-      # total_arr_to_table_sentence(5, 5)
+    # total_arr_to_table_sentence(5, 5, 0) # - для легковых
+    total_arr_to_table_sentence(1,1,2)  # - для грузовых
 
     # end
 
@@ -58,10 +59,8 @@ class Api::V1::SeoTextsController < ApplicationController
     # delete_records_for_id
     # clear_trash_brand # удаление переменной [brand]
 
-
     # add_sentence_ua
     # !!!!!!сделать проверку по украинским текстам!!!!!!
-
 
     puts "Все сделано!"
     render json: { result: "Все сделано!" }
@@ -71,10 +70,10 @@ class Api::V1::SeoTextsController < ApplicationController
   def json_write_for_read
     # Из текстового файла создает файл json с массивом строк, для дальнейшей подготовки к обработке
     # для запуска: внести текст, для обработки в файл lib/template_texts/data.txt
-
-    txt_file_to_json
+    filename = "data_track"
+    txt_file_to_json(filename)
     # clear_size_temp # для обновления данных в таблице
-    render json: { result: "Создан файл lib/template_texts/data.json" }
+    render json: { result: "Создан файл lib/template_texts/#{filename}.json" }
     # после обработки готовый файл нужно перенести в папку finished_texts
   end
 
@@ -119,7 +118,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # Добавление текста об ошибках , если в url есть размер
     if size_present_in_url?
-        result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
+      result += size_present_in_popular? ? arr_url_result_str : min_errors_text(arr_size)
     end
 
     # убираем лишние знаки пунктуации
@@ -161,7 +160,6 @@ class Api::V1::SeoTextsController < ApplicationController
         result = replace_text_by_hash_minus(result)
       end
     end
-
 
     puts "Стало:" + "=>" * 40
 
@@ -260,7 +258,11 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
     # h = data_json_to_hash
-    h = params[:type_proc].to_i == 1 ? data_json_to_hash : array_after_error_from_json
+    # filename = "data" # для легковых шин
+    filename = "data_track" # для грузовых шин
+
+    # Внимание - первый запуск нового файла ОБЯЗАТЕЛЬНО с параметром type_proc=1
+    h = params[:type_proc].to_i == 1 ? data_json_to_hash(filename) : array_after_error_from_json(filename)
     #=============================================================
     # Сделана замена хеша с учетом последней записи в базе данных:
     # h = array_after_error_from_json # при новом запуске закоментить
@@ -339,7 +341,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
   end
 
-  def total_arr_to_table_sentence(number_of_repeats_for_text = 1, number_of_repeats = 1)
+  def total_arr_to_table_sentence(number_of_repeats_for_text = 1, number_of_repeats = 1, order_out = 0)
     # вызов c параметром all_recods=1
     # обрабатывает все тексты, без параметра с последней записи в sentence и до последней записи в text
     # number_of_repeats_for_text = 5 # Задаем количество повторов вариантов для всего текста
@@ -348,7 +350,7 @@ class Api::V1::SeoTextsController < ApplicationController
     select_number_table = 2 # номер таблицы с результатами
     count_record = 0 # подсчет обработанных записей
 
-    arr_to_table_sentence = array_after_error_from_seo_content_text
+    arr_to_table_sentence = array_after_error_from_seo_content_text(order_out)
 
     # SeoContentText.all.each do |record|
     arr_to_table_sentence&.each do |record|

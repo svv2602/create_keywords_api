@@ -364,8 +364,8 @@ module StringProcessing
     transformed_text
   end
 
-  def txt_file_to_json
-    file_path = Rails.root.join('lib', 'template_texts', 'data.txt')
+  def txt_file_to_json(filename)
+    file_path = Rails.root.join('lib', 'template_texts', "#{filename}.txt")
     texts = {}
     current_text = {}
     current_key = ''
@@ -393,15 +393,15 @@ module StringProcessing
     end
 
     texts["Block_#{index}"] = current_text unless current_text.empty?
-    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+    file_path = Rails.root.join('lib', 'template_texts', "#{filename}.json")
 
     File.open(file_path, 'w') do |f|
       f.write(JSON.pretty_generate(texts))
     end
   end
 
-  def data_json_to_hash
-    file_path = Rails.root.join('lib', 'template_texts', 'data.json')
+  def data_json_to_hash(filename)
+    file_path = Rails.root.join('lib', 'template_texts', "#{filename}.json")
     return unless File.exist?(file_path) # Return nil if the file doesn't exist
 
     begin
