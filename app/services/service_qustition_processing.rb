@@ -77,7 +77,9 @@ module ServiceQustitionProcessing
     random_brands = el[field_aliases.to_sym].sample(rand(6..max)) # случайное количество ответов
     # сборка в ответ элементов массива
     random_brands.each_with_index do |el, i|
-      answer += "<a href='#{question_random[:url]}#{el[field_aliases.to_sym]}'>• #{el[field_name.to_sym]}  </a>    "
+      puts " field_aliases = #{el[field_aliases.to_sym]},  field_name = #{el[field_name.to_sym]}"
+      puts " question_random = #{question_random.inspect}"
+      answer += "<a href='#{question_random[:url]}#{el[:alias]}'>• #{el[field_name.to_sym]}  </a>    "
     end
     answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10) % 2 == 0
     rezult = { question: question, answer: "[#{answer}]" }
