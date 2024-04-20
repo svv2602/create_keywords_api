@@ -117,8 +117,6 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def raw_text
-    # пример:
-    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
     result = ''
     min_chars = 0
     arr_size = arr_size_to_error
@@ -217,7 +215,13 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def seo_text
+    # пример:
+    # легковые:
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+    # грузовые
+    # https://prokoleso.ua/ua/gruzovye-shiny/w-385/h-65/r-22.5/axis-pritsepnaya/aeolus/
+    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
+
     result = raw_text_final || ""
     result_questions = all_questions_for_page || ""
     puts result + "\n" + result_questions
