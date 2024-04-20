@@ -51,11 +51,11 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
-    # bb?
-    # txt_file_to_json
+    txt_file_to_json("data_track")
 
     # file_path = Rails.root.join('lib', 'template_texts', 'data.json')
-    # if duplicated_in_data_json?(file_path)
+    # if duplicated_in_data_json?(file_path) - проверка на дубликаты
+
     # # первый рерайт текстов по абзацам _
     # #===========================================================
     # # ВНИМАНИЕ!!!
@@ -67,10 +67,10 @@ class Api::V1::SeoTextsController < ApplicationController
 
 
     # ============== проверено ==========
-    # total_arr_to_table(5, 5)
+    total_arr_to_table(5, 5)
     # ============== проверено ==========
     # total_arr_to_table_sentence(5, 5, 0) # - для легковых
-    # total_arr_to_table_sentence(1,1,2)  # - для грузовых !!!! изменить количество проходов
+    total_arr_to_table_sentence(5,5,2)  # - для грузовых !!!! изменить количество проходов
 
 
     # ============================================================================================

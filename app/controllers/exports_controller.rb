@@ -35,11 +35,13 @@ class ExportsController < ApplicationController
   end
 
   def count_records
-    puts "Number of records in SeoContentTextSentence: #{SeoContentTextSentence.count}"
-    puts "Number of records in SeoContentText: #{SeoContentText.count}"
+    # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
+    seo_content_text_count = SeoContentText.count
+    puts "Number of records in SeoContentText: #{seo_content_text_count}"
 
-    # non_zero_check_title_count = SeoContentTextSentence.where('sentence_ua = "" or sentence_ua IS NULL').count
-    check_title_value_ua_count = SeoContentTextSentence.where(sentence_ua: '').count
+    seo_content_text_sentence_count = SeoContentTextSentence.count
+    puts "Number of records in SeoContentTextSentence: #{seo_content_text_sentence_count}"
+
 
     check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
     puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
@@ -48,8 +50,8 @@ class ExportsController < ApplicationController
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
 
-    render json: { SeoContentText: "#{total_seconds_and_minutes}",
-                   SeoContentTextSentence: "#{check_title_value_ua_count}"
+    render json: { SeoContentText: "#{seo_content_text_count}",
+                   SeoContentTextSentence: "#{seo_content_text_sentence_count}"
     }
   end
 

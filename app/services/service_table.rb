@@ -45,11 +45,6 @@ module ServiceTable
   end
 
   def duplicated_in_data_json?(file_path)
-    # require 'json'
-
-    # Предположим, что ваш файл находится в этом местоположении
-    # file_path = 'path_to_your_file.json'
-
     # Разбираем JSON из файла
     data = JSON.parse(File.read(file_path))
 
