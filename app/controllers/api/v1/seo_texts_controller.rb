@@ -11,10 +11,41 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def mytest
 
-    all_questions_for_page
-    puts "Все сделано! =====  " # #{result.inspect}
-    # render json: { result: result }
+    # all_questions_for_page
+    result = count_text_type("data_track")
+    puts "Все сделано! ===== #{result.inspect} " # #{result.inspect}
+    render json: { result: result }
   end
+
+  def count_text_type(file_name_txt)
+    # подсчет количества тем в текстовом фале
+    # путь к файлу в рельс
+    file_path = Rails.root.join('lib', 'template_texts', "#{file_name_txt}.txt")
+
+    # Инициализируем хэш для подсчета строк
+    lines_count = Hash.new(0)
+
+    # открытие файла 'data_track.txt' для чтения
+    File.open(file_path, 'r') do |file|
+      # Читаем файл и разделяем его на строки
+      lines = file.readlines
+
+      # Выбираем строки, содержащие 'TextType'
+      text_type_lines = lines.select { |line| line.include?('TextType:') }
+
+      # Увеличиваем подсчет в Хэше для каждой строки
+      text_type_lines.each { |line| lines_count[line] += 1 }
+    end
+    result = ""
+    # Вернуть хэш с подсчетом строк
+    lines_count.each do |line, count|
+      result += "#{line.strip.gsub("TextType: ", "")} : #{count};  "
+    end
+    result
+
+  end
+
+
 
   def total_generate_seo_text
 
