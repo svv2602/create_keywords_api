@@ -8,6 +8,15 @@ class ExportsController < ApplicationController
 
   end
 
+
+  def download_database
+    send_file(
+      "#{Rails.root}/storage/development.sqlite3",
+      filename: "database_backup.sqlite3",
+      type: "application/x-sqlite3"
+    )
+  end
+
   def export_text
     records = SeoContentText.all.as_json
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")

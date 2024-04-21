@@ -22,7 +22,7 @@ Rails.application.routes.draw do
 
   end
 
-
+  get '/download_database', to: 'exports#download_database'
   get '/export_text', to: 'exports#export_text'
   get '/export_sentence', to: 'exports#export_sentence'
   get '/count_records', to: 'exports#count_records'
