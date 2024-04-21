@@ -8,6 +8,16 @@ class ExportsController < ApplicationController
 
   end
 
+  def replace_text_in_seo_content_text_sentence
+    SeoContentText.find_each do |sentence|
+      sentence.attributes.each do |name, value|
+        next unless value.is_a?(String)
+        new_value = value.gsub('12R20', '[size]')
+        sentence[name] = new_value if new_value != value
+      end
+      sentence.save!
+    end
+  end
 
   def download_database
     send_file(
@@ -59,7 +69,7 @@ class ExportsController < ApplicationController
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
 
-    render json: { SeoContentText: "#{seo_content_text_count}",
+    render json: { SeoContentText: "#{total_seconds_and_minutes}",
                    SeoContentTextSentence: "#{seo_content_text_sentence_count}"
     }
   end

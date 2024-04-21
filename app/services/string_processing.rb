@@ -190,10 +190,7 @@ module StringProcessing
 
   end
 
-  def insert_season_url_new(text)
-    url_shiny = url_shiny_hash_params
-    diameter = url_shiny[:tyre_r]
-    season = url_shiny[:tyre_season]
+  def type_season_or_axis
     type_season = {
       'летние': { value: "letnie",
                   season: 1,
@@ -224,11 +221,72 @@ module StringProcessing
       }
 
     }
+    type_axis = {
+      'прицепные': { value: "axis-pritsepnaya",
+                     season: 1,
+                     state: { season_url: true,
+                              season_size: true,
+                              season_diameter: true
+                     },
+                     search_str: /((П|п)рицепн(ые|ая|ую|ых|ыми)\s+((шин(ы|ами|ах|у|а))|(резин(а|ы|у|ой))))/,
+                     search_str_ua: /((П|п)ричепн(і|я|ю|іх|іми)\s+((шин(и|ами|ах|у|а))|(резин(а|и|у|ою))))/,
+      },
+      'рулевые': { value: 'axis-rulevaya',
+                   season: 2,
+                   state: { season_url: true,
+                            season_size: true,
+                            season_diameter: true
+                   },
+                   search_str: /((Р|р)улев(ые|ая|ую|ых|ыми)\s+((шин(ы|ами|ах|у|а))|(резин(а|ы|у|ой))))/,
+                   search_str_ua: /((З|з)им(ов|н)(у|а|і|я|ю|их|ими|іх|іми)\s+((шин(и|ами|ах|у|а))|(резин(а|и|у|ою))))/
+      },
+      'ведущие': { value: 'axis-vedushchaya',
+                   season: 3,
+                   state: { season_url: true,
+                            season_size: true,
+                            season_diameter: true
+                   },
+                   search_str: /((В|в)едущ(ие|ая|юю|их|ими|ыми)\s+((шин(ы|ами|ах|у|а))|(резин(а|ы|у|ой))))/,
+                   search_str_ua: /((В|в)едуч(і|я|ю|их|ими|іх|іми)\s+((шин(и|ами|ах|у|а))|(резин(а|и|у|ою))))/
+      }
+
+    }
+
+    result = case url_type_by_parameters
+             when 0
+               type_season
+             when 2
+               type_axis
+             end
+    result
+
+  end
+
+  def str_url_type_pharagraph
+    result = case url_type_by_parameters
+             when 0
+               "shiny"
+             when 1
+               "diski"
+             when 2
+               "gruzovye-shiny"
+             end
+    result
+  end
+
+  def insert_season_url_new(text)
+    url_shiny = url_shiny_hash_params
+    diameter = url_shiny[:tyre_r]
+    season = url_shiny[:tyre_season]
+
+    type_season = type_season_or_axis
     arr_size = arr_size_to_error
 
     search_size = SEARCH_SIZE_1
     search_size_2 = SEARCH_SIZE_2
-    str_url = url_type_ua? ? "<a href='https://prokoleso.ua/ua/shiny" : "<a href='https://prokoleso.ua/shiny"
+    search_size_3 = SEARCH_SIZE_3
+
+    str_url = url_type_ua? ? "<a href='https://prokoleso.ua/ua/#{str_url_type_pharagraph}" : "<a href='https://prokoleso.ua/#{str_url_type_pharagraph}"
     replaced = {}
     i = 0
     text = text.each_line.map do |line|
@@ -285,18 +343,32 @@ module StringProcessing
           part_url_size = "r-#{url_shiny[:tyre_r]}/"
           part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
 
-
           if url_type_ua?
-            case value[:season].to_i
-            when 1
-              txt_season = 'літні'
-            when 2
-              txt_season = 'зимові'
-            when 3
-              txt_season = 'всесезонні'
-            else
-              txt_season = ''
+            if url_type_by_parameters == 0
+              case value[:season].to_i
+              when 1
+                txt_season = 'літні'
+              when 2
+                txt_season = 'зимові'
+              when 3
+                txt_season = 'всесезонні'
+              else
+                txt_season = ''
+              end
             end
+            if url_type_by_parameters == 2
+              case value[:season].to_i
+              when 1
+                txt_season = 'причепні'
+              when 2
+                txt_season = 'рульові'
+              when 3
+                txt_season = 'ведучі'
+              else
+                txt_season = ''
+              end
+            end
+
           else
             txt_season = value[:season].to_i == season.to_i ? '' : key
           end
@@ -317,7 +389,7 @@ module StringProcessing
     end.join("")
 
     # ссылка на страницу оплата и доставка
-    regex = /(оплат(а|ы)(| и доставк(а|и)))/
+    regex = /(оплат(а|ы|и)(| и доставк(а|и)))/
     match = text.match(regex)
     if match
       url_ua = url_type_ua? ? "/ua" : ""
@@ -326,7 +398,7 @@ module StringProcessing
     end
 
     # ссылка на страницу контакты
-    regex = /(проконсультироваться|консультаци(я|ю|и)|сотрудничеств(а|о)|ответить на все вопросы|профессионал(ы|ов)|(Н|н)аш(ей|а|у) команд(а|у|ой))/
+    regex = /(проконсультироваться|консультац(и|і)(я|ю|и)|сотрудничеств(а|о)|ответить на все вопросы|профессионал(ы|ов)|(Н|н)аш(ей|а|у) команд(а|у|ой))/
     match = text.match(regex)
     if match
       url_ua = url_type_ua? ? "/ua" : ""
@@ -460,6 +532,7 @@ module StringProcessing
       tyre_h: '',
       tyre_r: '',
       tyre_season: 0,
+      tyre_axis: 0,
       tyre_brand: '',
     }
     # if url_parts.include?('shiny') && url_parts != {}
@@ -483,6 +556,12 @@ module StringProcessing
           url_hash[:tyre_season] = 2
         when 'vsesezonie'
           url_hash[:tyre_season] = 3
+        when 'axis-pritsepnaya'
+          url_hash[:tyre_axis] = 1
+        when 'axis-rulevaya'
+          url_hash[:tyre_axis] = 2
+        when 'axis-vedushchaya'
+          url_hash[:tyre_axis] = 3
         else
           url_hash[:tyre_brand] = el if Brand.exists?(url: el)
 
@@ -568,6 +647,39 @@ module StringProcessing
 
     when 11, 12, 13
       # варианты по бренду с сезоном
+      result = 1500
+
+    else
+      result = 0
+    end
+
+    result
+
+  end
+
+  def alphanumeric_chars_count_for_url_gruzovye_shiny
+    # минимальное количество знаков в статье по урл без учета текста по сезонности
+    result = 0
+    puts "type_for_url_shiny = #{type_for_url_shiny}"
+    case type_for_url_shiny
+
+    when 100, 110, 200, 210
+      # варианты по размеру
+      # размер и размер+бренд, диаметр+бренд
+      result = 3000
+
+    when 101, 102, 103, 201, 202, 203
+      # варианты по диаметру - диаметр+ось
+      # варианты по размеру - размер+ось
+      result = 2000
+
+    when 111, 112, 113, 211, 212, 213
+      # варианты по диаметру - диаметр+бренд+ось
+      # варианты по размеру - размер+бренд+ось
+      result = 1500
+
+    when 10, 11, 12, 13
+      # варианты по бренду и бренду с осью
       result = 1500
 
     else

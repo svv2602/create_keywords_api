@@ -45,8 +45,6 @@ class Api::V1::SeoTextsController < ApplicationController
 
   end
 
-
-
   def total_generate_seo_text
 
     # Первоначальное заполнение таблиц с текстами
@@ -65,13 +63,11 @@ class Api::V1::SeoTextsController < ApplicationController
     # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
     # #===========================================================
 
-
     # ============== проверено ==========
     total_arr_to_table(5, 5)
     # ============== проверено ==========
     # total_arr_to_table_sentence(5, 5, 0) # - для легковых
-    total_arr_to_table_sentence(5,5,2)  # - для грузовых !!!! изменить количество проходов
-
+    total_arr_to_table_sentence(5, 5, 2) # - для грузовых !!!! изменить количество проходов
 
     # ============================================================================================
     # заново ======= Пропустить (было только для легковых - ошибка в данных базы исправлена)======
@@ -97,10 +93,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # delete_records_with_instructions  # удаление записей с ошибками
     # delete_records_for_id
 
-
-
-
-
     puts "Все сделано!"
     render json: { result: "Все сделано!" }
 
@@ -120,18 +112,20 @@ class Api::V1::SeoTextsController < ApplicationController
     result = ''
     min_chars = 0
     arr_size = arr_size_to_error
+    order_out = url_type_by_parameters
     alphanumeric_chars_count = 0
     general_array_without_season = general_array_without_seasonality.shuffle
     # puts "common_items - #{general_array_without_season.inspect}"
 
     # alphanumeric_chars_count_for_url_shiny - метод для определения базового количества символов в зависимости от урла
-    min_chars = alphanumeric_chars_count_for_url_shiny if url_type_by_parameters == 0
+    min_chars = alphanumeric_chars_count_for_url_shiny if order_out == 0
+    min_chars = alphanumeric_chars_count_for_url_gruzovye_shiny if order_out == 2
 
     while alphanumeric_chars_count < min_chars && general_array_without_season.any?
       content_type = general_array_without_season.first
       general_array_without_season = general_array_without_season.drop(1)
 
-      result += generator_text(content_type) + "\n"
+      result += generator_text(content_type, order_out) + "\n"
       arr = arr_size.shift(5)
       result += min_errors_text(arr) if size_present_in_url?
 
@@ -147,7 +141,11 @@ class Api::V1::SeoTextsController < ApplicationController
     # ============ сезонность для легковых шин ============================
     if url_type_by_parameters == 0
       content_type = general_array_with_seasonality.first
-      result += generator_text(content_type) + "\n"
+      result += generator_text(content_type, order_out) + "\n"
+    end
+    if url_type_by_parameters == 2
+      content_type = general_array_with_axis.first
+      result += generator_text(content_type, order_out) + "\n"
     end
 
     # удаляем похожие предложения
@@ -223,7 +221,11 @@ class Api::V1::SeoTextsController < ApplicationController
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
 
     result = raw_text_final || ""
-    result_questions = all_questions_for_page || ""
+    if url_type_by_parameters == 0
+      result_questions = all_questions_for_page || ""
+    else
+      result_questions = ""
+    end
     puts result + "\n" + result_questions
     render json: { result: result,
                    result_questions: result_questions
@@ -254,6 +256,16 @@ class Api::V1::SeoTextsController < ApplicationController
       query = "order_out = 1 "
     when 2 # грузовые шины
       query = "order_out = 2 "
+      if (10..14).include?(type_for_url_shiny) || (110..114).include?(type_for_url_shiny)
+        # puts "Значение в диапазоне от 10 до 14"
+        # убираем статьи с сезоном и ассортиметом для брендов
+        patterns = ['%универсальные%', '%рулевые%', '%прицеп%', '%ведущие%', '%ассортимент%']
+      else
+        # puts "Значение вне диапазона от 10 до 14"
+        # просто убираем статьи с сезоном
+        patterns = ['%универсальные%', '%рулевые%', '%прицеп%', '%ведущие%']
+      end
+      query += " AND " + patterns.map { "type_text NOT LIKE ?" }.join(" AND ")
     end
 
     unique_type_texts = SeoContentText.where(query, *patterns).pluck(:type_text).uniq
@@ -278,6 +290,30 @@ class Api::V1::SeoTextsController < ApplicationController
     if param_season != 0
       unique_type_texts = SeoContentText.where("type_text LIKE ?",
                                                param_season)
+                                        .pluck(:type_text)
+                                        .uniq
+
+      result = general_array(unique_type_texts)
+    end
+    result
+  end
+
+  def general_array_with_axis
+    tyre_axis = url_shiny_hash_params
+    result = []
+    case tyre_axis[:tyre_season]
+    when 1
+      param_axis = "%прицеп%"
+    when 2
+      param_axis = "%рулевые%"
+    when 3
+      param_axis = "%ведущие%"
+    else
+      param_axis = "%универсальные%"
+    end
+    if param_axis != 0
+      unique_type_texts = SeoContentText.where("type_text LIKE ?",
+                                               param_axis)
                                         .pluck(:type_text)
                                         .uniq
 
@@ -506,10 +542,10 @@ class Api::V1::SeoTextsController < ApplicationController
     rpl
   end
 
-  def generator_text(content_type)
+  def generator_text(content_type, order_out)
     # количество абзацев в выбранном типе текста
-    max_str_number = SeoContentText.where(content_type: content_type).maximum(:str_number)
-    SeoContentText.where(content_type: content_type).first.try(:[], :type_tag) == 1 ? tag_li = "li" : tag_li = "p"
+    max_str_number = SeoContentText.where(content_type: content_type, order_out: order_out).maximum(:str_number)
+    SeoContentText.where(content_type: content_type, order_out: order_out).first.try(:[], :type_tag) == 1 ? tag_li = "li" : tag_li = "p"
     text = ""
     array = []
     url_params = url_shiny_hash_params
