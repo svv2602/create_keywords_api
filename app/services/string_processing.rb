@@ -831,8 +831,19 @@ module StringProcessing
     txt = txt.split("\n")
     txt
   end
-
   def arr_to_table(arr, data_table_hash, select_number_table)
+    5.times do |n|
+      begin
+        arr_record_to_table(arr, data_table_hash, select_number_table)
+        break
+      rescue => e
+        puts "Attempt #{n+1} failed with error: #{e.message}"
+        raise if n == 4
+        sleep(2**(n+1)) # exponential backoff
+      end
+    end
+  end
+  def arr_record_to_table(arr, data_table_hash, select_number_table)
     previous_el = ''
     i = 0
     arr.each do |el|
