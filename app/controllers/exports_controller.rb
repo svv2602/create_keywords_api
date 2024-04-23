@@ -17,6 +17,14 @@ class ExportsController < ApplicationController
       end
       sentence.save!
     end
+    SeoContentTextSentence.find_each do |sentence|
+      sentence.attributes.each do |name, value|
+        next unless value.is_a?(String)
+        new_value = value.gsub('12R20', '[size]')
+        sentence[name] = new_value if new_value != value
+      end
+      sentence.save!
+    end
   end
 
   def download_database

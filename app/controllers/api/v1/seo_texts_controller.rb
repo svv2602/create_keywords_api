@@ -208,7 +208,7 @@ class Api::V1::SeoTextsController < ApplicationController
     result = standardization_of_punctuation(result)
 
     puts adjust_keyword_stuffing(result)
-    puts result
+    # puts result
     result
   end
 
@@ -221,11 +221,8 @@ class Api::V1::SeoTextsController < ApplicationController
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
 
     result = raw_text_final || ""
-    if url_type_by_parameters == 0
-      result_questions = all_questions_for_page || ""
-    else
-      result_questions = ""
-    end
+    result_questions = all_questions_for_page || ""
+
     puts result + "\n" + result_questions
     render json: { result: result,
                    result_questions: result_questions
@@ -270,7 +267,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     unique_type_texts = SeoContentText.where(query, *patterns).pluck(:type_text).uniq
     puts "unique_type_texts ================ #{unique_type_texts.inspect}"
-    result = general_array(unique_type_texts)
+    result = general_array(unique_type_texts, url_type_by_parameters)
     result
   end
 
@@ -293,7 +290,7 @@ class Api::V1::SeoTextsController < ApplicationController
                                         .pluck(:type_text)
                                         .uniq
 
-      result = general_array(unique_type_texts)
+      result = general_array(unique_type_texts, url_type_by_parameters)
     end
     result
   end
@@ -317,21 +314,22 @@ class Api::V1::SeoTextsController < ApplicationController
                                         .pluck(:type_text)
                                         .uniq
 
-      result = general_array(unique_type_texts)
+      result = general_array(unique_type_texts, url_type_by_parameters)
     end
     result
   end
 
-  def general_array(unique_type_texts)
+  def general_array(unique_type_texts, url_type_by_parameters)
     selected_records = []
     unique_type_texts.each do |type_text|
-      record = SeoContentText.where(type_text: type_text)
+      record = SeoContentText.where(type_text: type_text, order_out: url_type_by_parameters)
       content_type = record.count > 1 ? record.sample[:content_type] : record.first.try(:[], :content_type)
       selected_records << content_type if content_type
     end
 
     unique_str_seo_text = SeoContentTextSentence.pluck(:str_seo_text).uniq
     common_items = selected_records & unique_str_seo_text
+    puts "common_items == #{common_items.inspect}"
     common_items
   end
 
@@ -516,7 +514,6 @@ class Api::V1::SeoTextsController < ApplicationController
       title_h2 = hash_title["track"].shuffle.first
     end
 
-
     title_h2 = make_replace_for_title(title_h2, url_params) if title_h2.present?
     result = "<h2> #{title_h2} </h2>\n"
     result
@@ -564,8 +561,8 @@ class Api::V1::SeoTextsController < ApplicationController
 
         max_str_number_sentence = SeoContentTextSentence.where(str_seo_text: content_type, str_number: i).maximum(:num_snt_in_str)
         processed_record = ''
-        puts "max_str_number = #{max_str_number}: max_str_number_sentence = #{max_str_number_sentence} "
-        puts "content_type = #{content_type}  : processed_record = #{processed_record} "
+        # puts "max_str_number = #{max_str_number}: max_str_number_sentence = #{max_str_number_sentence} "
+        # puts "content_type = #{content_type}  : processed_record = #{processed_record} "
         break if max_str_number_sentence.nil?
 
         (max_str_number_sentence + 1).times do |j|

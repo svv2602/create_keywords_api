@@ -606,8 +606,19 @@ module StringProcessing
     size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни
     diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0 # сотни
     brand = url_parts[:tyre_brand].present? ? 10 : 0 # десятки
-    season = url_parts[:tyre_season] # единицы
-    result = size + diameter + season + brand
+
+    season = case url_type_by_parameters
+             when 0
+               url_parts[:tyre_season] # единицы по сезону
+             when 1
+               0 # доделать по дискам единицы по типу диска
+             when 2
+               url_parts[:tyre_axis] # единицы по типу оси
+             else
+               0
+             end
+
+    result = size + diameter + brand + season
     result
   end
 
@@ -835,18 +846,20 @@ module StringProcessing
     txt = txt.split("\n")
     txt
   end
+
   def arr_to_table(arr, data_table_hash, select_number_table)
     5.times do |n|
       begin
         arr_record_to_table(arr, data_table_hash, select_number_table)
         break
       rescue => e
-        puts "Attempt #{n+1} failed with error: #{e.message}"
+        puts "Attempt #{n + 1} failed with error: #{e.message}"
         raise if n == 4
-        sleep(2**(n+1)) # exponential backoff
+        sleep(2 ** (n + 1)) # exponential backoff
       end
     end
   end
+
   def arr_record_to_table(arr, data_table_hash, select_number_table)
     previous_el = ''
     i = 0

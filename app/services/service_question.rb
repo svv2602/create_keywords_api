@@ -11,9 +11,9 @@ module ServiceQuestion
     puts type_season
 
     if type_season == 0
-      questions = QuestionsBlock.where(type_paragraph: 0).order("RANDOM()").limit(count_limit_size)
+      questions = QuestionsBlock.where(type_paragraph: url_type_by_parameters).order("RANDOM()").limit(count_limit_size)
     else
-      questions = QuestionsBlock.where(type_paragraph: 0, type_season: type_season).order("RANDOM()").limit(count_limit_size)
+      questions = QuestionsBlock.where(type_paragraph: url_type_by_parameters, type_season: type_season).order("RANDOM()").limit(count_limit_size)
     end
 
     questions = filter_questions(questions)
