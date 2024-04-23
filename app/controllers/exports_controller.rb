@@ -98,7 +98,19 @@ class ExportsController < ApplicationController
     render plain: readme_content
   end
 
+  def update_seo_content_text_sentence_id_text
+    # Находим все записи, где id_text is null
+    SeoContentTextSentence.where(id_text: nil).find_each do |sentence|
+      # Находим соответствующую запись в SeoContentText
+      seo_content_text = SeoContentText.find_by(content_type: sentence.str_seo_text)
+
+      # Обновляем id_text, если найдена соответствующая запись
+      sentence.update(id_text: seo_content_text.id, type_text: seo_content_text.type_text) if seo_content_text
+    end
+  end
+
   def control_records
+    update_seo_content_text_sentence_id_text
     result = ""
     # сделать очистку таблиц
     table = 'seo_content_text_sentences'
