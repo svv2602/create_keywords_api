@@ -125,6 +125,7 @@ module StringProcessing
     # search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
     search_size_1 = SEARCH_SIZE_1
     search_size_2 = SEARCH_SIZE_2
+    search_size_3 = SEARCH_SIZE_3
 
     return str if str.nil? # Убедитесь что str не nil
 
@@ -133,6 +134,9 @@ module StringProcessing
     end
     if str.match?(search_size_2)
       str.gsub!(search_size_2, " [size] ")
+    end
+    if str.match?(search_size_3)
+      str.gsub!(search_size_3, " [size] ")
     end
     # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
     ["111111", "222222", "333333"].each do |value|

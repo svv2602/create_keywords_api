@@ -498,17 +498,24 @@ class Api::V1::SeoTextsController < ApplicationController
     file_path = Rails.root.join('lib', 'template_texts', file_name)
     file_data = File.read(file_path)
     hash_title = JSON.parse(file_data)
+    if url_type_by_parameters == 0
+      case url_params[:tyre_season]
+      when 1
+        title_h2 = hash_title["letnie"].shuffle.first
+      when 2
+        title_h2 = hash_title["zimnie"].shuffle.first
+      when 3
+        title_h2 = hash_title["vsesezonie"].shuffle.first
+      else
+        title_h2 = hash_title["total"].shuffle.first
+      end
 
-    case url_params[:tyre_season]
-    when 1
-      title_h2 = hash_title["letnie"].shuffle.first
-    when 2
-      title_h2 = hash_title["zimnie"].shuffle.first
-    when 3
-      title_h2 = hash_title["vsesezonie"].shuffle.first
-    else
-      title_h2 = hash_title["total"].shuffle.first
     end
+
+    if url_type_by_parameters == 2
+      title_h2 = hash_title["track"].shuffle.first
+    end
+
 
     title_h2 = make_replace_for_title(title_h2, url_params) if title_h2.present?
     result = "<h2> #{title_h2} </h2>\n"
