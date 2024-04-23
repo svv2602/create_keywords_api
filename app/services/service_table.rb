@@ -505,7 +505,7 @@ module ServiceTable
         id = row[0]&.value
         sentence = row[1]&.value
         sentence_ua = row[2]&.value
-        sentence_ua = sentence_ua.gsub("​​", '')
+        sentence_ua = sentence_ua.gsub("​​", '') if sentence_ua.present?
         sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
         sentence_ua_updated.update(sentence: sentence, sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
       rescue StandardError => e
@@ -519,7 +519,7 @@ module ServiceTable
 
 
   def import_questions_ua(filename)
-    # Заполнение таблицы с текстом по ошибкам
+    # Заполнение таблицы с текстом по вопросам
     # lib/text_ua/seo_question_ru.xlsx
 
     excel = Roo::Excelx.new(filename)

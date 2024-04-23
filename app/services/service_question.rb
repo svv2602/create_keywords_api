@@ -9,7 +9,7 @@ module ServiceQuestion
 
     puts type_for_url_shiny
     puts type_season
-
+    # отбираются вопросы по типу урла - url_type_by_parameters
     if type_season == 0
       questions = QuestionsBlock.where(type_paragraph: url_type_by_parameters).order("RANDOM()").limit(count_limit_size)
     else
@@ -57,10 +57,10 @@ module ServiceQuestion
     filtered_questions
   end
 
-  def first_filling_of_table(count = 0, type_paragraph = 0, type_season = 1)
+  def first_filling_of_table(type_paragraph = 0, count = 0,  type_season = 1)
     # Заполнение таблицы с текстом по ошибкам
     # type_paragraph: 0 - по легковым шинам
-    # type_season: 0 - летние
+    # type_season: 1 - летние
 
     excel_file = "lib/text_questions/questions_base.xlsx"
     excel = Roo::Excelx.new(excel_file)
@@ -69,7 +69,7 @@ module ServiceQuestion
       break if i >= count && count > 0
       begin
         question = row[0]&.value
-        question = question.gsub("​​", '')
+        question = question.gsub("​​", '') if question.present?
         # Получение ответа на вопрос
         topics = " #{question}. \nOтветь на этот вопрос кратко, максимум двумя предложениями."
         answer = ContentWriter.new.write_draft_post(topics, 500)
@@ -87,7 +87,7 @@ module ServiceQuestion
     end
   end
 
-  def second_filling_of_table(count_repeat = 5)
+  def second_filling_of_table(type_paragraph, count_repeat = 5 )
     # Определение количества строк в файле Excel
     excel_file = "lib/text_questions/questions_base.xlsx"
     excel = Roo::Excelx.new(excel_file)
@@ -96,13 +96,13 @@ module ServiceQuestion
 
     # count = 2 # тестовое значение - удалить
     # Выбор первых "count" записей из таблицы
-    records = QuestionsBlock.limit(count)
+    records = QuestionsBlock.where(type_paragraph: type_paragraph).limit(count)
 
     count_repeat.times do
       # 1 - летние, 2 - зимние, 3 - всесезонные
       (1..3).each do |season|
         records.each do |record|
-          rewrite_question_and_answer(record[:question_ru], season, 0)
+          rewrite_question_and_answer(record[:question_ru], season, type_paragraph)
         end
       end
     end
@@ -116,18 +116,32 @@ module ServiceQuestion
   def rewrite_question_and_answer(question, season, type_paragraph = 0)
     # Делается рерайт полученного случайного вопроса
     # перевод на украинский делается отдельно
-    str_season = case season
-                 when 1
-                   "летних"
-                 when 2
-                   "зимних"
-                 when 3
-                   "всесезонных"
-                 else
-                   ""
-                 end
+    if type_paragraph == 0
+      str_season = case season
+                   when 1
+                     "летних шин"
+                   when 2
+                     "зимних шин"
+                   when 3
+                     "всесезонных шин"
+                   else
+                     ""
+                   end
+    end
+    if type_paragraph == 2
+      str_season = case season
+                   when 1
+                     "грузовых шин, используемых на прицепах"
+                   when 2
+                     "грузовых рулевых шин"
+                   when 3
+                     "грузовых ведущих шин"
+                   else
+                     ""
+                   end
+    end
 
-    topics = "Сделайте, пожалуйста, еще один вариант этого вопроса для #{str_season} шин: #{question}."
+    topics = "Сделайте, пожалуйста, еще один вариант этого вопроса для #{str_season}: #{question}."
     topics += "\nВ ответ не включай собственные комментарии"
 
     question = ContentWriter.new.rewrite_question(topics, 150)['choices'][0]['message']['content'].strip

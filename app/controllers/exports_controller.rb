@@ -3,9 +3,10 @@ class ExportsController < ApplicationController
   include ServiceQuestion
 
   def control_question
-    # first_filling_of_table(0) # 0 - все записи из файла
-    # second_filling_of_table(5)
-
+    # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
+    type_paragraph = 2
+    first_filling_of_table(type_paragraph,0) # 0 - все записи из файла
+    second_filling_of_table(type_paragraph,5)
   end
 
   def replace_text_in_seo_content_text_sentence
@@ -221,8 +222,14 @@ class ExportsController < ApplicationController
 
 
   def process_files_ua
-    # добавление в записи украинского тексто
+    #  ручное импортирование данных в таблицы базы данных
+    # в lib/text_ua должны находится файлы только для  загрузки в одну из таблиц!!!
+    #  нужный метод раскомментировать в proc_import_text_ua !!!
+    #  - import_text_ua(filename) - для таблицы SeoContentTextSentence
+    #  - import_questions_ua(filename) - для таблицы QuestionsBlock
+
     proc_import_text_ua
+
     render plain: "Обновление завершено.  Обработано строк: #{j}"
   end
 

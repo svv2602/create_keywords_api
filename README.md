@@ -48,6 +48,7 @@ endpoint:
 // продолжение
 
 ### Экспорт данных из таблиц
+* /download_database - Выгрузка базы данных
 * /export_text - Экспорт данных в json из SeoContentText
 * /export_sentence - Экспорт данных в json из SeoContentTextSentence
 * /count_records - количество записей в таблицах 
@@ -58,4 +59,17 @@ endpoint:
 
 ==============================
 
-  
+### Порядок заливки вопросов в базу данных
+* Подготовить файл - excel_file = "lib/text_questions/questions_base.xlsx" с вопросами
+  * первый столбик содержит только вопросы по необходимой теме
+* Запустить /control_question 
+  * для заполнения таблицы с базовыми вопросами - first_filling_of_table(count, type_paragraph), где
+      * count: 0 - для всего файла, или можно ограничить первыми n-записями
+      * type_paragraph: 0 - по легковым шинам, 1 - по дискам,  2 - по грузовым шинам
+      * опционально можно указать type_season: 1 - вопросы вносятся для первого элемента списка сезон(ось, тип диска)
+  * second_filling_of_table(m) , где m - количество проходов AI по базовым вопросам (количество вариантов)
++ /export_questions_to_xlsx - После формирования русских ответов и вопросов выгрузить в excel данные для перевода в Google Translate
+* /process_files_ua - Перед запуском сохранить переводы в эксельных файлах в lib/text_ua
+  * формат файла - колонки id, Questions_ru, Answer_ru, Questions_ua, Answer_ua
+
+==============================
