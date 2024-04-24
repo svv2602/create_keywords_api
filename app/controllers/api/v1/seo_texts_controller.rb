@@ -12,7 +12,7 @@ class Api::V1::SeoTextsController < ApplicationController
   def mytest
 
     # all_questions_for_page
-    result = count_text_type("data_track")
+    result = count_text_type("data_disk")
     puts "Все сделано! ===== #{result.inspect} " # #{result.inspect}
     render json: { result: result }
   end

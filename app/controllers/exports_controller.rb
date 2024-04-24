@@ -84,6 +84,7 @@ class ExportsController < ApplicationController
   end
 
   def count_records_check_title
+    # контроль количества текстов для загрузки
     selected_records = SeoContentTextSentence.where("str_number != 0 AND num_snt_in_str = 0 AND check_title = 0")
     non_zero_check_title_count = selected_records.count
     result = "Количество записей с check_title  равным 0: #{non_zero_check_title_count}"
