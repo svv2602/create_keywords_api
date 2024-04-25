@@ -16,8 +16,9 @@ class ExportsController < ApplicationController
     regex = 'R22' if proc == 2
     if regex
       SeoContentText.find_each do |sentence|
+
         sentence.attributes.each do |name, value|
-          next unless value.is_a?(String)
+          next if name == "content_type" || !value.is_a?(String)
           new_value = value.gsub(regex, '[size]')
           sentence[name] = new_value if new_value != value
         end
@@ -25,7 +26,7 @@ class ExportsController < ApplicationController
       end
       SeoContentTextSentence.find_each do |sentence|
         sentence.attributes.each do |name, value|
-          next unless value.is_a?(String)
+          next if name == "str_seo_text" || !value.is_a?(String)
           new_value = value.gsub(regex, '[size]')
           sentence[name] = new_value if new_value != value
         end
