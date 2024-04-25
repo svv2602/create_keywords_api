@@ -6,7 +6,7 @@ class ExportsController < ApplicationController
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
     type_paragraph = 2
     first_filling_of_table(type_paragraph,0) # 0 - все записи из файла
-    second_filling_of_table(type_paragraph,5)
+    second_filling_of_table(type_paragraph,7)
   end
 
   def replace_text_in_seo_content_text_sentence
