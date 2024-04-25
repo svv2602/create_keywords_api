@@ -238,11 +238,11 @@ class ExportsController < ApplicationController
   def process_files_ua
     #  ручное импортирование данных в таблицы базы данных
     # в lib/text_ua должны находится файлы только для  загрузки в одну из таблиц!!!
-    #  нужный метод раскомментировать в proc_import_text_ua !!!
-    #  - import_text_ua(filename) - для таблицы SeoContentTextSentence
-    #  - import_questions_ua(filename) - для таблицы QuestionsBlock
+    # /process_files_ua?proc=1 - import_text_ua(filename) - для таблицы SeoContentTextSentence
+    # /process_files_ua?proc=2 - import_questions_ua(filename) - для таблицы QuestionsBlock
 
-    proc_import_text_ua
+    proc = params[:proc].to_i
+    proc_import_text_ua(proc)
 
     render plain: "Обновление завершено.  Обработано строк: #{j}"
   end

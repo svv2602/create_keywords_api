@@ -477,7 +477,7 @@ module ServiceTable
 
   end
 
-  def proc_import_text_ua
+  def proc_import_text_ua(proc)
     #  ручное импортирование данных в таблицы базы данных
     # в lib/text_ua должны находится файлы только для одной загрузки!!!
 
@@ -485,9 +485,8 @@ module ServiceTable
     j = 0
     result = 0
     Dir.glob(path).each do |filename|
-      #  нужный метод раскомментировать!!!
-      # j += import_text_ua(filename) # для таблицы SeoContentTextSentence
-      j += import_questions_ua(filename) # для таблицы QuestionsBlock
+      j += import_text_ua(filename) if proc == 1 # для таблицы SeoContentTextSentence
+      j += import_questions_ua(filename) if proc == 2 # для таблицы QuestionsBlock
       result += 1
     end
   end
