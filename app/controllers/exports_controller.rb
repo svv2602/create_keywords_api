@@ -172,13 +172,13 @@ class ExportsController < ApplicationController
   end
 
   def export_xlsx
-    count = 50000 # количество выгружаемых записей
-    max_id = 2666514
-    # @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
-    # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
-    # @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
+    # выгрузка из базы данных записей для дальнейшего перевода в google
+    # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
+    count = 30000 # количество выгружаемых записей
+    max_id = 1534655
     @selected_records = SeoContentTextSentence
-                          .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+                          # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+                          .where("sentence_ua = '' and id < ?", max_id)
                           .order(id: :desc)
                           .limit(count)
 
