@@ -14,23 +14,31 @@ class ExportsController < ApplicationController
     proc = params[:proc].to_i
     regex = '12R20' if proc == 1
     regex = 'R22' if proc == 2
+    if regex
+      SeoContentText.find_each do |sentence|
+        sentence.attributes.each do |name, value|
+          next unless value.is_a?(String)
+          new_value = value.gsub(regex, '[size]')
+          sentence[name] = new_value if new_value != value
+        end
+        sentence.save!
+      end
+      SeoContentTextSentence.find_each do |sentence|
+        sentence.attributes.each do |name, value|
+          next unless value.is_a?(String)
+          new_value = value.gsub(regex, '[size]')
+          sentence[name] = new_value if new_value != value
+        end
+        sentence.save!
+      end
+      result = "Все Ok. Обновление таблиц завершено"
+    else
+      result = "Не выбран параметр proc. Обновление таблиц отменено"
+    end
 
-    SeoContentText.find_each do |sentence|
-      sentence.attributes.each do |name, value|
-        next unless value.is_a?(String)
-        new_value = value.gsub(regex, '[size]')
-        sentence[name] = new_value if new_value != value
-      end
-      sentence.save!
-    end
-    SeoContentTextSentence.find_each do |sentence|
-      sentence.attributes.each do |name, value|
-        next unless value.is_a?(String)
-        new_value = value.gsub(regex, '[size]')
-        sentence[name] = new_value if new_value != value
-      end
-      sentence.save!
-    end
+    puts result
+    render plain: result
+
   end
 
   def download_database
