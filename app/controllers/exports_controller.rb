@@ -175,7 +175,8 @@ class ExportsController < ApplicationController
     # выгрузка из базы данных записей для дальнейшего перевода в google
     # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
     count = 30000 # количество выгружаемых записей
-    max_id = 1534655
+    max_id = params[:max].to_i
+    # max_id = 1534655
     @selected_records = SeoContentTextSentence
                           # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
                           .where("sentence_ua = '' and id < ?", max_id)
