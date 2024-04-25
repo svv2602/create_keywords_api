@@ -71,7 +71,10 @@ endpoint:
     * /process_files_ua?proc=1 - для таблицы SeoContentTextSentence
     * в цикле будут обработаны все xlsx-файлы в директории lib/text_ua
       
-
+  * Для замены технических переменных на [size] Выполнить
+    * replace_text_in_seo_content_text_sentence?proc=1 - для грузовых шин
+    * replace_text_in_seo_content_text_sentence?proc=2 - для дисков
+      
 ==============================
 
 ### Порядок заливки вопросов в базу данных

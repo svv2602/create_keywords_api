@@ -10,10 +10,15 @@ class ExportsController < ApplicationController
   end
 
   def replace_text_in_seo_content_text_sentence
+    # Замена технических переменных на [size]
+    proc = params[:proc].to_i
+    regex = '12R20' if proc == 1
+    regex = 'R22' if proc == 2
+
     SeoContentText.find_each do |sentence|
       sentence.attributes.each do |name, value|
         next unless value.is_a?(String)
-        new_value = value.gsub('12R20', '[size]')
+        new_value = value.gsub(regex, '[size]')
         sentence[name] = new_value if new_value != value
       end
       sentence.save!
@@ -21,7 +26,7 @@ class ExportsController < ApplicationController
     SeoContentTextSentence.find_each do |sentence|
       sentence.attributes.each do |name, value|
         next unless value.is_a?(String)
-        new_value = value.gsub('12R20', '[size]')
+        new_value = value.gsub(regex, '[size]')
         sentence[name] = new_value if new_value != value
       end
       sentence.save!
