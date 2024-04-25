@@ -80,7 +80,7 @@ endpoint:
 ### Порядок заливки вопросов в базу данных
 * Подготовить файл - excel_file = "lib/text_questions/questions_base.xlsx" с вопросами
   * первый столбик содержит только вопросы по необходимой теме
-* Запустить /control_question 
+* Запустить /control_question (контроллер - exports_controller.rb)
   * для заполнения таблицы с базовыми вопросами - first_filling_of_table(count, type_paragraph), где
       * count: 0 - для всего файла, или можно ограничить первыми n-записями
       * type_paragraph: 0 - по легковым шинам, 1 - по дискам,  2 - по грузовым шинам

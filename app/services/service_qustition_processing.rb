@@ -148,7 +148,8 @@ module ServiceQustitionProcessing
                      .gsub(/(|\/)html/, '')
                      .gsub('*', '')
                      .gsub(/195\/65(R|r)15/, replace_name_size(url_params))
-                     # .gsub(/12(R|r)20/, replace_name_size(url_params))
+                     .gsub(/12(R|r)20/, replace_name_size(url_params))
+                     .gsub('[size]', replace_name_size(url_params))
 
         # Разбить строку на предложения
         sentences = str_new.split(". ")
