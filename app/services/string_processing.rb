@@ -282,8 +282,19 @@ module StringProcessing
     url_shiny = url_shiny_hash_params
     diameter = url_shiny[:tyre_r]
     season = url_shiny[:tyre_season]
+    season = url_shiny[:tyre_axis] if url_type_by_parameters == 2
+    tires_size = "#{url_shiny[:tyre_w]}/#{url_shiny[:tyre_h]}R#{url_shiny[:tyre_r]}"
 
     type_season = type_season_or_axis
+    unless AXIS_PRICEP.include?(tires_size)
+      type_season[:'прицепные'][:state][:season_size] = false
+    end
+    unless ["17.5","19.5","22.5"].include?(diameter)
+      type_season[:'прицепные'][:state][:season_diameter] = false
+    end
+
+
+
     arr_size = arr_size_to_error
 
     search_size = SEARCH_SIZE_1
@@ -331,7 +342,19 @@ module StringProcessing
           part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
           part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
           if match && value[:state][:season_size]
+            puts "tires_size ===== #{tires_size}"
             url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
+            # if AXIS_PRICEP.include?(tires_size)
+            #   puts "проверка - прицеп #{line}"
+            #
+            #   puts "проверка2 - прицеп #{line}"
+            # else
+            #   puts "проверка - другое #{line}"
+            #   puts season.to_i == 1
+            #   line.sub!(regex, url) unless value[:season].to_i == 1
+            #   puts "проверка2 - прицеп #{line}"
+            # end
+
             line.sub!(regex, url)
             value[:state][:season_size] = false
             replaced = true

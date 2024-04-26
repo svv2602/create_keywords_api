@@ -10,10 +10,7 @@ class ExportsController < ApplicationController
   end
 
   def replace_name_brand_total
-    replace_name_brand_in_seo_content_text
-    replace_name_brand_in_seo_content_text_sentence
-  end
-  def replace_name_brand_in_seo_content_text
+    #  Замена брендов в текстах для грузовых шин
     hash_replace = {
       "Pirelli" => "Aeolus",
       "Nokian Tyres" => "Satoya",
@@ -26,6 +23,12 @@ class ExportsController < ApplicationController
       "Cooper" => "Lassa",
       "General Tire" => "Barum"
     }
+    replace_name_brand_in_seo_content_text(hash_replace)
+    replace_name_brand_in_seo_content_text_sentence(hash_replace)
+    render plain: "Сделана замена брендов"
+  end
+  def replace_name_brand_in_seo_content_text(hash_replace)
+
     hash_replace.each do |key, value|
       SeoContentText.where("order_out = 2 AND str LIKE ?", "%#{key}%").find_each do |content|
         new_str = content.str.gsub(/#{key.to_s}/i, value.to_s)
@@ -34,19 +37,7 @@ class ExportsController < ApplicationController
     end
   end
 
-  def replace_name_brand_in_seo_content_text_sentence
-    hash_replace = {
-      "Pirelli" => "Aeolus",
-      "Nokian Tyres" => "Satoya",
-      "Nokian" => "Satoya",
-      "Goodyear" => "Hankook",
-      "Giti Tire" => "Rosava",
-      "BFGoodrich" => "Kumho",
-      "BF Goodrich" => "Kormoran",
-      "Apollo" => "Fulda",
-      "Cooper" => "Lassa",
-      "General Tire" => "Barum"
-    }
+  def replace_name_brand_in_seo_content_text_sentence(hash_replace)
     hash_replace.each do |key, value|
       SeoContentTextSentence.where("str_seo_text like ? AND sentence LIKE ?", "%12R20%","%#{key}%").find_each do |content|
         new_sentence = content.sentence.gsub(/#{key.to_s}/i, value.to_s)

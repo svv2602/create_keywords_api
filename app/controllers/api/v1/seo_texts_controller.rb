@@ -269,7 +269,7 @@ class Api::V1::SeoTextsController < ApplicationController
     end
 
     unique_type_texts = SeoContentText.where(query, *patterns).pluck(:type_text).uniq
-    puts "unique_type_texts ================ #{unique_type_texts.inspect}"
+    # puts "unique_type_texts ================ #{unique_type_texts.inspect}"
     result = general_array(unique_type_texts, url_type_by_parameters)
     result
   end
@@ -332,7 +332,6 @@ class Api::V1::SeoTextsController < ApplicationController
 
     unique_str_seo_text = SeoContentTextSentence.pluck(:str_seo_text).uniq
     common_items = selected_records & unique_str_seo_text
-    puts "common_items == #{common_items.inspect}"
     common_items
   end
 
