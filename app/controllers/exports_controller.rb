@@ -5,35 +5,57 @@ class ExportsController < ApplicationController
   def control_question
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
     type_paragraph = 2
-    first_filling_of_table(type_paragraph,0) # 0 - все записи из файла
-    second_filling_of_table(type_paragraph,7)
+    first_filling_of_table(type_paragraph, 0) # 0 - все записи из файла
+    second_filling_of_table(type_paragraph, 7)
   end
-  def replace_name_brand_in_seo_content_text_sentence
+
+  def replace_name_brand_total
+    replace_name_brand_in_seo_content_text
+    replace_name_brand_in_seo_content_text_sentence
+  end
+  def replace_name_brand_in_seo_content_text
     hash_replace = {
       "Pirelli" => "Aeolus",
       "Nokian Tyres" => "Satoya",
-      "Goodyear" => "Hankook"
+      "Nokian" => "Satoya",
+      "Goodyear" => "Hankook",
+      "Giti Tire" => "Rosava",
+      "BFGoodrich" => "Kumho",
+      "BF Goodrich" => "Kormoran",
+      "Apollo" => "Fulda",
+      "Cooper" => "Lassa",
+      "General Tire" => "Barum"
     }
-
     hash_replace.each do |key, value|
-      contents = SeoContentText.where("order_out = 2 AND str LIKE ?", "%#{key}%")
-
-      contents.find_each do |content|
-        new_str = content.str.gsub(/#{key}/i, value.to_s)
+      SeoContentText.where("order_out = 2 AND str LIKE ?", "%#{key}%").find_each do |content|
+        new_str = content.str.gsub(/#{key.to_s}/i, value.to_s)
         content.update(str: new_str)
-        puts " value.to_s = #{value.to_s}"
-        puts " key.to_s = #{key}"
-
-        content_sentences = SeoContentTextSentence.where(id_text: content.id)
-        content_sentences.find_each do |content_sentence|
-          new_sentence = content_sentence.sentence.gsub(/#{key}/i, value.to_s)
-          new_sentence_ua = content_sentence.sentence_ua.gsub(/#{key}/i, value.to_s)
-          content_sentence.update(sentence: new_sentence, sentence_ua: new_sentence_ua)
-        end
       end
     end
   end
 
+  def replace_name_brand_in_seo_content_text_sentence
+    hash_replace = {
+      "Pirelli" => "Aeolus",
+      "Nokian Tyres" => "Satoya",
+      "Nokian" => "Satoya",
+      "Goodyear" => "Hankook",
+      "Giti Tire" => "Rosava",
+      "BFGoodrich" => "Kumho",
+      "BF Goodrich" => "Kormoran",
+      "Apollo" => "Fulda",
+      "Cooper" => "Lassa",
+      "General Tire" => "Barum"
+    }
+    hash_replace.each do |key, value|
+      SeoContentTextSentence.where("str_seo_text like ? AND sentence LIKE ?", "%12R20%","%#{key}%").find_each do |content|
+        new_sentence = content.sentence.gsub(/#{key.to_s}/i, value.to_s)
+        new_sentence_ua = content.sentence_ua.gsub(/#{key.to_s}/i, value.to_s)
+        content.update(sentence: new_sentence, sentence_ua: new_sentence_ua)
+        content.reload
+      end
+    end
+  end
 
   def replace_text_in_seo_content_text_sentence
     # Замена технических переменных на [size]
@@ -110,7 +132,6 @@ class ExportsController < ApplicationController
 
     seo_content_text_sentence_count = SeoContentTextSentence.count
     puts "Number of records in SeoContentTextSentence: #{seo_content_text_sentence_count}"
-
 
     check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
     puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
@@ -219,7 +240,7 @@ class ExportsController < ApplicationController
     max_id = params[:max].to_i
     # max_id = 1534655
     @selected_records = SeoContentTextSentence
-                          # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
+    # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
                           .where("sentence_ua = '' and id < ?", max_id)
                           .order(id: :desc)
                           .limit(count)
@@ -242,7 +263,6 @@ class ExportsController < ApplicationController
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
-
 
   def export_questions_to_xlsx
     count = 50000 # количество выгружаемых записей
@@ -268,13 +288,9 @@ class ExportsController < ApplicationController
       end
     end
 
-
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data package.to_stream.read, :filename => "seo_question_ru.xlsx", :type => "application/xlsx"
   end
-
-
-
 
   def process_files_ua
     #  ручное импортирование данных в таблицы базы данных
@@ -304,9 +320,6 @@ class ExportsController < ApplicationController
     end
     render plain: "Обновление таблицы брендов завершено."
   end
-
-
-
 
   # ========================последний end=======================
 
