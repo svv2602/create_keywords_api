@@ -8,12 +8,39 @@ class ExportsController < ApplicationController
     first_filling_of_table(type_paragraph,0) # 0 - все записи из файла
     second_filling_of_table(type_paragraph,7)
   end
+  def replace_name_brand_in_seo_content_text_sentence
+    hash_replace = {
+      "Pirelli" => "Aeolus",
+      "Nokian Tyres" => "Satoya",
+      "Goodyear" => "Hankook"
+    }
+
+    hash_replace.each do |key, value|
+      contents = SeoContentText.where("order_out = 2 AND str LIKE ?", "%#{key}%")
+
+      contents.find_each do |content|
+        new_str = content.str.gsub(/#{key}/i, value.to_s)
+        content.update(str: new_str)
+        puts " value.to_s = #{value.to_s}"
+        puts " key.to_s = #{key}"
+
+        content_sentences = SeoContentTextSentence.where(id_text: content.id)
+        content_sentences.find_each do |content_sentence|
+          new_sentence = content_sentence.sentence.gsub(/#{key}/i, value.to_s)
+          new_sentence_ua = content_sentence.sentence_ua.gsub(/#{key}/i, value.to_s)
+          content_sentence.update(sentence: new_sentence, sentence_ua: new_sentence_ua)
+        end
+      end
+    end
+  end
+
 
   def replace_text_in_seo_content_text_sentence
     # Замена технических переменных на [size]
     proc = params[:proc].to_i
     regex = '12R20' if proc == 1
     regex = 'R22' if proc == 2
+
     if regex
       SeoContentText.find_each do |sentence|
 
