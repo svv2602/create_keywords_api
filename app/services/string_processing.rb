@@ -293,8 +293,6 @@ module StringProcessing
       type_season[:'прицепные'][:state][:season_diameter] = false
     end
 
-
-
     arr_size = arr_size_to_error
 
     search_size = SEARCH_SIZE_1
@@ -344,17 +342,6 @@ module StringProcessing
           if match && value[:state][:season_size]
             puts "tires_size ===== #{tires_size}"
             url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
-            # if AXIS_PRICEP.include?(tires_size)
-            #   puts "проверка - прицеп #{line}"
-            #
-            #   puts "проверка2 - прицеп #{line}"
-            # else
-            #   puts "проверка - другое #{line}"
-            #   puts season.to_i == 1
-            #   line.sub!(regex, url) unless value[:season].to_i == 1
-            #   puts "проверка2 - прицеп #{line}"
-            # end
-
             line.sub!(regex, url)
             value[:state][:season_size] = false
             replaced = true
