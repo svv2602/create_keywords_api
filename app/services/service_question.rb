@@ -7,8 +7,6 @@ module ServiceQuestion
     list_questions = []
     type_season = type_for_url_shiny % 10
 
-    puts type_for_url_shiny
-    puts type_season
     # отбираются вопросы по типу урла - url_type_by_parameters
     if type_season == 0
       questions = QuestionsBlock.where(type_paragraph: url_type_by_parameters).order("RANDOM()").limit(count_limit_size)
@@ -17,21 +15,21 @@ module ServiceQuestion
     end
 
     questions = filter_questions(questions)
-    puts "arrr_test ============= #{ questions.inspect}"
-
 
     questions.each do |record|
       hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : {  question: record[:question_ru], answer: record[:answer_ru] }
       list_questions << hash
     end
 
+
     # добавляем еще 1-4 вопроса по константам
     list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
                                     [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
 
+
     result = format_question_full(list_questions)
 
-    puts result
+    # puts result
     result
     # render json: { list_questions: result }
 
@@ -44,16 +42,22 @@ module ServiceQuestion
 
 
   def filter_questions(questions)
+    puts "questions =  #{questions.inspect}"
     filtered_questions = questions.dup.to_a # преобразуем ActiveRecord::Relation в Array
+    puts "filtered_questions 1 =  #{filtered_questions.inspect}"
     filtered_questions.each_with_index do |question1, index1|
       words1 = question1.question_ru.downcase.split.map { |word| 2.times { word.chop! }; word }
+      puts "words1 =  #{words1.inspect}"
       filtered_questions.reject! do |question2|
+        puts "question1 =  #{words1.inspect}"
+        puts "question2 =  #{words1.inspect}"
         next if question1 == question2
         words2 = question2.question_ru.downcase.split.map { |word| 2.times { word.chop! }; word }
         common_words = words1 & words2
         common_words.size >= 5
       end
     end
+    puts "filtered_questions =  #{filtered_questions.inspect}"
     filtered_questions
   end
 

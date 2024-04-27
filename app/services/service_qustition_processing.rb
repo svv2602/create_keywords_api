@@ -52,7 +52,7 @@ module ServiceQustitionProcessing
   end
 
   def question_const(el)
-
+    # Рерайт вопроса и ответа --- для доп вопросов
     if url_type_ua?
       question_random = el[:questions_ua].sample
       topics = sinonim(", зроби одним реченням короткий рерайт питання: #{question_random[:question_ua]}.")
@@ -99,6 +99,7 @@ module ServiceQustitionProcessing
     if rand(1..5) % 4 == 0
       list_questions << question_const(list2.sample)
     end
+
 
     list_questions
 
