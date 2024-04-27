@@ -131,7 +131,7 @@ class ExportsController < ApplicationController
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
 
-    render json: { SeoContentText: "#{total_seconds_and_minutes}",
+    render json: { SeoContentText: "#{seo_content_text_count}",
                    SeoContentTextSentence: "#{seo_content_text_sentence_count}"
     }
   end

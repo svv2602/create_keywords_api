@@ -49,12 +49,33 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
-    # txt_file_to_json("data_track")
+    order_out = 1
+    filename = case order_out
+               when 0
+                 "data" # для легковых шин
+               when 1
+                 "data_disk" # для дисков
+               when 2
+                 "data_track" # для грузовых шин
+               end
 
-    # file_path = Rails.root.join('lib', 'template_texts', 'data.json')
-    # if duplicated_in_data_json?(file_path) - проверка на дубликаты
+    txt_file_to_json(filename)
 
-    # # первый рерайт текстов по абзацам _
+    file_path = Rails.root.join('lib', 'template_texts', "#{filename}.json")
+    if duplicated_in_data_json?(file_path) #- проверка на дубликаты
+      # ============== проверено ==========
+      total_arr_to_table(7, 5, order_out, filename)
+      # ============== проверено ==========
+      total_arr_to_table_sentence(5, 5, order_out) # - для дисков !!!! сделать
+
+
+      # # сделать копию базы и запустить( для легковых )
+      # table = 'seo_content_text_sentences'
+      # remove_empty_sentences(table) # удаление пустых записей
+      # replace_errors_size(table) # удаление записей с ошибками
+
+    end
+
     # #===========================================================
     # # ВНИМАНИЕ!!!
     # #===========================================================
@@ -63,29 +84,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
     # #===========================================================
 
-    # ============== проверено ==========
-    # total_arr_to_table(5, 5)
-    # ============== проверено ==========
-    # total_arr_to_table_sentence(5, 5, 0) # - для легковых
-    # total_arr_to_table_sentence(5, 5, 2) # - для грузовых !!!! изменить количество проходов
-    # сделать копию базы и запустить
-    table = 'seo_content_text_sentences'
-    remove_empty_sentences(table) # удаление пустых записей
-    replace_errors_size(table) # удаление записей с ошибками
-
-
-
-    # ============================================================================================
-    # заново ======= Пропустить (было только для легковых - ошибка в данных базы исправлена)======
-    # исправляется ошибка с формированием перввой строки абзацев
-    # replace_errors_title_sentence
-    # заново ========Пропустить (перевод сделать в Google Table - бесплатно и более качественно и быстро)
-    # add_sentence_ua  # - добавление украинских текстов
-    # clear_trash_ua   # - очистка украинских текстов от мусора от AI
-    # заново ======= Пропустить (было только для легковых - ошибка в данных базы исправлена)======
-    # clear_trash_brand # удаление переменной [brand]
-    # ============================================================================================
-    # ============================================================================================
 
 
     # ===================================================
@@ -335,10 +333,9 @@ class Api::V1::SeoTextsController < ApplicationController
     common_items
   end
 
-  def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1)
+  def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1, order_out = 0, filename)
     # h = data_json_to_hash
-    # filename = "data" # для легковых шин
-    filename = "data_track" # для грузовых шин
+
 
     # Внимание - первый запуск нового файла ОБЯЗАТЕЛЬНО с параметром type_proc=1
     h = params[:type_proc].to_i == 1 ? data_json_to_hash(filename) : array_after_error_from_json(filename)

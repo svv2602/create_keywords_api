@@ -16,7 +16,7 @@ class ContentWriter
         messages: [
           { role: "system",
             #content: "You are a world class copywriter"
-            content: 'Вы копирайтер мирового уровня. Пожалуйста, создайте SEO-текст с заголовками, микроразметкой и HTML-тегами.'
+            content: 'Вы копирайтер мирового уровня. Пожалуйста, создайте SEO-текст с заголовками.'
           },
 
           { role: "system",
