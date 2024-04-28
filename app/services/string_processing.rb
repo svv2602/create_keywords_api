@@ -84,11 +84,11 @@ module StringProcessing
       when 5
         result << "#{rr}x#{ww} #{pcd}"
       when 6
-        result << "#{pcd} на #{rr}x#{ww}"
+        result << "PCD#{pcd} на R#{rr}W#{ww}"
       when 7
-        result << "#{rr}-#{ww}J на #{pcd}"
+        result << "R#{rr}J#{ww} на #{pcd}"
       when 8
-        result << "#{rr}/#{pcd} на #{ww}"
+        result << "R#{rr} PCD#{pcd} J#{ww}"
       else
         result << "#{ww} на #{rr} дюймов"
       end
@@ -99,7 +99,7 @@ module StringProcessing
 
   def replace_name_size(url_params)
     result = ''
-    if size_present_in_url?
+    if size_present_in_url? && url_type_by_parameters != 1
       ww = url_params[:tyre_w]
       hh = url_params[:tyre_h]
       rr = url_params[:tyre_r]
@@ -123,6 +123,28 @@ module StringProcessing
         result = "#{ww} #{hh}r#{rr}"
       else
         result = "#{ww} #{hh} #{rr}"
+      end
+      result = result + " " + random_name_brand(url_params[:tyre_brand]) if url_params[:tyre_brand].present?
+    end
+
+    if size_present_in_url? && url_type_by_parameters == 1
+      ww = url_params[:tyre_w]
+      pcd = url_params[:disk_pcd]
+      rr = url_params[:tyre_r]
+
+      case rand(1..10) % 10
+      when 2
+        result << "#{ww}J#{rr}R#{pcd}"
+      when 3
+        result << "#{ww}J #{rr} дюймов pcd#{pcd}"
+      when 4
+        result << "J#{ww}R#{rr} PCD#{pcd}"
+      when 6
+        result << "#{pcd} на #{rr}x#{ww}"
+      when 8
+        result << "R#{rr}/W#{ww}/PCD#{pcd}"
+      else
+        result << "R#{rr} W#{ww} PCD#{pcd}"
       end
       result = result + " " + random_name_brand(url_params[:tyre_brand]) if url_params[:tyre_brand].present?
     end
@@ -290,9 +312,33 @@ module StringProcessing
 
     }
 
+    type_diski = {
+      'легкосплавные': { value: "type-legkosplavnyye",
+                     season: 1,
+                     state: { season_url: true,
+                              season_size: true,
+                              season_diameter: true
+                     },
+                     search_str: /((Л|л)(ит|егкославн)(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
+                     search_str_ua: /((Л|л)(ит|егкославн)(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/,
+      },
+      'стальные': { value: 'type-stalnyye',
+                   season: 2,
+                   state: { season_url: true,
+                            season_size: true,
+                            season_diameter: true
+                   },
+                   search_str: /((С|с)(тальн)(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
+                   search_str_ua: /((С|с)(тальн)(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/
+      }
+
+    }
+
     result = case url_type_by_parameters
              when 0
                type_season
+             when 1
+               type_diski
              when 2
                type_axis
              end
@@ -321,10 +367,10 @@ module StringProcessing
 
     type_season = type_season_or_axis
     unless AXIS_PRICEP.include?(tires_size)
-      type_season[:'прицепные'][:state][:season_size] = false
+      type_season[:'прицепные'][:state][:season_size] = false if url_type_by_parameters == 2
     end
     unless ["17.5", "19.5", "22.5"].include?(diameter)
-      type_season[:'прицепные'][:state][:season_diameter] = false
+      type_season[:'прицепные'][:state][:season_diameter] = false if url_type_by_parameters == 2
     end
 
     arr_size = arr_size_to_error

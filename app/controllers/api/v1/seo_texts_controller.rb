@@ -109,8 +109,8 @@ class Api::V1::SeoTextsController < ApplicationController
   def raw_text
     result = ''
     min_chars = 0
-    arr_size = arr_size_to_error
     order_out = url_type_by_parameters
+    arr_size = order_out == 1 ? arr_size_diski_to_error : arr_size_to_error
     alphanumeric_chars_count = 0
     general_array_without_season = general_array_without_seasonality.shuffle
     # puts "common_items - #{general_array_without_season.inspect}"
@@ -126,10 +126,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
       result += generator_text(content_type, order_out) + "\n"
       arr = arr_size.shift(5)
-      if size_present_in_url?
-        result += order_out == 1? min_errors_text(arr) : min_errors_text(arr)
-      end
-
+      result += min_errors_text(arr) if size_present_in_url?
 
       alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     end
@@ -177,8 +174,8 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def min_errors_text(arr_size)
     result = ''
-    array_with_text = url_type_by_parameters==1 ? TEMPLATE_TEXT_DISKI_ERROR : TEMPLATE_TEXT_ERROR
-    array_with_text_ua =url_type_by_parameters==1 ? TEMPLATE_TEXT_DISKI_ERROR_UA : TEMPLATE_TEXT_ERROR_UA
+    array_with_text = url_type_by_parameters == 1 ? TEMPLATE_TEXT_DISKI_ERROR : TEMPLATE_TEXT_ERROR
+    array_with_text_ua = url_type_by_parameters == 1 ? TEMPLATE_TEXT_DISKI_ERROR_UA : TEMPLATE_TEXT_ERROR_UA
 
     if !size_present_in_popular? && !arr_size.empty?
       text_err = "<br>\n"
