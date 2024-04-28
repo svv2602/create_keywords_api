@@ -46,7 +46,7 @@ class Api::V1::SeoTextsController < ApplicationController
   end
 
   def total_generate_seo_text
-
+    # !!!!!!!!!! Внимание - первый запуск нового файла ОБЯЗАТЕЛЬНО с параметром type_proc=1
     # Первоначальное заполнение таблиц с текстами
     # Перенос первоначальных текстов в json
     order_out = 1
@@ -68,7 +68,6 @@ class Api::V1::SeoTextsController < ApplicationController
       # ============== проверено ==========
       total_arr_to_table_sentence(5, 5, order_out) # - для дисков !!!! сделать
 
-
       # # сделать копию базы и запустить( для легковых )
       # table = 'seo_content_text_sentences'
       # remove_empty_sentences(table) # удаление пустых записей
@@ -83,8 +82,6 @@ class Api::V1::SeoTextsController < ApplicationController
     # # пример: curl http://localhost:3000/api/v1/total_generate_seo_text?type_proc=0
     # # В total_arr_to_table, иначе обработке файла data.json - будет неполной
     # #===========================================================
-
-
 
     # ===================================================
     # repeat_sentences_generation # дополнение до 25 - вставить если нужно
@@ -120,6 +117,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
     # alphanumeric_chars_count_for_url_shiny - метод для определения базового количества символов в зависимости от урла
     min_chars = alphanumeric_chars_count_for_url_shiny if order_out == 0
+    min_chars = alphanumeric_chars_count_for_url_diski if order_out == 1
     min_chars = alphanumeric_chars_count_for_url_gruzovye_shiny if order_out == 2
 
     while alphanumeric_chars_count < min_chars && general_array_without_season.any?
@@ -128,7 +126,10 @@ class Api::V1::SeoTextsController < ApplicationController
 
       result += generator_text(content_type, order_out) + "\n"
       arr = arr_size.shift(5)
-      result += min_errors_text(arr) if size_present_in_url?
+      if size_present_in_url?
+        result += order_out == 1? min_errors_text(arr) : min_errors_text(arr)
+      end
+
 
       alphanumeric_chars_count = result.scan(/[\p{L}\p{N}]/).length
     end
@@ -140,14 +141,25 @@ class Api::V1::SeoTextsController < ApplicationController
     # +++++++++++++++++++++++++++++++++++++++++++++
 
     # ============ сезонность для легковых шин ============================
-    if url_type_by_parameters == 0
-      content_type = general_array_with_seasonality.first
-      result += generator_text(content_type, order_out) + "\n"
-    end
-    if url_type_by_parameters == 2
-      content_type = general_array_with_axis.first
-      result += generator_text(content_type, order_out) + "\n"
-    end
+
+    content_type = case url_type_by_parameters
+                   when 0
+                     general_array_with_seasonality.first
+                   when 1
+                     general_array_with_type_disk.first
+                   when 2
+                     general_array_with_axis.first
+                   end
+
+    # if url_type_by_parameters == 0
+    #   content_type = general_array_with_seasonality.first
+    #   result += generator_text(content_type, order_out) + "\n"
+    # end
+    # if url_type_by_parameters == 2
+    #   content_type = general_array_with_axis.first
+    #   result += generator_text(content_type, order_out) + "\n"
+    # end
+    result += generator_text(content_type, order_out) + "\n"
 
     # удаляем похожие предложения
     result = similar_sentences_delete(result)
@@ -165,10 +177,13 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def min_errors_text(arr_size)
     result = ''
+    array_with_text = url_type_by_parameters==1 ? TEMPLATE_TEXT_DISKI_ERROR : TEMPLATE_TEXT_ERROR
+    array_with_text_ua =url_type_by_parameters==1 ? TEMPLATE_TEXT_DISKI_ERROR_UA : TEMPLATE_TEXT_ERROR_UA
+
     if !size_present_in_popular? && !arr_size.empty?
       text_err = "<br>\n"
       text_err += "<p class='keywords-size'>"
-      text_err += url_type_ua? ? TEMPLATE_TEXT_ERROR_UA.shuffle.first : TEMPLATE_TEXT_ERROR.shuffle.first
+      text_err += url_type_ua? ? array_with_text_ua.shuffle.first : array_with_text.shuffle.first
       text_err += " " + arr_size.shift(5).join(', ')
       text_err += "</p><br>\n"
       result += text_err
@@ -252,15 +267,18 @@ class Api::V1::SeoTextsController < ApplicationController
 
     when 1 # легковые диски
       query = "order_out = 1 "
+      if (10..14).include?(type_for_url_shiny) || (110..114).include?(type_for_url_shiny)
+        patterns = ['%ассортимент_diski%', '%легкосплав_diski%', '%железные_diski%', '%общий_diski%']
+      else
+        patterns = ['%легкосплав_diski%', '%железные_diski%', '%общий_diski%']
+      end
+      query += " AND " + patterns.map { "type_text NOT LIKE ?" }.join(" AND ")
+
     when 2 # грузовые шины
       query = "order_out = 2 "
       if (10..14).include?(type_for_url_shiny) || (110..114).include?(type_for_url_shiny)
-        # puts "Значение в диапазоне от 10 до 14"
-        # убираем статьи с сезоном и ассортиметом для брендов
         patterns = ['%универсальные%', '%рулевые%', '%прицеп%', '%ведущие%', '%ассортимент%']
       else
-        # puts "Значение вне диапазона от 10 до 14"
-        # просто убираем статьи с сезоном
         patterns = ['%универсальные%', '%рулевые%', '%прицеп%', '%ведущие%']
       end
       query += " AND " + patterns.map { "type_text NOT LIKE ?" }.join(" AND ")
@@ -288,6 +306,28 @@ class Api::V1::SeoTextsController < ApplicationController
     if param_season != 0
       unique_type_texts = SeoContentText.where("type_text LIKE ?",
                                                param_season)
+                                        .pluck(:type_text)
+                                        .uniq
+
+      result = general_array(unique_type_texts, url_type_by_parameters)
+    end
+    result
+  end
+
+  def general_array_with_type_disk
+    disk_url = url_shiny_hash_params
+    result = []
+    case disk_url[:disk_type]
+    when 1
+      param_type = "%легкосплав_diski%"
+    when 2
+      param_type = "%железные_diski%"
+    else
+      param_type = "%общий_diski%"
+    end
+    if param_type != 0
+      unique_type_texts = SeoContentText.where("type_text LIKE ?",
+                                               param_type)
                                         .pluck(:type_text)
                                         .uniq
 
@@ -335,7 +375,6 @@ class Api::V1::SeoTextsController < ApplicationController
 
   def total_arr_to_table(number_of_repeats_for_text = 1, number_of_repeats = 1, order_out = 0, filename)
     # h = data_json_to_hash
-
 
     # Внимание - первый запуск нового файла ОБЯЗАТЕЛЬНО с параметром type_proc=1
     h = params[:type_proc].to_i == 1 ? data_json_to_hash(filename) : array_after_error_from_json(filename)

@@ -63,6 +63,40 @@ module StringProcessing
     result.shuffle
   end
 
+  def arr_size_diski_to_error
+    url_hash = url_shiny_hash_params
+    ww = url_hash[:tyre_w]
+    pcd = url_hash[:disk_pcd]
+    rr = url_hash[:tyre_r]
+    result = []
+    10.times do |i|
+      case i
+      when 0
+        result << "#{ww}#{rr}r#{pcd}"
+      when 1
+        result << "#{pcd} #{ww}r#{rr}"
+      when 2
+        result << "#{ww}/#{rr}R#{pcd}"
+      when 3
+        result << "#{ww}\" #{rr} дюймов #{pcd}"
+      when 4
+        result << "#{ww}J#{rr} R#{pcd}"
+      when 5
+        result << "#{rr}x#{ww} #{pcd}"
+      when 6
+        result << "#{pcd} на #{rr}x#{ww}"
+      when 7
+        result << "#{rr}-#{ww}J на #{pcd}"
+      when 8
+        result << "#{rr}/#{pcd} на #{ww}"
+      else
+        result << "#{ww} на #{rr} дюймов"
+      end
+    end
+
+    result.shuffle
+  end
+
   def replace_name_size(url_params)
     result = ''
     if size_present_in_url?
@@ -289,7 +323,7 @@ module StringProcessing
     unless AXIS_PRICEP.include?(tires_size)
       type_season[:'прицепные'][:state][:season_size] = false
     end
-    unless ["17.5","19.5","22.5"].include?(diameter)
+    unless ["17.5", "19.5", "22.5"].include?(diameter)
       type_season[:'прицепные'][:state][:season_diameter] = false
     end
 
@@ -548,6 +582,10 @@ module StringProcessing
       tyre_season: 0,
       tyre_axis: 0,
       tyre_brand: '',
+      disk_type: 0,
+      disk_pcd: '',
+      disk_et: '',
+      disk_dia: ''
     }
     # if url_parts.include?('shiny') && url_parts != {}
     # &&
@@ -576,6 +614,16 @@ module StringProcessing
           url_hash[:tyre_axis] = 2
         when 'axis-vedushchaya'
           url_hash[:tyre_axis] = 3
+        when 'type-legkosplavnyye'
+          url_hash[:tyre_disk] = 1
+        when 'type-stalnyye'
+          url_hash[:disk_type] = 2
+        when /pcd-\d+/
+          url_hash[:disk_pcd] = el.to_s.gsub('pcd-', '')
+        when /et-\d+/
+          url_hash[:disk_et] = el.to_s.gsub('et-', '')
+        when /dia-\d+/
+          url_hash[:disk_dia] = el.to_s.gsub('dia-', '')
         else
           url_hash[:tyre_brand] = el if Brand.exists?(url: el)
 
@@ -597,12 +645,16 @@ module StringProcessing
 
   def size_present_in_url?
     url_parts = url_shiny_hash_params
-    ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
+    type_h_pcd = url_type_by_parameters == 1 ? url_parts[:disk_pcd] : url_parts[:tyre_h]
+    ![url_parts[:tyre_w], type_h_pcd, url_parts[:tyre_r]].any?(&:empty?)
+    # ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?)
   end
 
   def size_only_diameter_in_url?
     url_parts = url_shiny_hash_params
-    url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?)
+    type_h_pcd = url_type_by_parameters == 1 ? url_parts[:disk_pcd] : url_parts[:tyre_h]
+    url_parts[:tyre_r].present? && [url_parts[:tyre_w], type_h_pcd].any?(&:empty?)
+    # url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?)
   end
 
   def size_only_brand_in_url?
@@ -612,8 +664,11 @@ module StringProcessing
 
   def type_for_url_shiny
     url_parts = url_shiny_hash_params
+
+    type_h_pcd = url_type_by_parameters == 1 ? url_parts[:disk_pcd] : url_parts[:tyre_h]
     # распределение по разрядам суммы
-    size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни
+    size = ![url_parts[:tyre_w], type_h_pcd, url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни
+    # size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни - были
     diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0 # сотни
     brand = url_parts[:tyre_brand].present? ? 10 : 0 # десятки
 
@@ -621,7 +676,7 @@ module StringProcessing
              when 0
                url_parts[:tyre_season] # единицы по сезону
              when 1
-               0 # доделать по дискам единицы по типу диска
+               url_parts[:disk_type] # единицы по типу диска
              when 2
                url_parts[:tyre_axis] # единицы по типу оси
              else
@@ -635,7 +690,7 @@ module StringProcessing
   def alphanumeric_chars_count_for_url_shiny
     # минимальное количество знаков в статье по урл без учета текста по сезонности
     result = 0
-    puts "type_for_url_shiny = #{type_for_url_shiny}"
+    # puts "type_for_url_shiny = #{type_for_url_shiny}"
     case type_for_url_shiny
 
     when 100, 110
@@ -685,7 +740,6 @@ module StringProcessing
   def alphanumeric_chars_count_for_url_gruzovye_shiny
     # минимальное количество знаков в статье по урл без учета текста по сезонности
     result = 0
-    puts "type_for_url_shiny = #{type_for_url_shiny}"
     case type_for_url_shiny
 
     when 100, 110, 200, 210
@@ -715,15 +769,36 @@ module StringProcessing
 
   end
 
-  def print_errors_text?
+  def alphanumeric_chars_count_for_url_diski
+    # минимальное количество знаков в статье по урл без учета текста по сезонности
+    result = 0
+    case type_for_url_shiny
 
-    # url_param = url_shiny_hash_params
-    # case url_param[:tyre_r].to_i
-    # when 14, 15, 16, 17, 18, 19
-    #   true
-    # else
-    #   false
-    # end
+    when 100, 110, 200, 210
+      # варианты по размеру
+      # размер и размер+бренд, диаметр+бренд
+      result = 2000
+
+    when 101, 102, 103, 201, 202, 203
+      # варианты по диаметру - диаметр+ось
+      # варианты по размеру - размер+ось
+      result = 1200
+
+    when 111, 112, 113, 211, 212, 213
+      # варианты по диаметру - диаметр+бренд+тип диска
+      # варианты по размеру - размер+бренд+тип диска
+      result = 1000
+
+    when 10, 11, 12, 13
+      # варианты по бренду и бренду с типом диска
+      result = 1000
+
+    else
+      result = 0
+    end
+
+    result
+
   end
 
   def clear_size_in_sentence
@@ -745,14 +820,6 @@ module StringProcessing
       post.update(sentence: updated_sentence)
     end
   end
-
-  # def clear_size_temp
-  #   posts = SeoContentText.where("type_text LIKE ?", "%_1")
-  #   posts.each do |post|
-  #     updated_sentence = post.type_text.gsub('_1', ' ')
-  #     post.update(type_text: updated_sentence)
-  #   end
-  # end
 
   # задает количество вариантов написания для каждого абзаца исходного текста
   def seo_phrase(element_array, number_of_repeats, ind, str_snt)
