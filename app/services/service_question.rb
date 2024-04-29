@@ -66,7 +66,7 @@ module ServiceQuestion
     # type_paragraph: 0 - по легковым шинам
     # type_season: 1 - летние
 
-    excel_file = "lib/text_questions/questions_base.xlsx"
+    excel_file = "lib/text_questions/questions_base_track.xlsx"
     excel = Roo::Excelx.new(excel_file)
     i = 1
     excel.each_row_streaming(pad_cells: true) do |row|
@@ -93,7 +93,7 @@ module ServiceQuestion
 
   def second_filling_of_table(type_paragraph, count_repeat = 5 )
     # Определение количества строк в файле Excel
-    excel_file = "lib/text_questions/questions_base.xlsx"
+    excel_file = "lib/text_questions/questions_base_track.xlsx"
     excel = Roo::Excelx.new(excel_file)
     count = excel.last_row
     puts "количесто строк в ексель: #{count}"
