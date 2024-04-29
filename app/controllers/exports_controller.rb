@@ -118,7 +118,7 @@ class ExportsController < ApplicationController
 
   def count_records
     # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
-    seo_content_text_last_id = SeoContentTextSentence.last.id
+    seo_content_text_last_id = SeoContentText.last.id
     seo_content_text_sentence_last_id_text = SeoContentTextSentence.last.id_text
 
     # ================ Временный счетчик ===============================
