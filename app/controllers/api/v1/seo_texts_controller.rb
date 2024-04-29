@@ -198,16 +198,16 @@ class Api::V1::SeoTextsController < ApplicationController
     puts adjust_keyword_stuffing(result)
 
     # оптимизация текста по ключевым словам
-    if url_type_ua?
-      # оптимизация для украинского текста
-    else
-      # оптимизация для русского текста, может потом переделать
-      if url_type_by_parameters == 0
-        # для легковых шин
-        result = replace_text_by_hash(result)
-        result = replace_text_by_hash_minus(result)
-      end
-    end
+    # if url_type_ua?
+    #   # оптимизация для украинского текста
+    # else
+    #   # оптимизация для русского текста, может потом переделать
+    #   if url_type_by_parameters == 0
+    #     # для легковых шин
+    #     result = replace_text_by_hash(result)
+    #     result = replace_text_by_hash_minus(result)
+    #   end
+    # end
 
     puts "Стало:" + "=>" * 40
 
