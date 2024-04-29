@@ -51,7 +51,7 @@ module ServiceQustitionProcessing
     str
   end
 
-  def question_const(el)
+  def question_const_ai(el)
     # Рерайт вопроса и ответа --- для доп вопросов
     if url_type_ua?
       question_random = el[:questions_ua].sample
@@ -85,6 +85,42 @@ module ServiceQustitionProcessing
     rezult = { question: question, answer: "[#{answer}]" }
   end
 
+  def question_const(el)
+    # Рерайт вопроса и ответа --- для доп вопросов
+    if url_type_ua?
+      question_random = el[:questions_ua].sample
+      question = question_random[:question_ua]
+      if el.has_key?(:aliases_ua)
+        field_aliases = "aliases_ua"
+        field_name = "name_ua"
+      else
+        field_aliases = "aliases"
+        field_name = "name"
+      end
+    else
+      question_random = el[:questions].sample
+      question = question_random[:question]
+      field_aliases = "aliases"
+      field_name = "name"
+    end
+    answer = ""
+    puts "Проверка question_random == #{question_random.inspect}"
+    # question = question_random
+
+    el[field_aliases.to_sym].size < 10 ? max = el[field_aliases.to_sym].size : max = 10
+    random_brands = el[field_aliases.to_sym].sample(rand(6..max)) # случайное количество ответов
+    # сборка в ответ элементов массива
+    random_brands.each_with_index do |el, i|
+      # puts " field_aliases = #{el[field_aliases.to_sym]},  field_name = #{el[field_name.to_sym]}"
+      # puts " question_random = #{question_random.inspect}"
+      answer += "<a href='#{question_random[:url]}#{el[:alias]}'>• #{el[field_name.to_sym]}  </a>    "
+    end
+    answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10) % 2 == 0
+    puts " question = #{question.inspect}"
+    puts " answer = #{answer.inspect}"
+    rezult = { question: question, answer: "[#{answer}]" }
+  end
+
   def questions_dop(list1, list2)
 
     # формирование количяества доп вопросов
@@ -100,7 +136,7 @@ module ServiceQustitionProcessing
       list_questions << question_const(list2.sample)
     end
 
-
+    puts "list_questions ==== #{list_questions.inspect}"
     list_questions
 
   end
