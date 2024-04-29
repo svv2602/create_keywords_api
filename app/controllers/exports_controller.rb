@@ -119,15 +119,7 @@ class ExportsController < ApplicationController
   def count_records
     # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
     seo_content_text_last_id = SeoContentTextSentence.last.id
-    puts "Number of records in SeoContentText: #{seo_content_text_count}"
-
     seo_content_text_sentence_last_id_text = SeoContentTextSentence.last.id_text
-    puts "Number of records in SeoContentTextSentence: #{seo_content_text_sentence_count}"
-
-    check_title_value2_count = SeoContentTextSentence.where('check_title = 2').count
-    puts "Количество записей с check_title  равным 2: #{check_title_value2_count}"
-
-
 
     # ================ Временный счетчик ===============================
     now = Time.now
