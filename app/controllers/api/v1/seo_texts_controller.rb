@@ -66,7 +66,7 @@ class Api::V1::SeoTextsController < ApplicationController
       # ============== проверено ==========
       total_arr_to_table(7, 5, order_out, filename)
       # ============== проверено ==========
-      total_arr_to_table_sentence(5, 5, order_out) # - для дисков !!!! сделать
+      total_arr_to_table_sentence(5, 3, order_out) # - для дисков !!!! сделать
 
       # # сделать копию базы и запустить( для легковых )
       # table = 'seo_content_text_sentences'
