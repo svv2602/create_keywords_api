@@ -222,12 +222,12 @@ class ExportsController < ApplicationController
     # выгрузка из базы данных записей для дальнейшего перевода в google
     # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
     count = 50000 # количество выгружаемых записей
-    max_id = params[:max].to_i
-    # max_id = 1534655
+    max_id = params[:max].to_i == 0 ? SeoContentTextSentence.where("sentence_ua = ''").maximum(:id) : params[:max].to_i
+
     @selected_records = SeoContentTextSentence
     # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
                           .where("sentence_ua = '' and id < ?", max_id)
-                          .order(id: :desc)
+                          .order(id: :asc)
                           .limit(count)
 
     package = Axlsx::Package.new
@@ -243,7 +243,7 @@ class ExportsController < ApplicationController
       end
     end
 
-    max_id = max_id.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
+    max_id = (max_id-1).to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
 
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
