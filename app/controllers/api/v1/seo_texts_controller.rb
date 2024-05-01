@@ -59,12 +59,13 @@ class Api::V1::SeoTextsController < ApplicationController
                  "data_track" # для грузовых шин
                end
 
-    txt_file_to_json(filename)
+    # добавить тексты в json
+    # txt_file_to_json(filename)
 
     file_path = Rails.root.join('lib', 'template_texts', "#{filename}.json")
-    if duplicated_in_data_json?(file_path) #- проверка на дубликаты
+    # if duplicated_in_data_json?(file_path) #- проверка на дубликаты
       # ============== проверено ==========
-      total_arr_to_table(7, 5, order_out, filename)
+      # total_arr_to_table(7, 5, order_out, filename)
       # ============== проверено ==========
       total_arr_to_table_sentence(5, 3, order_out) # - для дисков !!!! сделать
 
@@ -73,7 +74,7 @@ class Api::V1::SeoTextsController < ApplicationController
       # remove_empty_sentences(table) # удаление пустых записей
       # replace_errors_size(table) # удаление записей с ошибками
 
-    end
+    # end
 
     # ===========================================================
     # # ВНИМАНИЕ!!!
