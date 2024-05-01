@@ -978,7 +978,7 @@ module StringProcessing
       rescue => e
         puts "Attempt #{n + 1} failed with error: #{e.message}"
         raise if n == 4
-        sleep(2 ** (n + 1)) # exponential backoff
+        sleep(2) # exponential backoff
       end
     end
   end
