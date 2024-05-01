@@ -64,15 +64,16 @@ class Api::V1::SeoTextsController < ApplicationController
 
     file_path = Rails.root.join('lib', 'template_texts', "#{filename}.json")
     # if duplicated_in_data_json?(file_path) #- проверка на дубликаты
-      # ============== проверено ==========
-      # total_arr_to_table(7, 5, order_out, filename)
-      # ============== проверено ==========
-      total_arr_to_table_sentence(5, 3, order_out) # - для дисков !!!! сделать
-
-      # # сделать копию базы и запустить( для легковых )
-      # table = 'seo_content_text_sentences'
-      # remove_empty_sentences(table) # удаление пустых записей
-      # replace_errors_size(table) # удаление записей с ошибками
+    # ============== проверено ==========
+    # total_arr_to_table(7, 5, order_out, filename)
+    # ============== проверено ==========
+    update_seo_content_text_sentence_id_text
+    total_arr_to_table_sentence(5, 3, order_out) # - для дисков !!!! сделать
+    update_seo_content_text_sentence_id_text
+    # # сделать копию базы и запустить( для легковых )
+    # table = 'seo_content_text_sentences'
+    # remove_empty_sentences(table) # удаление пустых записей
+    # replace_errors_size(table) # удаление записей с ошибками
 
     # end
 

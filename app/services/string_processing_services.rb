@@ -13,9 +13,9 @@ module StringProcessingServices
       # id текста в  последняя запись по предложениям
       # id_last_text_in_table_sentence = (SeoContentTextSentence.last&.id_text || 0)
       id_last_text_in_table_sentence = (SeoContentTextSentence.maximum(:id_text) || 0)
-      puts "id_last_text_in_table_sentence ====== #{id_last_text_in_table_sentence}"
+      # puts "id_last_text_in_table_sentence ====== #{id_last_text_in_table_sentence}"
       id_record_content_text_in_table_text = (SeoContentText.where(order_out: order_out).find_by(id: id_last_text_in_table_sentence)&.id || SeoContentText.where(order_out: order_out).first&.id)
-      puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
+      # puts "id_record_content_text_in_table_text ====== #{id_record_content_text_in_table_text}"
       # filtered_records = records.drop_while { |record| record.id < id_record_content_text_in_table_text }
       filtered_records = SeoContentText.where("id >= ? AND order_out = ?", id_record_content_text_in_table_text, order_out)
     end

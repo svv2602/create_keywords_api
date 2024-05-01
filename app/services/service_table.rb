@@ -11,6 +11,17 @@ module ServiceTable
     end
   end
 
+  def update_seo_content_text_sentence_id_text
+    # Находим все записи, где id_text is null
+    SeoContentTextSentence.where(id_text: nil).find_each do |sentence|
+      # Находим соответствующую запись в SeoContentText
+      seo_content_text = SeoContentText.find_by(content_type: sentence.str_seo_text)
+
+      # Обновляем id_text, если найдена соответствующая запись
+      sentence.update(id_text: seo_content_text.id, type_text: seo_content_text.type_text) if seo_content_text
+    end
+  end
+
   # Имя таблицы - текст!!!
   def copy_table_to_table_copy_if_empty(table, table_copy, max_retries = 5)
     model = table.classify.constantize
