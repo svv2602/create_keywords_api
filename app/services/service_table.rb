@@ -44,8 +44,6 @@ module ServiceTable
     end
   end
 
-
-
   # Имя таблицы - текст!!!
   def copy_table_to_table_copy_if_empty(table, table_copy, max_retries = 5)
     model = table.classify.constantize
@@ -206,6 +204,74 @@ module ServiceTable
     puts "Количество удаленных записей:  #{i} "
     return i
   end
+
+  # ====================Для дисков ============================
+  def replace_errors_sentence_diski(table)
+    # очистка таблиц от мусора после первой генерации текстов в дисках
+    model = table.classify.constantize
+    exclude_words = arr_name_brand_uniq
+    arr_test = []
+    i = 0
+    records = model.where("id_text > ?", 35400)
+    records.find_each do |record|
+
+      if record &&
+        record.sentence &&
+        (
+          record.sentence.include?("кроссовк") ||
+            record.sentence.include?("Nike") ||
+            record.sentence.include?("Puma") ||
+            record.sentence.include?("Adidas") ||
+
+
+            record.sentence.include?("Rocher") ||
+            record.sentence.include?("Prada") ||
+            record.sentence.include?("Gucci") ||
+            record.sentence.include?("кожа") ||
+            record.sentence.include?("ArtHome") ||
+            record.sentence.include?("IKEA") ||
+            record.sentence.include?("Eichholtz") ||
+            record.sentence.include?("мебел") ||
+            record.sentence.include?("MebelArt") ||
+            record.sentence.include?("ItalianCraft") ||
+            record.sentence.include?("Luxury") ||
+            record.sentence.include?("LuxDeco") ||
+            record.sentence.include?("Bella") ||
+            record.sentence.include?("LuxInteriors") ||
+            record.sentence.include?("BoConcept") ||
+            record.sentence.include?("Eichholtz") ||
+            record.sentence.include?("интерьер") ||
+            record.sentence.include?("BMW") ||
+            record.sentence.include?("Audi") ||
+            record.sentence.include?("Mercedes") ||
+            record.sentence.include?("Camry") ||
+            record.sentence.include?("двигател") ||
+            record.sentence.include?("реклам") ||
+            record.sentence.include?("Coca") ||
+            record.sentence.include?("Chanel") ||
+            record.sentence.include?("Apple") ||
+            record.sentence.include?("Spotify") ||
+            record.sentence.include?("Samsung") ||
+            record.sentence.include?("контент") ||
+            record.sentence.include?("копир") ||
+            record.sentence.include?(" я ") ||
+            record.sentence.include?(" мой ") ||
+            record.sentence.include?(" моего ") ||
+            record.sentence.include?(" мою ") ||
+            record.sentence.include?("копир") ||
+            !(record.sentence.match?(/[а-яА-ЯёЁ]/)) ||
+            percent_of_latin_chars(record.sentence, exclude_words) > 15
+        )
+        record.destroy
+        i += 1
+      end
+    end
+    puts "arr_test = = = #{arr_test}"
+    puts "Количество удаленных записей:  #{i} "
+    return i
+  end
+
+  # ===========================================================
 
   def add_variants_record_to_table_sentence(record_sentence)
     # ВНИМАНИЕ = только первая строка для ошибочных заголовков.
@@ -550,7 +616,6 @@ module ServiceTable
     return i
 
   end
-
 
   def import_questions_ua(filename)
     # Заполнение таблицы с текстом по вопросам

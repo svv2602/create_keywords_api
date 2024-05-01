@@ -148,7 +148,7 @@ class ExportsController < ApplicationController
 
 
   def control_records
-    update_seo_content_text_sentence_id_text
+    # update_seo_content_text_sentence_id_text
     result = ""
     # сделать очистку таблиц
     table = 'seo_content_text_sentences'
@@ -174,7 +174,7 @@ class ExportsController < ApplicationController
     # ==========================================================
     # 2 часть
     # ==========================================================
-    # result = replace_errors_size(table) # удаление записей с ошибками
+    result = replace_errors_sentence_diski(table) # удаление записей с ошибками
     # add_sentence_ua   # украинский перевод - !!! сделать проверку по пустому украинскому тексту!!!
 
     # ==========================================================
