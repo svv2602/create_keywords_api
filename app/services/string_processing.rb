@@ -182,6 +182,7 @@ module StringProcessing
     search_size_1 = SEARCH_SIZE_1
     search_size_2 = SEARCH_SIZE_2
     search_size_3 = SEARCH_SIZE_3
+    search_size_4 = SEARCH_SIZE_4
 
     return str if str.nil? # Убедитесь что str не nil
 
@@ -194,6 +195,10 @@ module StringProcessing
     if str.match?(search_size_3)
       str.gsub!(search_size_3, " [size] ")
     end
+    if str.match?(search_size_4)
+      str.gsub!(search_size_4, " [size] ")
+    end
+
     # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
     ["111111", "222222", "333333"].each do |value|
       if str.include?(value)

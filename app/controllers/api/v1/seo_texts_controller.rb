@@ -547,9 +547,15 @@ class Api::V1::SeoTextsController < ApplicationController
 
     end
 
+    if url_type_by_parameters == 1
+      title_h2 = hash_title["diski"].shuffle.first
+    end
+
     if url_type_by_parameters == 2
       title_h2 = hash_title["track"].shuffle.first
     end
+
+
 
     title_h2 = make_replace_for_title(title_h2, url_params) if title_h2.present?
     result = "<h2> #{title_h2} </h2>\n"
