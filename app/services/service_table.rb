@@ -212,8 +212,9 @@ module ServiceTable
     exclude_words = arr_name_brand_uniq
     arr_test = []
     i = 0
+    j = 0
     records = model.where("id_text > ?", 35400)
-    # records = model.where("id_text = ?", 49700) # - тест по заменам
+    records = model.where("id_text = ?", 49700) # - тест по заменам
 
     records.find_each do |record|
       replace_mark_in_string(record)
@@ -238,13 +239,35 @@ module ServiceTable
             percent_of_latin_chars(record.sentence, exclude_words) > 15
         )
 
-        record.destroy
-        i += 1
+        # record.destroy
+        # i += 1
+        #==================================
+
+        attempts = 0
+
+        begin
+          record.destroy!
+          i += 1
+        rescue ActiveRecord::RecordNotDestroyed => e
+          attempts += 1
+          if attempts <= 3
+            puts "Попытка номер #{attempts} удаления записи #{record.id} не удалась: #{e}. Повторяю..."
+            retry
+          else
+            puts "3 попытки удаления записи #{record.id} не удалась: #{e}. Пропускаю..."
+            j +=1
+          end
+        end
+
+
+
+        #====================================
       end
 
     end
-    puts "Количество удаленных записей:  #{i} "
-    return i
+    result = "Количество удаленных записей:  #{i} |   Удаление не удалось : #{j} "
+    puts result
+    return result
   end
 
   def replace_mark_in_string(record)
