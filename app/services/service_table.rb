@@ -224,13 +224,14 @@ module ServiceTable
             record.sentence.match?(/\s[A-QS-Z]\s/) ||
             record.sentence.match?(/(^|\s)(я|мой|моего|моя|мою)\s/i) ||
             record.sentence.match?(/Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
-            record.sentence.match?(/Nike|Puma|Adidas|Rocher|BMW|Honda|Tesla|Ford|Lexus|Audi|Mercedes|Camry|Toyota|Starbucks|Lauder/i) ||
-            record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
+            record.sentence.match?(/Nike|Puma|Adidas|Rocher|BMW|Volkswagen|Honda|Tesla|Ford|Lexus|Audi|Mercedes|Camry|Toyota|Starbucks|Lauder/i) ||
+            record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Calvin|Christian|Dior|YZL|Louboutin|Jimmy|Levi|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
             record.sentence.match?(/McDonald|Trend|Samsung|Spotify|Apple|Chanel|Coca|Bella|LuxInteriors|Eichholtz/i) ||
             record.sentence.match?(/одежд|копир|контент|мебел|кожа|двигател|мотор|кроссовк|туфл|рестор|реклам|интерьер|овощ/i) ||
-            record.sentence.match?(/макияж|маникюр|космети|кожи|коже|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
-            record.sentence.match?(/колье|шарф|перчат|рюкзак|сипед|прогулк/i) ||
-            record.sentence.match?(/салон(|а|у|ом|е)\sкрасоты|(^|\s)(литр|музык|компакт-диск|((кон|)текст(?!\w*ур)))/i) ||
+            record.sentence.match?(/макияж|маникюр|космети|кож(е|а|у|ей)|крем(а|у|ом|ов)|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
+            record.sentence.match?(/колье|шарф|перчат|рюкзак|рубаш|сипед|джинс|прогулк/i) ||
+            record.sentence.match?(/(|автомобильн(ому|ым|ом|ый)\s)салон(|а|у|ом|е)\sкрасоты|(^|\s)(литр|музык|компакт-диск|((кон|)текст(?!\w*ур)))/i) ||
+            record.sentence.match?(/(стильн(ые|ую)|уличную|Утепленная|Элегантная|Качественная|представлена|Подбирайте|Эксклюзивная|идеальную)\sобувь/i) ||
             record.sentence.match?(/(^|\s)(кон|)текст(?!\w*ур)/i) ||
             record.sentence.match?(/\b\w{21,}\b/) ||
 
