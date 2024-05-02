@@ -27,6 +27,7 @@ class ExportsController < ApplicationController
     replace_name_brand_in_seo_content_text_sentence(hash_replace)
     render plain: "Сделана замена брендов"
   end
+
   def replace_name_brand_in_seo_content_text(hash_replace)
 
     hash_replace.each do |key, value|
@@ -39,7 +40,7 @@ class ExportsController < ApplicationController
 
   def replace_name_brand_in_seo_content_text_sentence(hash_replace)
     hash_replace.each do |key, value|
-      SeoContentTextSentence.where("str_seo_text like ? AND sentence LIKE ?", "%12R20%","%#{key}%").find_each do |content|
+      SeoContentTextSentence.where("str_seo_text like ? AND sentence LIKE ?", "%12R20%", "%#{key}%").find_each do |content|
         new_sentence = content.sentence.gsub(/#{key.to_s}/i, value.to_s)
         new_sentence_ua = content.sentence_ua.gsub(/#{key.to_s}/i, value.to_s)
         content.update(sentence: new_sentence, sentence_ua: new_sentence_ua)
@@ -125,8 +126,10 @@ class ExportsController < ApplicationController
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
 
-    render json: { SeoContentText: "#{seo_content_text_last_id}",
-                   SeoContentTextSentence: "#{seo_content_text_sentence_last_id_text}"
+    render json: {
+      # SeoContentText: "#{seo_content_text_last_id}",
+      SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
+      SeoContentTextSentence: "#{seo_content_text_sentence_last_id_text}"
     }
   end
 
@@ -146,9 +149,10 @@ class ExportsController < ApplicationController
     render plain: readme_content
   end
 
-
   def control_records
-    # update_seo_content_text_sentence_id_text
+
+    # update_seo_content_text_sentence_id_text # обновление id_text для записей с null
+
     result = ""
     # сделать очистку таблиц
     table = 'seo_content_text_sentences'
@@ -233,7 +237,7 @@ class ExportsController < ApplicationController
       end
     end
 
-    max_id = (max_id-1).to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
+    max_id = (max_id - 1).to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
 
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"

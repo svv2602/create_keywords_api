@@ -213,65 +213,38 @@ module ServiceTable
     arr_test = []
     i = 0
     records = model.where("id_text > ?", 35400)
-    # records = model.where("id_text = ?", 49733) # - тест по заменам
+    # records = model.where("id_text = ?", 49700) # - тест по заменам
 
     records.find_each do |record|
-
+      replace_mark_in_string(record)
       if record &&
         record.sentence &&
         (
-          record.sentence.include?("кроссовк") ||
-            record.sentence.include?("Nike") ||
-            record.sentence.include?("Puma") ||
-            record.sentence.include?("Adidas") ||
-            record.sentence.include?("Rocher") ||
-            record.sentence.include?("Prada") ||
-            record.sentence.include?("Gucci") ||
-            record.sentence.include?("кожа") ||
-            record.sentence.include?("ArtHome") ||
-            record.sentence.include?("IKEA") ||
-            record.sentence.include?("Eichholtz") ||
-            record.sentence.include?("мебел") ||
-            record.sentence.include?("MebelArt") ||
-            record.sentence.include?("ItalianCraft") ||
-            record.sentence.include?("Luxury") ||
-            record.sentence.include?("LuxDeco") ||
-            record.sentence.include?("Bella") ||
-            record.sentence.include?("LuxInteriors") ||
-            record.sentence.include?("BoConcept") ||
-            record.sentence.include?("Eichholtz") ||
-            record.sentence.include?("интерьер") ||
-            record.sentence.include?("BMW") ||
-            record.sentence.include?("Audi") ||
-            record.sentence.include?("Mercedes") ||
-            record.sentence.include?("Camry") ||
-            record.sentence.include?("двигател") ||
-            record.sentence.include?("реклам") ||
-            record.sentence.include?("Coca") ||
-            record.sentence.include?("Chanel") ||
-            record.sentence.include?("Apple") ||
-            record.sentence.include?("Spotify") ||
-            record.sentence.include?("Samsung") ||
-            record.sentence.include?("контент") ||
-            record.sentence.include?("копир") ||
-            record.sentence.include?(" я ") ||
-            record.sentence.include?(" мой ") ||
-            record.sentence.include?(" моего ") ||
-            record.sentence.include?(" мою ") ||
-            record.sentence.include?("копир") ||
-            !(record.sentence.match?(/[а-яА-ЯёЁ]/)) ||
+          !(record.sentence.match?(/[а-яА-ЯёЁ]/)) ||
+            record.sentence.match?(/\s[A-QS-Z]\s/) ||
+            record.sentence.match?(/(^|\s)(я|мой|моего|моя|мою)\s/i) ||
+            record.sentence.match?(/Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
+            record.sentence.match?(/Nike|Puma|Adidas|Rocher|BMW|Honda|Tesla|Ford|Lexus|Audi|Mercedes|Camry|Toyota|Starbucks|Lauder/i) ||
+            record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
+            record.sentence.match?(/McDonald|Trend|Samsung|Spotify|Apple|Chanel|Coca|Bella|LuxInteriors|Eichholtz/i) ||
+            record.sentence.match?(/одежд|копир|контент|мебел|кожа|двигател|мотор|кроссовк|туфл|рестор|реклам|интерьер|овощ/i) ||
+            record.sentence.match?(/макияж|маникюр|космети|кожи|коже|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
+            record.sentence.match?(/колье|шарф|перчат|рюкзак|сипед|прогулк/i) ||
+            record.sentence.match?(/салон(|а|у|ом|е)\sкрасоты|(^|\s)(литр|музык|компакт-диск|((кон|)текст(?!\w*ур)))/i) ||
+            record.sentence.match?(/(^|\s)(кон|)текст(?!\w*ур)/i) ||
+            record.sentence.match?(/\b\w{21,}\b/) ||
+
             percent_of_latin_chars(record.sentence, exclude_words) > 15
         )
+
         record.destroy
         i += 1
       end
-      replace_mark_in_string(record)
 
     end
     puts "Количество удаленных записей:  #{i} "
     return i
   end
-
 
   def replace_mark_in_string(record)
     marks = MARKS
@@ -282,6 +255,10 @@ module ServiceTable
           record.update(sentence: new_str)
         end
       end
+    end
+    if record.sentence.match?(/Black Rhino Overland/i)
+      new_str = record.sentence.gsub(/Black Rhino Overland/i, "").capitalize
+      record.update(sentence: new_str)
     end
   end
 
