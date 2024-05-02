@@ -176,44 +176,59 @@ module StringProcessing
 
   end
 
+  # def replace_size_to_template(str)
+  #   search_size_1 = SEARCH_SIZE_1
+  #   search_size_2 = SEARCH_SIZE_2
+  #   search_size_3 = SEARCH_SIZE_3
+  #   search_size_4 = SEARCH_SIZE_4
+  #
+  #   return str if str.nil? # Убедитесь что str не nil
+  #
+  #   if str.match?(search_size_1)
+  #     str.gsub!(search_size_1, " [size] ")
+  #   end
+  #   if str.match?(search_size_2)
+  #     str.gsub!(search_size_2, " [size] ")
+  #   end
+  #   if str.match?(search_size_3)
+  #     str.gsub!(search_size_3, " [size] ")
+  #   end
+  #   if str.match?(search_size_4)
+  #     str.gsub!(search_size_4, " [size] ")
+  #   end
+  #
+  #   # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
+  #   ["111111", "222222", "333333"].each do |value|
+  #     if str.include?(value)
+  #       str.gsub!(value, " [w-] ") if value == "111111"
+  #       str.gsub!(value, " [h-] ") if value == "222222"
+  #       str.gsub!(value, " [r-] ") if value == "333333"
+  #     end
+  #   end
+  #   replace_name_to_template(str)
+  #   str
+  # end
   def replace_size_to_template(str)
-    # search_size_1 = /\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
-    # search_size_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
-    search_size_1 = SEARCH_SIZE_1
-    search_size_2 = SEARCH_SIZE_2
-    search_size_3 = SEARCH_SIZE_3
-    search_size_4 = SEARCH_SIZE_4
+    return str if str.nil?
 
-    return str if str.nil? # Убедитесь что str не nil
-
-    if str.match?(search_size_1)
-      str.gsub!(search_size_1, " [size] ")
-    end
-    if str.match?(search_size_2)
-      str.gsub!(search_size_2, " [size] ")
-    end
-    if str.match?(search_size_3)
-      str.gsub!(search_size_3, " [size] ")
-    end
-    if str.match?(search_size_4)
-      str.gsub!(search_size_4, " [size] ")
+    # Заменяет размер на шаблон [size]
+    sizes = [SEARCH_SIZE_1, SEARCH_SIZE_2, SEARCH_SIZE_3, SEARCH_SIZE_4]
+    sizes.each do |size|
+      str.gsub!(size, " [size] ") if str.match?(size)
     end
 
-    # Замена ручных маркировок в json-файле ширины, высоты и диаметра на шаблон, для дальнейшей обработки
-    ["111111", "222222", "333333"].each do |value|
-      if str.include?(value)
-        str.gsub!(value, " [w-] ") if value == "111111"
-        str.gsub!(value, " [h-] ") if value == "222222"
-        str.gsub!(value, " [r-] ") if value == "333333"
-      end
+    # Заменяет ручные маркировки в json-файле на шаблоны
+    marks = {"111111" => " [w-] ", "222222" => " [h-] ", "333333" => " [r-] "}
+    marks.each do |mark, template|
+      str.gsub!(mark, template) if str.include?(mark)
     end
+
     replace_name_to_template(str)
     str
   end
-
   def replace_reverse_size_to_template(str)
     search_size_1 = '195/65R15'
-    return str if str.nil? # Убедитесь что str не nil
+    return str if str.nil?
 
     str.gsub!("[size]", search_size_1) unless str.nil?
     # str.gsub!(search_size_2, " [size] ")

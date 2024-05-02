@@ -213,6 +213,8 @@ module ServiceTable
     arr_test = []
     i = 0
     records = model.where("id_text > ?", 35400)
+    # records = model.where("id_text = ?", 44974)
+
     records.find_each do |record|
 
       if record &&
@@ -222,8 +224,6 @@ module ServiceTable
             record.sentence.include?("Nike") ||
             record.sentence.include?("Puma") ||
             record.sentence.include?("Adidas") ||
-
-
             record.sentence.include?("Rocher") ||
             record.sentence.include?("Prada") ||
             record.sentence.include?("Gucci") ||
@@ -265,10 +265,25 @@ module ServiceTable
         record.destroy
         i += 1
       end
+      replace_mark_in_string(record)
+
     end
     puts "arr_test = = = #{arr_test}"
     puts "Количество удаленных записей:  #{i} "
     return i
+  end
+
+
+  def replace_mark_in_string(record)
+    marks = MARKS
+    if record.sentence.include?("литец")
+      marks.each do |mark, template|
+        if record.sentence.include?(mark)
+          new_str = record.sentence.gsub(mark, template)
+          record.update(sentence: new_str)
+        end
+      end
+    end
   end
 
   # ===========================================================
