@@ -213,7 +213,7 @@ module ServiceTable
     arr_test = []
     i = 0
     records = model.where("id_text > ?", 35400)
-    # records = model.where("id_text = ?", 44974)
+    # records = model.where("id_text = ?", 49733) # - тест по заменам
 
     records.find_each do |record|
 
@@ -268,7 +268,6 @@ module ServiceTable
       replace_mark_in_string(record)
 
     end
-    puts "arr_test = = = #{arr_test}"
     puts "Количество удаленных записей:  #{i} "
     return i
   end
@@ -276,10 +275,10 @@ module ServiceTable
 
   def replace_mark_in_string(record)
     marks = MARKS
-    if record.sentence.include?("литец")
+    if record.sentence.match?(/лит(|е)ц/i)
       marks.each do |mark, template|
-        if record.sentence.include?(mark)
-          new_str = record.sentence.gsub(mark, template)
+        if record.sentence.match?(/#{mark}/i)
+          new_str = record.sentence.gsub(/\b#{mark}\b/i, template).capitalize
           record.update(sentence: new_str)
         end
       end
