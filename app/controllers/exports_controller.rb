@@ -127,8 +127,8 @@ class ExportsController < ApplicationController
     total_seconds_and_minutes = now.sec + now.min * 160
 
     render json: {
-      # SeoContentText: "#{seo_content_text_last_id}",
-      SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
+      SeoContentText: "#{seo_content_text_last_id}",
+      # SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
       SeoContentTextSentence: "#{seo_content_text_sentence_last_id_text}"
     }
   end
