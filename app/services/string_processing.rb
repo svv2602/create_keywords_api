@@ -241,20 +241,26 @@ module StringProcessing
   end
 
   def insert_brand_url(text)
-    brands = Brand.all
+    # brands = Brand.all
     str_site = "<a href='https://prokoleso.ua/"
     str_site_ua = url_type_ua? ? "ua/" : ""
 
     case url_type_by_parameters
     when 0
       str_site_type = "shiny/"
+      brands = Brand.where(type_url: 0)
     when 1
       str_site_type = "diski/"
+      brands = Brand.where(type_url: 1)
     when 2
       str_site_type = "gruzovye-shiny/"
+      brands = Brand.where(type_url: 0)
     else
       str_site_type = ''
+      brands = {}
     end
+
+
     str_base = str_site + str_site_ua + str_site_type
     # Создать хэш с именами брендов в качестве ключей и URL в качестве значений
     brand_urls = brands.each_with_object({}) do |brand, hash|

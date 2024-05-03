@@ -214,23 +214,35 @@ module ServiceTable
     i = 0
     j = 0
     records = model.where("id_text > ?", 35400)
-    records = model.where("id_text = ?", 49700) # - тест по заменам
+    # records = model.where("id_text >= ? and id_text <= ?", 50242, 50400) # - тест по заменам
+    # records = model.where("id_text = ?", 50242) # - тест по заменам
+
+    regexp = Regexp.new(AUTO_MANUFACTURES.join("|"), Regexp::IGNORECASE)
+    brands = Brand.where(type_url: 0).pluck(:name) # !!! для дисков - массив для удаления строк с шинными брендами !!!
+    brand_regex = /\b(#{brands.join('|')})\b/
 
     records.find_each do |record|
-      replace_mark_in_string(record)
+      replace_mark_in_string(record) # обновление записей с ошибками
+
       if record &&
         record.sentence &&
         (
           !(record.sentence.match?(/[а-яА-ЯёЁ]/)) ||
             record.sentence.match?(/\s[A-QS-Z]\s/) ||
+            record.sentence.match?(regexp) ||
+            record.sentence.match?(brand_regex) ||
             record.sentence.match?(/(^|\s)(я|мой|моего|моя|мою)\s/i) ||
             record.sentence.match?(/Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
-            record.sentence.match?(/Nike|Puma|Adidas|Rocher|BMW|Volkswagen|Honda|Tesla|Ford|Lexus|Audi|Mercedes|Camry|Toyota|Starbucks|Lauder/i) ||
+            record.sentence.match?(/Nike|Puma|Adidas|ABC|Xiaomi|Sony|Bose|Bravia|Rocher|Domino|Jamie|Bosch|Delizioso|Cordon|Tefal|Camry|Starbucks|iPhone|Lauder/i) ||
             record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Calvin|Christian|Dior|YZL|Louboutin|Jimmy|Levi|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
-            record.sentence.match?(/McDonald|Trend|Samsung|Spotify|Apple|Chanel|Coca|Bella|LuxInteriors|Eichholtz/i) ||
+            record.sentence.match?(/McDonald|Trend|Samsung|LG|Nikon|Spotify|Apple|Chanel|Coca|Nutella|Bella|LuxInteriors|Eichholtz/i) ||
             record.sentence.match?(/одежд|копир|контент|мебел|кожа|двигател|мотор|кроссовк|туфл|рестор|реклам|интерьер|овощ/i) ||
             record.sentence.match?(/макияж|маникюр|космети|кож(е|а|у|ей)|крем(а|у|ом|ов)|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
-            record.sentence.match?(/колье|шарф|перчат|рюкзак|рубаш|сипед|джинс|прогулк/i) ||
+            record.sentence.match?(/колье|шарф|перчат|рюкзак|телевизор|рубаш|сипед|джинс|смартфон|прогулк/i) ||
+            record.sentence.match?(/футбол|клуб|трениров|фитнес|питани|кулинар|кухн|сковород|экран|Видео|гаджет|наушник|звучани|аудио/i) ||
+            record.sentence.match?(/\bтрек(|и|а|ов|ами|ом)\b/i) ||
+            record.sentence.match?(/\bблюд(|а|у|ами|ом|о|е)\b/i) ||
+            record.sentence.match?(/\bужин\b/i) ||
             record.sentence.match?(/(|автомобильн(ому|ым|ом|ый)\s)салон(|а|у|ом|е)\sкрасоты|(^|\s)(литр|музык|компакт-диск|((кон|)текст(?!\w*ур)))/i) ||
             record.sentence.match?(/(стильн(ые|ую)|уличную|Утепленная|Элегантная|Качественная|представлена|Подбирайте|Эксклюзивная|идеальную)\sобувь/i) ||
             record.sentence.match?(/(^|\s)(кон|)текст(?!\w*ур)/i) ||
@@ -634,7 +646,7 @@ module ServiceTable
 
   def import_questions_ua(filename)
     # Заполнение таблицы с текстом по вопросам
-    # lib/text_ua/seo_question_ru.xlsx
+    # lib/text_ua/seo_question_ru_track.xlsx
 
     excel = Roo::Excelx.new(filename)
     i = 0

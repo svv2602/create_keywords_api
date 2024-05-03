@@ -127,8 +127,8 @@ class ExportsController < ApplicationController
     total_seconds_and_minutes = now.sec + now.min * 160
 
     render json: {
-      SeoContentText: "#{seo_content_text_last_id}",
-      # SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
+      # SeoContentText: "#{seo_content_text_last_id}",
+      SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
       SeoContentTextSentence: "#{seo_content_text_sentence_last_id_text}"
     }
   end
@@ -221,7 +221,7 @@ class ExportsController < ApplicationController
     @selected_records = SeoContentTextSentence
     # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
                           .where("sentence_ua = '' and id < ?", max_id)
-                          .order(id: :asc)
+                          .order(id: :desc)
                           .limit(count)
 
     package = Axlsx::Package.new
@@ -268,7 +268,7 @@ class ExportsController < ApplicationController
     end
 
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    send_data package.to_stream.read, :filename => "seo_question_ru.xlsx", :type => "application/xlsx"
+    send_data package.to_stream.read, :filename => "seo_question_ru_track.xlsx", :type => "application/xlsx"
   end
 
   def process_files_ua
@@ -284,7 +284,6 @@ class ExportsController < ApplicationController
   end
 
   def add_new_brand_entries
-    # обновление таблицы брендов
     excel_file = "lib/brands.xlsx"
     excel = Roo::Excelx.new(excel_file)
 
@@ -292,13 +291,18 @@ class ExportsController < ApplicationController
       excel.each_row_streaming(pad_cells: true) do |row|
         name = row[i + 1]&.value
         url = row[0]&.value
-        Brand.find_or_create_by(name: name) do |brand|
-          brand.url = url
-        end if name.present?
+        type_url = row[4]&.value
+        if name.present?
+          brand = Brand.find_or_create_by(name: name)
+          brand.update(url: url, type_url: type_url)
+        end
       end
     end
     render plain: "Обновление таблицы брендов завершено."
   end
+
+
+
 
   # ========================последний end=======================
 

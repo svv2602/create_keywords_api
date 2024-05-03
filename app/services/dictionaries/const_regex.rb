@@ -1,5 +1,5 @@
-SEARCH_SIZE_1 = /\s+\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
-SEARCH_SIZE_2 = /(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
+SEARCH_SIZE_1 = /(?<=^|\s)\d{3}([ \/.-xXхХ]*| на )\d{2}([ \/.-xXхХ]*| на )(|[ rRpPрР])([ \/.-xXхХ]*)\d{2}([.,]\d{1})?[ \/.-]*[ cCсС]*/
+SEARCH_SIZE_2 = /(?<=^|\s)(на |)[ rRpPрР]\d{2}([.,]\d{1})?[ \/.-xXхХ]*[ cCсС]*([ \/.-xXхХ]*| на )\d{3}([ \/.-xXхХ]*| на )\d{2}/
 SEARCH_SIZE_3 = /(?<=^|\s)(\d{2}(|(.|,)00)R\d{2})/
 SEARCH_SIZE_4 = /(?<=^|\s)(R\d{2})/
 
@@ -38,3 +38,13 @@ MARKS = {
   "литецами" => "литыми дисками",
   "литецкие" => "литые"
 }
+
+AUTO_MANUFACTURES = ["Toyota", "Volkswagen", "Ford", "Chevrolet", "Honda", "Nissan",
+                     "Mercedes", "BMW", "Audi", "Hyundai", "Kia", "Volvo", "Fiat",
+                     "Renault", "Peugeot", "Mazda", "Subaru", "Jeep", "Tesla", "Lexus",
+                     "Cadillac", "Mitsubishi", "Suzuki", "Land Rover", "Jaguar",
+                     "Ferrari", "Porsche", "Lamborghini", "Maserati", "Bugatti", "McLaren", "Aston Martin",
+                     "Geely", "BYD", "Great Wall Motors", "Changan", "SAIC Motor Corporation", "General Motors",
+                     # дополнительные расширения:
+                     "Automobile", "Motor", "Corporation", "Rover"
+]
