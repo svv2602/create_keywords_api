@@ -83,6 +83,27 @@ class ExportsController < ApplicationController
 
   end
 
+  def replace_size_in_seo_content_text_sentence_r22
+    # Замена технических переменных  [size] на R22 в дисках
+    regex = 'R22'
+    records = SeoContentTextSentence.where("(sentence LIKE ? or sentence_ua LIKE ?) and id_text > 50000", "%[size]%", "%[size]%")
+    records.find_each do |sentence|
+        sentence.attributes.each do |name, value|
+          next if name == "str_seo_text" || !value.is_a?(String)
+          new_value = value.gsub('[size]', regex)
+          sentence[name] = new_value if new_value != value
+        end
+        sentence.save!
+      end
+      result = "Все Ok. Обновление таблиц завершено"
+
+
+    puts result
+    render plain: result
+
+  end
+
+
   def download_database
     send_file(
       "#{Rails.root}/storage/development.sqlite3",

@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   get '/export_questions_to_xlsx', to: 'exports#export_questions_to_xlsx'
   get '/add_new_brand_entries', to: 'exports#add_new_brand_entries'
   get '/replace_text_in_seo_content_text_sentence', to: 'exports#replace_text_in_seo_content_text_sentence'
+  get '/replace_size_in_seo_content_text_sentence_r22', to: 'exports#replace_size_in_seo_content_text_sentence_r22'
   get '/replace_name_brand_total', to: 'exports#replace_name_brand_total'
 
 
