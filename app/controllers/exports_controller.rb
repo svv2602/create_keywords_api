@@ -236,7 +236,7 @@ class ExportsController < ApplicationController
   def export_xlsx
     # выгрузка из базы данных записей для дальнейшего перевода в google
     # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
-    count = 50000 # количество выгружаемых записей
+    count = 20000 # количество выгружаемых записей
     max_id = params[:max].to_i == 0 ? SeoContentTextSentence.where("sentence_ua = ''").maximum(:id) : params[:max].to_i
 
     @selected_records = SeoContentTextSentence
@@ -299,9 +299,9 @@ class ExportsController < ApplicationController
     # /process_files_ua?proc=2 - import_questions_ua(filename) - для таблицы QuestionsBlock
 
     proc = params[:proc].to_i
-    proc_import_text_ua(proc)
+    result = proc_import_text_ua(proc)
 
-    render plain: "Обновление завершено.  Обработано строк: #{j}"
+    render plain: "Обновление завершено.  Обработано  |  файлов:#{result[:files]} |  строк:#{result[:str]}"
   end
 
   def add_new_brand_entries

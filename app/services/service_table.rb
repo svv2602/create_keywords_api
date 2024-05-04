@@ -617,6 +617,7 @@ module ServiceTable
       j += import_questions_ua(filename) if proc == 2 # для таблицы QuestionsBlock
       result += 1
     end
+    return {str: j, files: result}
   end
 
   def import_text_ua(filename)
