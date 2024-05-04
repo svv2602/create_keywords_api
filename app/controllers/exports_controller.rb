@@ -6,8 +6,8 @@ class ExportsController < ApplicationController
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
     # можно добавить проверку на наличие файла, параметр для типа вопросов - нужно ????
     # ==========================================================
-    QuestionsBlock.where(type_paragraph: 1).update_all(type_season: 1)
-    QuestionsBlock.where("type_paragraph = 1 and (question_ru like ? or question_ru like ?)","%стал%" ,"%штамп%").update_all(type_season: 2)
+    # QuestionsBlock.where(type_paragraph: 1).update_all(type_season: 1)
+    # QuestionsBlock.where("type_paragraph = 1 and (question_ru like ? or question_ru like ?)","%стал%" ,"%штамп%").update_all(type_season: 2)
 
     # =====================================================
     type_paragraph = 1
@@ -297,7 +297,7 @@ class ExportsController < ApplicationController
     end
 
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    send_data package.to_stream.read, :filename => "seo_question_ru_track.xlsx", :type => "application/xlsx"
+    send_data package.to_stream.read, :filename => "seo_question_ru_diski.xlsx", :type => "application/xlsx"
   end
 
   def process_files_ua
