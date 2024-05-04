@@ -99,9 +99,10 @@ module ServiceQuestion
     # Выбор первых "count" записей из таблицы
     records = QuestionsBlock.where(type_paragraph: type_paragraph).limit(count)
 
+    max_count = type_paragraph == 1 ? 2 : 3
     count_repeat.times do
       # 1 - летние, 2 - зимние, 3 - всесезонные
-      (1..3).each do |season|
+      (1..max_count).each do |season|
         records.each do |record|
           rewrite_question_and_answer(record[:question_ru], season, type_paragraph)
         end
@@ -125,6 +126,16 @@ module ServiceQuestion
                      "зимних шин"
                    when 3
                      "всесезонных шин"
+                   else
+                     ""
+                   end
+    end
+    if type_paragraph == 1
+      str_season = case season
+                   when 1
+                     "легкоспланых дисков"
+                   when 2
+                     "стальных дисков"
                    else
                      ""
                    end
