@@ -5,10 +5,16 @@ class ExportsController < ApplicationController
   def control_question
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
     # можно добавить проверку на наличие файла, параметр для типа вопросов - нужно ????
+    # ==========================================================
+    QuestionsBlock.where(type_paragraph: 1).update_all(type_season: 1)
+    QuestionsBlock.where("question_ru like ? or question_ru like ?","%стал%" ,"%штамп%").update_all(type_season: 2)
+
+    # =====================================================
     type_paragraph = 1
     excel_file = "lib/text_questions/questions_base.xlsx"
     first_filling_of_table(excel_file, type_paragraph, 0) # 0 - все записи из файла
     second_filling_of_table(excel_file,type_paragraph, 7)
+
   end
 
   def replace_name_brand_total
