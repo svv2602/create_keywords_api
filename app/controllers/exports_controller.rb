@@ -14,7 +14,7 @@ class ExportsController < ApplicationController
     excel_file = "lib/text_questions/questions_base.xlsx"
     first_filling_of_table(excel_file, type_paragraph, 0) # 0 - все записи из файла
     second_filling_of_table(excel_file,type_paragraph, 7)
-
+    render plain: "Все записи с вопросами и ответами (ru) в QuestionsBlock - обработаны  "
   end
 
   def replace_name_brand_total
