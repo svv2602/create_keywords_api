@@ -17,15 +17,13 @@ module ServiceQuestion
     questions = filter_questions(questions)
 
     questions.each do |record|
-      hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : {  question: record[:question_ru], answer: record[:answer_ru] }
+      hash = url_type_ua? ? { question: record[:question_ua], answer: record[:answer_ua] } : { question: record[:question_ru], answer: record[:answer_ru] }
       list_questions << hash
     end
-
 
     # добавляем еще 1-4 вопроса по константам
     list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
                                     [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
-
 
     result = format_question_full(list_questions)
 
@@ -39,7 +37,6 @@ module ServiceQuestion
     puts "Error occurred: #{e.message}"
     nil
   end
-
 
   def filter_questions(questions)
     puts "questions =  #{questions.inspect}"
@@ -61,12 +58,12 @@ module ServiceQuestion
     filtered_questions
   end
 
-  def first_filling_of_table(type_paragraph = 0, count = 0,  type_season = 1)
+  def first_filling_of_table(excel_file, type_paragraph = 0, count = 0, type_season = 1)
     # Заполнение таблицы с текстом по ошибкам
     # type_paragraph: 0 - по легковым шинам
     # type_season: 1 - летние
 
-    excel_file = "lib/text_questions/questions_base_track.xlsx"
+    # excel_file = "lib/text_questions/questions_base_track.xlsx"
     excel = Roo::Excelx.new(excel_file)
     i = 1
     excel.each_row_streaming(pad_cells: true) do |row|
@@ -91,9 +88,9 @@ module ServiceQuestion
     end
   end
 
-  def second_filling_of_table(type_paragraph, count_repeat = 5 )
+  def second_filling_of_table(excel_file, type_paragraph, count_repeat = 5)
     # Определение количества строк в файле Excel
-    excel_file = "lib/text_questions/questions_base_track.xlsx"
+    # excel_file = "lib/text_questions/questions_base_track.xlsx"
     excel = Roo::Excelx.new(excel_file)
     count = excel.last_row
     puts "количесто строк в ексель: #{count}"
