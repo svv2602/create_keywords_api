@@ -84,6 +84,7 @@ endpoint:
   * Для замены технических переменных на [size] Выполнить
     * replace_text_in_seo_content_text_sentence?proc=1 - для грузовых шин
     * replace_text_in_seo_content_text_sentence?proc=2 - для дисков
+    * replace_text_in_seo_content_text_sentence?proc=3 - для дисков (r22)
       
 ==============================
 
