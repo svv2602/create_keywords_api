@@ -62,9 +62,10 @@ class ExportsController < ApplicationController
     proc = params[:proc].to_i
     regex = '12R20' if proc == 1
     regex = 'R22' if proc == 2
+    regex = 'r22' if proc == 3
 
     if regex
-      SeoContentText.find_each do |sentence|
+      SeoContentText.where("str LIKE ?", "%#{regex}%").find_each do |sentence|
 
         sentence.attributes.each do |name, value|
           next if name == "content_type" || !value.is_a?(String)
@@ -73,7 +74,7 @@ class ExportsController < ApplicationController
         end
         sentence.save!
       end
-      SeoContentTextSentence.find_each do |sentence|
+      SeoContentTextSentence.where("sentence LIKE ?", "%#{regex}%").find_each do |sentence|
         sentence.attributes.each do |name, value|
           next if name == "str_seo_text" || !value.is_a?(String)
           new_value = value.gsub(regex, '[size]')
