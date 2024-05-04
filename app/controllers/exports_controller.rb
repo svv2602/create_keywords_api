@@ -4,7 +4,8 @@ class ExportsController < ApplicationController
 
   def control_question
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые
-    type_paragraph = 2
+    # можно добавить проверку на наличие файла, параметр для типа вопросов - нужно ????
+    type_paragraph = 1
     first_filling_of_table(type_paragraph, 0) # 0 - все записи из файла
     second_filling_of_table(type_paragraph, 7)
   end
