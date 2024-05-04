@@ -232,7 +232,7 @@ module ServiceTable
             record.sentence.match?(regexp) ||
             record.sentence.match?(brand_regex) ||
             record.sentence.match?(/(^|\s)(я|мой|моего|моя|мою)\s/i) ||
-            record.sentence.match?(/Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
+            record.sentence.match?(/google|Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
             record.sentence.match?(/Nike|Puma|Adidas|ABC|Xiaomi|Sony|Bose|Bravia|Rocher|Domino|Jamie|Bosch|Delizioso|Cordon|Tefal|Camry|Starbucks|iPhone|Lauder/i) ||
             record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Calvin|Christian|Dior|YZL|Louboutin|Jimmy|Levi|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
             record.sentence.match?(/McDonald|Trend|Samsung|LG|Nikon|Spotify|Apple|Chanel|Coca|Nutella|Bella|LuxInteriors|Eichholtz/i) ||
@@ -243,6 +243,8 @@ module ServiceTable
             record.sentence.match?(/\bтрек(|и|а|ов|ами|ом)\b/i) ||
             record.sentence.match?(/\bблюд(|а|у|ами|ом|о|е)\b/i) ||
             record.sentence.match?(/\bужин\b/i) ||
+            record.sentence.match?(/поисков(ая|е|ых|ого)\s(систем|продвиж|выдач)/i) ||
+
             record.sentence.match?(/(|автомобильн(ому|ым|ом|ый)\s)салон(|а|у|ом|е)\sкрасоты|(^|\s)(литр|музык|компакт-диск|((кон|)текст(?!\w*ур)))/i) ||
             record.sentence.match?(/(стильн(ые|ую)|уличную|Утепленная|Элегантная|Качественная|представлена|Подбирайте|Эксклюзивная|идеальную)\sобувь/i) ||
             record.sentence.match?(/(^|\s)(кон|)текст(?!\w*ур)/i) ||
