@@ -7,7 +7,7 @@ class ExportsController < ApplicationController
     # можно добавить проверку на наличие файла, параметр для типа вопросов - нужно ????
     # ==========================================================
     QuestionsBlock.where(type_paragraph: 1).update_all(type_season: 1)
-    QuestionsBlock.where("question_ru like ? or question_ru like ?","%стал%" ,"%штамп%").update_all(type_season: 2)
+    QuestionsBlock.where("type_paragraph = 1 and (question_ru like ? or question_ru like ?)","%стал%" ,"%штамп%").update_all(type_season: 2)
 
     # =====================================================
     type_paragraph = 1
