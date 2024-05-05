@@ -145,11 +145,14 @@ module ServiceTable
   def delete_records_for_id_diski
     array_id = [
       1982158, 443391, 476678, 439782, 414611,
-      583151, 404679
+      583151, 404679, 1702455
     ]
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
     end
+
+
+    SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
 
     QuestionsBlock.where("question_ua ='' ").delete_all
 
@@ -254,7 +257,7 @@ module ServiceTable
             record.sentence.match?(/музык|прослушиван|медиа|звучащ|альбом|атмосфер|дерев|стекл|колье|шарф|перчат|рюкзак|телевизор|рубаш|сипед|джинс|смартфон|прогулк/i) ||
             record.sentence.match?(/футбол|клуб|трениров|фитнес|питани|кулинар|кухн|сковород|экран|Видео|гаджет|наушник|звучани|аудио/i) ||
             record.sentence.match?(/(^|\s)(водност|тошнотност)(ь|ью|и|)\b/i) ||
-
+            record.sentence.match?(/(^|\s)(4|5|6)\./i) ||
             record.sentence.match?(/\bтрек(|и|а|ов|ами|ом)\b/i) ||
             record.sentence.match?(/\bблюд(|а|у|ами|ом|о|е)\b/i) ||
             record.sentence.match?(/\bужин\b/i) ||
