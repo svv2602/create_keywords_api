@@ -13,8 +13,9 @@ class ExportsController < ApplicationController
     type_paragraph = 1
     excel_file = "lib/text_questions/questions_base.xlsx"
     first_filling_of_table(excel_file, type_paragraph, 0) # 0 - все записи из файла
-    second_filling_of_table(excel_file,type_paragraph, 7)
+    second_filling_of_table(excel_file, type_paragraph, 7)
     render plain: "Все записи с вопросами и ответами (ru) в QuestionsBlock - обработаны  "
+
   end
 
   def replace_name_brand_total
@@ -97,21 +98,19 @@ class ExportsController < ApplicationController
     regex = 'R22'
     records = SeoContentTextSentence.where("(sentence LIKE ? or sentence_ua LIKE ?) and id_text > 50000", "%[size]%", "%[size]%")
     records.find_each do |sentence|
-        sentence.attributes.each do |name, value|
-          next if name == "str_seo_text" || !value.is_a?(String)
-          new_value = value.gsub('[size]', regex)
-          sentence[name] = new_value if new_value != value
-        end
-        sentence.save!
+      sentence.attributes.each do |name, value|
+        next if name == "str_seo_text" || !value.is_a?(String)
+        new_value = value.gsub('[size]', regex)
+        sentence[name] = new_value if new_value != value
       end
-      result = "Все Ok. Обновление таблиц завершено"
-
+      sentence.save!
+    end
+    result = "Все Ok. Обновление таблиц завершено"
 
     puts result
     render plain: result
 
   end
-
 
   def download_database
     send_file(
@@ -208,30 +207,11 @@ class ExportsController < ApplicationController
     # ==========================================================
     # 2 часть
     # ==========================================================
+    delete_records_for_id_diski
     result = replace_errors_sentence_diski(table) # удаление записей с ошибками
+
+
     # add_sentence_ua   # украинский перевод - !!! сделать проверку по пустому украинскому тексту!!!
-
-    # ==========================================================
-
-    # Заполнение таблицы
-    # TextError.delete_all
-    # excel_file = "lib/text_errors.xlsx"
-    # excel = Roo::Excelx.new(excel_file)
-    # i = 0
-    # excel.each_row_streaming(pad_cells: true) do |row|
-    #   begin
-    #     i += 1
-    #     line = row[0]&.value
-    #     type_line = row[1]&.value
-    #     line_ua = row[2]&.value
-    #     line_ua = line_ua.gsub("​​",'')
-    #     puts "№ #{i}    type_line === #{line} "
-    #     TextError.create(line: line, line_ua: line_ua, type_line: type_line) if line.present?
-    #   rescue StandardError => e
-    #     puts "Error on row #{i}: #{e.message}"
-    #     next
-    #   end
-    # end
 
     # delete_records_with_instructions
 
@@ -330,9 +310,6 @@ class ExportsController < ApplicationController
     end
     render plain: "Обновление таблицы брендов завершено."
   end
-
-
-
 
   # ========================последний end=======================
 

@@ -142,6 +142,19 @@ module ServiceTable
 
   end
 
+  def delete_records_for_id_diski
+    array_id = [
+      1982158, 443391, 476678, 439782, 414611,
+      583151, 404679
+    ]
+    array_id.each do |id|
+      SeoContentTextSentence.destroy_by(id: id)
+    end
+
+    QuestionsBlock.where("question_ua ='' ").delete_all
+
+  end
+
   def replace_errors_size(table)
     # очистка таблиц от мусора после первой генерации текстов
     model = table.classify.constantize
@@ -238,7 +251,7 @@ module ServiceTable
             record.sentence.match?(/McDonald|Trend|Samsung|Panasonic|LG|Nikon|Spotify|Apple|Chanel|Coca|Nutella|Bella|LuxInteriors|Eichholtz/i) ||
             record.sentence.match?(/одежд|копир|контент|мебел|кожа|двигател|мотор|кроссовк|туфл|рестор|реклам|интерьер|овощ/i) ||
             record.sentence.match?(/макияж|маникюр|космети|кож(е|а|и|у|ей)|крем(а|у|ом|ов)|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
-            record.sentence.match?(/колье|шарф|перчат|рюкзак|телевизор|рубаш|сипед|джинс|смартфон|прогулк/i) ||
+            record.sentence.match?(/музык|прослушиван|медиа|звучащ|альбом|атмосфер|дерев|стекл|колье|шарф|перчат|рюкзак|телевизор|рубаш|сипед|джинс|смартфон|прогулк/i) ||
             record.sentence.match?(/футбол|клуб|трениров|фитнес|питани|кулинар|кухн|сковород|экран|Видео|гаджет|наушник|звучани|аудио/i) ||
             record.sentence.match?(/(^|\s)(водност|тошнотност)(ь|ью|и|)\b/i) ||
 
@@ -270,11 +283,9 @@ module ServiceTable
             retry
           else
             puts "3 попытки удаления записи #{record.id} не удалась: #{e}. Пропускаю..."
-            j +=1
+            j += 1
           end
         end
-
-
 
         #====================================
       end
@@ -620,7 +631,7 @@ module ServiceTable
       j += import_questions_ua(filename) if proc == 2 # для таблицы QuestionsBlock
       result += 1
     end
-    return {str: j, files: result}
+    return { str: j, files: result }
   end
 
   def import_text_ua(filename)
