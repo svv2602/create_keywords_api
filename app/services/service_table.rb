@@ -145,7 +145,7 @@ module ServiceTable
   def delete_records_for_id_diski
     array_id = [
       1982158, 443391, 476678, 439782, 414611,
-      583151, 404679, 1702455
+      583151, 404679, 1702455, 799065
     ]
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
@@ -176,6 +176,25 @@ module ServiceTable
     records.each do |record|
       record.update(sentence: record.sentence.gsub("российских", "украинских"),
                     sentence_ua: record.sentence_ua.gsub("російських", "українських"))
+    end
+
+    records = SeoContentTextSentence.where("sentence like ?", "%российскими%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("российскими", "украинскими"),
+                    sentence_ua: record.sentence_ua.gsub("російськими", "українськими"))
+    end
+
+
+    records = SeoContentTextSentence.where("sentence like ?", "%российские%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("российские", "украинские"),
+                    sentence_ua: record.sentence_ua.gsub("російські", "українські"))
+    end
+
+    records = SeoContentTextSentence.where("sentence like ?", "%российского%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("российского", "украинского"),
+                    sentence_ua: record.sentence_ua.gsub("російського", "українського"))
     end
 
   end
