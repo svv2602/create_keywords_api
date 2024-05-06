@@ -104,7 +104,7 @@ module ServiceQustitionProcessing
       field_name = "name"
     end
     answer = ""
-    puts "Проверка question_random == #{question_random.inspect}"
+    # puts "Проверка question_random == #{question_random.inspect}"
     # question = question_random
 
     el[field_aliases.to_sym].size < 10 ? max = el[field_aliases.to_sym].size : max = 10
@@ -116,8 +116,8 @@ module ServiceQustitionProcessing
       answer += "<a href='#{question_random[:url]}#{el[:alias]}'>• #{el[field_name.to_sym]}  </a>    "
     end
     answer = answer.gsub("prokoleso.ua", "prokoleso.ua/ua") if rand(1..10) % 2 == 0
-    puts " question = #{question.inspect}"
-    puts " answer = #{answer.inspect}"
+    # puts " question = #{question.inspect}"
+    # puts " answer = #{answer.inspect}"
     rezult = { question: question, answer: "[#{answer}]" }
   end
 
@@ -136,7 +136,7 @@ module ServiceQustitionProcessing
       list_questions << question_const(list2.sample)
     end
 
-    puts "list_questions ==== #{list_questions.inspect}"
+    # puts "list_questions ==== #{list_questions.inspect}"
     list_questions
 
   end
@@ -184,10 +184,10 @@ module ServiceQustitionProcessing
                      .gsub(']', '')
                      .gsub(/(|\/)html/, '')
                      .gsub('*', '')
+                     .gsub(/(R|r)22/, replace_name_size(url_params))
                      .gsub(/195\/65(R|r)15/, replace_name_size(url_params))
                      .gsub(/12(R|r)20/, replace_name_size(url_params))
-                     .gsub(/(R|r)22/, replace_name_size(url_params))
-                     .gsub('[size]', replace_name_size(url_params))
+                     .gsub(/\[size\]/i, replace_name_size(url_params))
 
         # Разбить строку на предложения
         sentences = str_new.split(". ")

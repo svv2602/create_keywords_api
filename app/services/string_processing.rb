@@ -388,6 +388,7 @@ module StringProcessing
     url_shiny = url_shiny_hash_params
     diameter = url_shiny[:tyre_r]
     season = url_shiny[:tyre_season]
+    season = url_shiny[:disk_type] if url_type_by_parameters == 1
     season = url_shiny[:tyre_axis] if url_type_by_parameters == 2
     tires_size = "#{url_shiny[:tyre_w]}/#{url_shiny[:tyre_h]}R#{url_shiny[:tyre_r]}"
 
@@ -433,27 +434,54 @@ module StringProcessing
         end
 
         # ссылки на размеры
+        if url_type_by_parameters == 0 or url_type_by_parameters == 2
+          type_season.each do |key, value|
+            break if replaced
+            break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
+            # regex = /(#{value[:search_str]}\s*#{search_size})/
+            regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+            regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
 
-        type_season.each do |key, value|
-          break if replaced
-          break if [url_shiny[:tyre_w], url_shiny[:tyre_h], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
-          # regex = /(#{value[:search_str]}\s*#{search_size})/
-          regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
-          regex = Regexp.new("(#{Regexp.union(regex_season, search_size, search_size_2)}\s*)")
+            match = line.match(regex)
 
-          match = line.match(regex)
+            part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
+            part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
+            if match && value[:state][:season_size]
+              puts "tires_size ===== #{tires_size}"
+              url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
+              line.sub!(regex, url)
+              value[:state][:season_size] = false
+              replaced = true
+            end
 
-          part_url_size = "w-#{url_shiny[:tyre_w]}/h-#{url_shiny[:tyre_h]}/r-#{url_shiny[:tyre_r]}/"
-          part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
-          if match && value[:state][:season_size]
-            puts "tires_size ===== #{tires_size}"
-            url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
-            line.sub!(regex, url)
-            value[:state][:season_size] = false
-            replaced = true
           end
-
         end
+
+
+        # ссылки на размеры диски
+        if url_type_by_parameters == 1
+          type_season.each do |key, value|
+            break if replaced
+            break if [url_shiny[:tyre_w], url_shiny[:disk_pcd], url_shiny[:tyre_r]].any? { |element| element.to_s.empty? }
+            # regex = /(#{value[:search_str]}\s*#{search_size})/
+            regex_season = url_type_ua? ? value[:search_str_ua] : value[:search_str]
+            regex = Regexp.new("(#{Regexp.union(regex_season, SEARCH_SIZE_DISKI_1, SEARCH_SIZE_DISKI_2)}\s*)")
+
+            match = line.match(regex)
+
+            part_url_size = "w-#{url_shiny[:tyre_w]}/r-#{url_shiny[:tyre_r]}/pcd-#{url_shiny[:disk_pcd]}/"
+            part_url = value[:season].to_i == season.to_i ? '' : value[:value] + '/'
+            if match && value[:state][:season_size]
+              puts "tires_size ===== #{tires_size}"
+              url = "#{str_url}/#{part_url}#{part_url_size}'>#{match[0]}</a>"
+              line.sub!(regex, url)
+              value[:state][:season_size] = false
+              replaced = true
+            end
+
+          end
+        end
+
 
         # ссылки на диаметры
         type_season.each do |key, value|
@@ -687,7 +715,7 @@ module StringProcessing
         when 'axis-vedushchaya'
           url_hash[:tyre_axis] = 3
         when 'type-legkosplavnyye'
-          url_hash[:tyre_disk] = 1
+          url_hash[:disk_type] = 1
         when 'type-stalnyye'
           url_hash[:disk_type] = 2
         when /pcd-\d+/
@@ -849,21 +877,21 @@ module StringProcessing
     when 100, 110, 200, 210
       # варианты по размеру
       # размер и размер+бренд, диаметр+бренд
-      result = 2500
+      result = 2200
 
     when 101, 102, 103, 201, 202, 203
       # варианты по диаметру - диаметр+ось
       # варианты по размеру - размер+ось
-      result = 2200
+      result = 1800
 
     when 111, 112, 113, 211, 212, 213
       # варианты по диаметру - диаметр+бренд+тип диска
       # варианты по размеру - размер+бренд+тип диска
-      result = 1500
+      result = 1200
 
     when 10, 11, 12, 13
       # варианты по бренду и бренду с типом диска
-      result = 1500
+      result = 1000
 
     else
       result = 0

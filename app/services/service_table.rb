@@ -151,10 +151,26 @@ module ServiceTable
       SeoContentTextSentence.destroy_by(id: id)
     end
 
-
     SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
 
     QuestionsBlock.where("question_ua ='' ").delete_all
+
+    records = SeoContentTextSentence.where("sentence like ?", "%по России%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("по России", "по Украине"),
+                    sentence_ua: record.sentence_ua.gsub("по Росії", "по Україні"))
+    end
+    records = SeoContentTextSentence.where("sentence like ?", "%России%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("России", "Украины"),
+                    sentence_ua: record.sentence_ua.gsub("Росії", "України"))
+    end
+    records = SeoContentTextSentence.where("sentence like ?", "%Москве%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("Москве", "Киеву"),
+                    sentence_ua: record.sentence_ua.gsub("Москві", "Києву"))
+    end
+
 
   end
 
