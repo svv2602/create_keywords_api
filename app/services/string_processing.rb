@@ -769,7 +769,7 @@ module StringProcessing
     # распределение по разрядам суммы
     size = ![url_parts[:tyre_w], type_h_pcd, url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни
     # size = ![url_parts[:tyre_w], url_parts[:tyre_h], url_parts[:tyre_r]].any?(&:empty?) ? 100 : 0 # сотни - были
-    diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], url_parts[:tyre_h]].any?(&:empty?) ? 200 : 0 # сотни
+    diameter = url_parts[:tyre_r].present? && [url_parts[:tyre_w], type_h_pcd].any?(&:empty?) ? 200 : 0 # сотни
     brand = url_parts[:tyre_brand].present? ? 10 : 0 # десятки
 
     season = case url_type_by_parameters
