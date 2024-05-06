@@ -145,7 +145,9 @@ module ServiceTable
   def delete_records_for_id_diski
     array_id = [
       1982158, 443391, 476678, 439782, 414611,
-      583151, 404679, 1702455, 799065
+      583151, 404679, 1702455, 799065, 1632477, 1553605,
+      702905, 702906, 1580622
+
     ]
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
@@ -171,7 +173,6 @@ module ServiceTable
                     sentence_ua: record.sentence_ua.gsub("Москві", "Києву"))
     end
 
-
     records = SeoContentTextSentence.where("sentence like ?", "%российских%")
     records.each do |record|
       record.update(sentence: record.sentence.gsub("российских", "украинских"),
@@ -183,7 +184,6 @@ module ServiceTable
       record.update(sentence: record.sentence.gsub("российскими", "украинскими"),
                     sentence_ua: record.sentence_ua.gsub("російськими", "українськими"))
     end
-
 
     records = SeoContentTextSentence.where("sentence like ?", "%российские%")
     records.each do |record|
@@ -291,12 +291,13 @@ module ServiceTable
             record.sentence.match?(/(^|\s)(я|мой|моего|моя|мою)\s/i) ||
             record.sentence.match?(/google|20|Mac|DEF|HDD|SSD|Oreal|Rolex|Casio|Louis|Vuitton|Chronos|PremiumWatches|Huawei|Tag|Heuer|Swatch|часы|часов/i) ||
             record.sentence.match?(/Nike|Puma|Adidas|ABC|Xiaomi|Sony|Bose|Bravia|Rocher|Domino|Jamie|Bosch|Delizioso|Cordon|Tefal|Camry|Starbucks|iPhone|Lauder/i) ||
-            record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Calvin|Christian|Dior|YZL|Louboutin|Jimmy|Levi|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
-            record.sentence.match?(/McDonald|Trend|Tiffany|Pandora|Samsung|Panasonic|LG|Nikon|Spotify|Apple|Chanel|Coca|Nutella|Bella|LuxInteriors|Eichholtz/i) ||
+            record.sentence.match?(/LuxDeco|BoConcept|Luxury|Art|Calvin|Christian|Givenchy|Dior|YZL|Louboutin|Jimmy|Levi|Craft|Eichholtz|IKEA|Gucci|Prada|land/i) ||
+            record.sentence.match?(/McDonald|Trend|Canon|Tiffany|Pandora|Swarovski|Samsung|Panasonic|LG|Nikon|Spotify|Apple|Chanel|Coca|Nutella|Bella|LuxInteriors|Eichholtz/i) ||
             record.sentence.match?(/одежд|копир|контент|мебел|кожа|двигател|мотор|кроссовк|туфл|рестор|реклам|интерьер|овощ/i) ||
             record.sentence.match?(/макияж|маникюр|космети|кож(е|а|и|у|ей)|крем(а|у|ом|ов)|сумк|женщи|парфюм|аромат|закус|напит|к(а|о)фе|волос/i) ||
             record.sentence.match?(/музык|прослушиван|медиа|звучащ|альбом|атмосфер|дерев|стекл|колье|шарф|перчат|рюкзак|телевизор|рубаш|сипед|джинс|смартфон|прогулк/i) ||
-            record.sentence.match?(/футбол|клуб|трениров|фитнес|питани|кулинар|кухн|сковород|экран|Видео|Украшения|гаджет|наушник|звучани|аудио/i) ||
+            record.sentence.match?(/футбол|клуб|трениров|фитнес|питани|кулинар|кухн|сковород|экран|Видео|гаджет|наушник|звучани|аудио/i) ||
+            record.sentence.match?(/холст|подушк|ковры|фоторам|тканя|художн|ювелир/i) ||
             record.sentence.match?(/(^|\s)(водност|тошнотност)(ь|ью|и|)\b/i) ||
             record.sentence.match?(/(^|\s)(4|5|6)\./i) ||
             record.sentence.match?(/\bтрек(|и|а|ов|ами|ом)\b/i) ||
