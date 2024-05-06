@@ -172,6 +172,12 @@ module ServiceTable
     end
 
 
+    records = SeoContentTextSentence.where("sentence like ?", "%российских%")
+    records.each do |record|
+      record.update(sentence: record.sentence.gsub("российских", "украинских"),
+                    sentence_ua: record.sentence_ua.gsub("російських", "українських"))
+    end
+
   end
 
   def replace_errors_size(table)
