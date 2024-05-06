@@ -208,7 +208,7 @@ class ExportsController < ApplicationController
     # 2 часть
     # ==========================================================
     delete_records_for_id_diski
-    # result = replace_errors_sentence_diski(table) # удаление записей с ошибками
+    result = replace_errors_sentence_diski(table) # удаление записей с ошибками
 
 
     # add_sentence_ua   # украинский перевод - !!! сделать проверку по пустому украинскому тексту!!!
