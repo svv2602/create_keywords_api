@@ -174,16 +174,10 @@ module ServiceTable
     SeoContentTextSentence.where("sentence like ? ", "%архитект%").delete_all
     SeoContentTextSentence.where("sentence like ? ", "%фильм%").delete_all
 
-    SeoContentTextSentence.where("sentence like ? ", "%подпис%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%убликац%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%XYZ%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "% зрител%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%крыло%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
-
     words = [
       'светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук', 'Dell',
-      'мистич', 'джунгли', 'тарелк'
+      'мистич', 'джунгли', 'тарелк', 'одеж', 'фар', 'Light', 'деликатес', 'органические', 'FashionFusion',
+      'TechSolutions', 'NeoSolutions', 'Bio', 'harmful','подпис','убликац','XYZ',' зрител','крыло','Крыл'
     ]
     query = words.map { |word| "sentence LIKE '%#{word}%'" }.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
