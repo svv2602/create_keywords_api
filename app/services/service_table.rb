@@ -144,16 +144,41 @@ module ServiceTable
 
   def delete_records_for_id_diski
     array_id = [
-      1982158, 443391, 476678, 439782, 414611,
-      583151, 404679, 1702455, 799065, 1632477, 1553605,
-      702905, 702906, 1580622, 1008800, 1009183, 1057758
-
+      1982158, 443391, 476678, 439782, 414611, 583151, 404679, 1702455, 799065, 1632477,
+      702905, 702906, 1580622, 1008800, 1009183, 1057758, 1881965, 1881964, 813767, 813762,
+      813666, 1978730, 1956796, 1956797, 1929481, 1905983, 1929480, 1881964, 1967235,
+      1878022, 1837238, 1843545, 1844385, 1824141, 1820380, 1798668, 1806163, 1553605,
+      1791894, 1783614, 1766662, 1783613, 1766662, 1693288, 1687750, 1681634, 1967236,
+      1678723, 1622563, 1632588, 1603331, 1584352, 1584363, 1562637, 1936462, 1806275,
+      1956282, 1956294, 1956295, 1956297, 1956299, 1956300, 1956302, 1956304, 1780451,
+      1956306, 1956576, 1956672, 1958033, 1958042, 1829453, 1829454, 1826621, 1806275,
+      1658779, 1689278, 1700959, 1702456, 1707588, 1925403, 1967228, 1967230, 1967234,
+      1539004
     ]
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
     end
 
     SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%гардероб%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%Vogue%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "% турист%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%Петербург%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%архитект%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%фильм%").delete_all
+
+    SeoContentTextSentence.where("sentence like ? ", "%подпис%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%убликац%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%XYZ%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "% зрител%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%крыло%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
+
+    SeoContentTextSentence.where("sentence like ? ", "%мелод%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
+
 
     QuestionsBlock.where("question_ua ='' ").delete_all
 
