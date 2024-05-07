@@ -180,11 +180,11 @@ module ServiceTable
     SeoContentTextSentence.where("sentence like ? ", "%крыло%").delete_all
     SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
 
-    SeoContentTextSentence.where("sentence like ? ", "%мелод%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%палитр%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%пространств%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%светил%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%настольн%").delete_all
+    words = ['светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют']
+    query = words.map { |word| sanitize_sql_array(["title LIKE ?", "%#{word}%"]) }.join(" OR ")
+    SeoContentTextSentence.where(query).delete_all
+
+
 
     QuestionsBlock.where("question_ua ='' ").delete_all
 
