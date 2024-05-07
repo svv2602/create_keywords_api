@@ -175,9 +175,11 @@ module ServiceTable
     SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
 
     SeoContentTextSentence.where("sentence like ? ", "%мелод%").delete_all
-    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
-    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
-    # SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%палитр%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%пространств%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%светил%").delete_all
+    SeoContentTextSentence.where("sentence like ? ", "%настольн%").delete_all
+
 
 
     QuestionsBlock.where("question_ua ='' ").delete_all
