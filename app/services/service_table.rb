@@ -180,8 +180,8 @@ module ServiceTable
     SeoContentTextSentence.where("sentence like ? ", "%крыло%").delete_all
     SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
 
-    words = ['светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют']
-    query = words.map { |word| sanitize_sql_array(["title LIKE ?", "%#{word}%"]) }.join(" OR ")
+    words = ['светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук','Dell']
+    query = words.map {|word| "sentence LIKE '%#{word}%'"}.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
 
 
