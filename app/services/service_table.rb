@@ -158,7 +158,9 @@ module ServiceTable
       1904736, 1904735, 1904734, 1904733, 1904732, 1904731, 1904730, 1904729,
       1904728, 1904727, 1904714, 1904532, 1904405, 1904403, 1904402, 1904401,
       1904398, 1904397, 1904395, 1901148, 1901143, 1900561, 1900536, 1834794,
-      1834388, 1806943, 1806942, 1806941
+      1834388, 1806943, 1806942, 1806941, 1886964, 1881630, 1678721, 1678720,
+      1956526,     1952635
+
 
     ]
     array_id.each do |id|
@@ -180,9 +182,22 @@ module ServiceTable
     SeoContentTextSentence.where("sentence like ? ", "%крыло%").delete_all
     SeoContentTextSentence.where("sentence like ? ", "%Крыл%").delete_all
 
-    words = ['светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук','Dell']
-    query = words.map {|word| "sentence LIKE '%#{word}%'"}.join(" OR ")
+    words = [
+      'светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук', 'Dell',
+      'мистич','джунгли','тарелк'
+    ]
+    query = words.map { |word| "sentence LIKE '%#{word}%'" }.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
+
+
+    records = SeoContentTextSentence.where("sentence like ?", "%Предложение:%")
+    records.each do |record|
+      record.update_columns(sentence: record.sentence.gsub(/^Предложение:/, ""),
+                    sentence_ua: record.sentence_ua.gsub(/^Пропозиція:/, ""))
+    end
+
+    # =======================================
+
 
 
 
@@ -227,6 +242,8 @@ module ServiceTable
       record.update(sentence: record.sentence.gsub("российского", "украинского"),
                     sentence_ua: record.sentence_ua.gsub("російського", "українського"))
     end
+
+
 
   end
 
