@@ -354,8 +354,8 @@ module StringProcessing
                             season_size: true,
                             season_diameter: true
                    },
-                   search_str: /((С|с)(тальн)(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
-                   search_str_ua: /((С|с)(тальн)(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/
+                   search_str: /(((С|с)(тальн)|(Ш|ш)(тампован))(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
+                   search_str_ua: /(((С|с)(тальн)|(Ш|ш)(тампован))(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/
       }
 
     }
@@ -500,6 +500,16 @@ module StringProcessing
                 txt_season = 'зимові'
               when 3
                 txt_season = 'всесезонні'
+              else
+                txt_season = ''
+              end
+            end
+            if url_type_by_parameters == 1
+              case value[:season].to_i
+              when 1
+                txt_season = 'легкосплавні'
+              when 2
+                txt_season = 'штамповані'
               else
                 txt_season = ''
               end
