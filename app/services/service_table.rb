@@ -143,94 +143,101 @@ module ServiceTable
   end
 
   def delete_records_for_id_diski
-    array_id = [
-      1982158, 443391, 476678, 439782, 414611, 583151, 404679, 1702455, 799065, 1632477,
-      702905, 702906, 1580622, 1008800, 1009183, 1057758, 1881965, 1881964, 813767, 813762,
-      813666, 1978730, 1956796, 1956797, 1929481, 1905983, 1929480, 1881964, 1967235,
-      1878022, 1837238, 1843545, 1844385, 1824141, 1820380, 1798668, 1806163, 1553605,
-      1791894, 1783614, 1766662, 1783613, 1766662, 1693288, 1687750, 1681634, 1967236,
-      1678723, 1622563, 1632588, 1603331, 1584352, 1584363, 1562637, 1936462, 1806275,
-      1956282, 1956294, 1956295, 1956297, 1956299, 1956300, 1956302, 1956304, 1780451,
-      1956306, 1956576, 1956672, 1958033, 1958042, 1829453, 1829454, 1826621, 1806275,
-      1658779, 1689278, 1700959, 1702456, 1707588, 1925403, 1967228, 1967230, 1967234,
-      1539004, 1573159, 1573042, 1565775, 1565477, 1539007, 1959480, 1904947,
-      1904935, 1904908, 1904773, 1904741, 1904740, 1904739, 1904738, 1904737,
-      1904736, 1904735, 1904734, 1904733, 1904732, 1904731, 1904730, 1904729,
-      1904728, 1904727, 1904714, 1904532, 1904405, 1904403, 1904402, 1904401,
-      1904398, 1904397, 1904395, 1901148, 1901143, 1900561, 1900536, 1834794,
-      1834388, 1806943, 1806942, 1806941, 1886964, 1881630, 1678721, 1678720,
-      1956526, 1952635
+    # array_id = [
+    #   1982158, 443391, 476678, 439782, 414611, 583151, 404679, 1702455, 799065, 1632477,
+    #   702905, 702906, 1580622, 1008800, 1009183, 1057758, 1881965, 1881964, 813767, 813762,
+    #   813666, 1978730, 1956796, 1956797, 1929481, 1905983, 1929480, 1881964, 1967235,
+    #   1878022, 1837238, 1843545, 1844385, 1824141, 1820380, 1798668, 1806163, 1553605,
+    #   1791894, 1783614, 1766662, 1783613, 1766662, 1693288, 1687750, 1681634, 1967236,
+    #   1678723, 1622563, 1632588, 1603331, 1584352, 1584363, 1562637, 1936462, 1806275,
+    #   1956282, 1956294, 1956295, 1956297, 1956299, 1956300, 1956302, 1956304, 1780451,
+    #   1956306, 1956576, 1956672, 1958033, 1958042, 1829453, 1829454, 1826621, 1806275,
+    #   1658779, 1689278, 1700959, 1702456, 1707588, 1925403, 1967228, 1967230, 1967234,
+    #   1539004, 1573159, 1573042, 1565775, 1565477, 1539007, 1959480, 1904947,
+    #   1904935, 1904908, 1904773, 1904741, 1904740, 1904739, 1904738, 1904737,
+    #   1904736, 1904735, 1904734, 1904733, 1904732, 1904731, 1904730, 1904729,
+    #   1904728, 1904727, 1904714, 1904532, 1904405, 1904403, 1904402, 1904401,
+    #   1904398, 1904397, 1904395, 1901148, 1901143, 1900561, 1900536, 1834794,
+    #   1834388, 1806943, 1806942, 1806941, 1886964, 1881630, 1678721, 1678720,
+    # ]
 
-    ]
+
+    array_id = [1956526, 1952635]
+
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
     end
 
-    SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%гардероб%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%Vogue%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "% турист%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%Петербург%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%архитект%").delete_all
-    SeoContentTextSentence.where("sentence like ? ", "%фильм%").delete_all
+
 
     words = [
       'светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук', 'Dell',
-      'мистич', 'джунгли', 'тарелк', 'одеж', 'фар', 'Light', 'деликатес', 'органические', 'FashionFusion',
+      'мистич', 'джунгли', 'тарелк', 'Моё', 'одеж', 'фар', 'Light', 'деликатес', 'органические', 'FashionFusion',
       'TechSolutions', 'NeoSolutions', 'Bio', 'harmful','подпис','убликац','XYZ',' зрител','крыло','Крыл'
     ]
     query = words.map { |word| "sentence LIKE '%#{word}%'" }.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
 
-    records = SeoContentTextSentence.where("sentence like ?", "%Предложение:%")
-    records.each do |record|
-      record.update_columns(sentence: record.sentence.gsub(/^Предложение:/, ""),
-                            sentence_ua: record.sentence_ua.gsub(/^Пропозиція:/, ""))
-    end
 
-    # =======================================
 
-    QuestionsBlock.where("question_ua ='' ").delete_all
+    # #=======================================
+    # SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%гардероб%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%Vogue%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "% турист%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%Петербург%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%архитект%").delete_all
+    # SeoContentTextSentence.where("sentence like ? ", "%фильм%").delete_all
 
-    records = SeoContentTextSentence.where("sentence like ?", "%по России%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("по России", "по Украине"),
-                    sentence_ua: record.sentence_ua.gsub("по Росії", "по Україні"))
-    end
-    records = SeoContentTextSentence.where("sentence like ?", "%России%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("России", "Украины"),
-                    sentence_ua: record.sentence_ua.gsub("Росії", "України"))
-    end
-    records = SeoContentTextSentence.where("sentence like ?", "%Москве%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("Москве", "Киеву"),
-                    sentence_ua: record.sentence_ua.gsub("Москві", "Києву"))
-    end
 
-    records = SeoContentTextSentence.where("sentence like ?", "%российских%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("российских", "украинских"),
-                    sentence_ua: record.sentence_ua.gsub("російських", "українських"))
-    end
+    # records = SeoContentTextSentence.where("sentence like ?", "%Предложение:%")
+    # records.each do |record|
+    #   record.update_columns(sentence: record.sentence.gsub(/^Предложение:/, ""),
+    #                         sentence_ua: record.sentence_ua.gsub(/^Пропозиція:/, ""))
+    # end
 
-    records = SeoContentTextSentence.where("sentence like ?", "%российскими%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("российскими", "украинскими"),
-                    sentence_ua: record.sentence_ua.gsub("російськими", "українськими"))
-    end
 
-    records = SeoContentTextSentence.where("sentence like ?", "%российские%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("российские", "украинские"),
-                    sentence_ua: record.sentence_ua.gsub("російські", "українські"))
-    end
-
-    records = SeoContentTextSentence.where("sentence like ?", "%российского%")
-    records.each do |record|
-      record.update(sentence: record.sentence.gsub("российского", "украинского"),
-                    sentence_ua: record.sentence_ua.gsub("російського", "українського"))
-    end
+    # QuestionsBlock.where("question_ua ='' ").delete_all
+    #
+    # records = SeoContentTextSentence.where("sentence like ?", "%по России%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("по России", "по Украине"),
+    #                 sentence_ua: record.sentence_ua.gsub("по Росії", "по Україні"))
+    # end
+    # records = SeoContentTextSentence.where("sentence like ?", "%России%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("России", "Украины"),
+    #                 sentence_ua: record.sentence_ua.gsub("Росії", "України"))
+    # end
+    # records = SeoContentTextSentence.where("sentence like ?", "%Москве%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("Москве", "Киеву"),
+    #                 sentence_ua: record.sentence_ua.gsub("Москві", "Києву"))
+    # end
+    #
+    # records = SeoContentTextSentence.where("sentence like ?", "%российских%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("российских", "украинских"),
+    #                 sentence_ua: record.sentence_ua.gsub("російських", "українських"))
+    # end
+    #
+    # records = SeoContentTextSentence.where("sentence like ?", "%российскими%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("российскими", "украинскими"),
+    #                 sentence_ua: record.sentence_ua.gsub("російськими", "українськими"))
+    # end
+    #
+    # records = SeoContentTextSentence.where("sentence like ?", "%российские%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("российские", "украинские"),
+    #                 sentence_ua: record.sentence_ua.gsub("російські", "українські"))
+    # end
+    #
+    # records = SeoContentTextSentence.where("sentence like ?", "%российского%")
+    # records.each do |record|
+    #   record.update(sentence: record.sentence.gsub("российского", "украинского"),
+    #                 sentence_ua: record.sentence_ua.gsub("російського", "українського"))
+    # end
 
   end
 
