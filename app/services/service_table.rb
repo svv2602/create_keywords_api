@@ -173,7 +173,7 @@ module ServiceTable
     words = [
       'светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук', 'Dell',
       'мистич', 'джунгли', 'тарелк', 'Моё', 'одеж', 'фар', 'Light', 'деликатес', 'органические', 'FashionFusion',
-      'TechSolutions', 'NeoSolutions', 'Bio', 'harmful','подпис','убликац','XYZ',' зрител','крыло','Крыл'
+      'TechSolutions', 'NeoSolutions', 'Bio', 'harmful','подпис','убликац','XYZ',' зрител','крыло','Крыл', 'литр'
     ]
     query = words.map { |word| "sentence LIKE '%#{word}%'" }.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
