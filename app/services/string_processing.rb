@@ -63,32 +63,53 @@ module StringProcessing
     result.shuffle
   end
 
+  def pcd_value(pcd)
+    str = ''
+    rand(1..4).times do |i|
+      str = case i
+            when 0
+              '*'
+            when 1
+              ' '
+            when 2
+              '/'
+            when 3
+              'x'
+            else
+              str = ''
+            end
+    end
+    return pcd.sub('x', str)
+  end
+
   def arr_size_diski_to_error
     url_hash = url_shiny_hash_params
     ww = url_hash[:tyre_w]
     pcd = url_hash[:disk_pcd]
     rr = url_hash[:tyre_r]
     result = []
+
     10.times do |i|
+
       case i
       when 0
-        result << "#{ww}#{rr}r#{pcd}"
+        result << "#{ww}#{rr}r#{pcd_value(pcd)}"
       when 1
-        result << "#{pcd} #{ww}r#{rr}"
+        result << "#{pcd_value(pcd)} #{ww}r#{rr}"
       when 2
-        result << "#{ww}/#{rr}R#{pcd}"
+        result << "#{ww}/#{rr}R#{pcd_value(pcd)}"
       when 3
-        result << "#{ww}\" #{rr} дюймов #{pcd}"
+        result << "#{ww}\" #{rr} дюймов #{pcd_value(pcd)}"
       when 4
-        result << "#{ww}J#{rr} R#{pcd}"
+        result << "#{ww}J#{rr} R#{pcd_value(pcd)}"
       when 5
-        result << "#{rr}x#{ww} #{pcd}"
+        result << "#{rr}x#{ww} #{pcd_value(pcd)}"
       when 6
-        result << "PCD#{pcd} на R#{rr}W#{ww}"
+        result << "PCD#{pcd_value(pcd)} на R#{rr}W#{ww}"
       when 7
-        result << "R#{rr}J#{ww} на #{pcd}"
+        result << "R#{rr}J#{ww} на #{pcd_value(pcd)}"
       when 8
-        result << "R#{rr} PCD#{pcd} J#{ww}"
+        result << "R#{rr} PCD#{pcd_value(pcd)} J#{ww}"
       else
         result << "#{ww} на #{rr} дюймов"
       end
@@ -134,17 +155,17 @@ module StringProcessing
 
       case rand(1..10) % 10
       when 2
-        result << "#{ww}J#{rr}R#{pcd}"
+        result << "#{ww}J#{rr}R#{pcd_value(pcd)}"
       when 3
-        result << "#{ww}J #{rr} дюймов pcd#{pcd}"
+        result << "#{ww}J #{rr} дюймов pcd#{pcd_value(pcd)}"
       when 4
-        result << "J#{ww}R#{rr} PCD#{pcd}"
+        result << "J#{ww}R#{rr} PCD#{pcd_value(pcd)}"
       when 6
-        result << "#{pcd} на #{rr}x#{ww}"
+        result << "#{pcd_value(pcd)} на #{rr}x#{ww}"
       when 8
-        result << "R#{rr}/W#{ww}/PCD#{pcd}"
+        result << "R#{rr}/W#{ww}/PCD#{pcd_value(pcd)}"
       else
-        result << "R#{rr} W#{ww} PCD#{pcd}"
+        result << "R#{rr} W#{ww} PCD#{pcd_value(pcd)}"
       end
       result = result + " " + random_name_brand(url_params[:tyre_brand]) if url_params[:tyre_brand].present?
     end
@@ -218,7 +239,7 @@ module StringProcessing
     end
 
     # Заменяет ручные маркировки в json-файле на шаблоны
-    marks = {"111111" => " [w-] ", "222222" => " [h-] ", "333333" => " [r-] "}
+    marks = { "111111" => " [w-] ", "222222" => " [h-] ", "333333" => " [r-] " }
     marks.each do |mark, template|
       str.gsub!(mark, template) if str.include?(mark)
     end
@@ -226,6 +247,7 @@ module StringProcessing
     replace_name_to_template(str)
     str
   end
+
   def replace_reverse_size_to_template(str)
     search_size_1 = '195/65R15'
     return str if str.nil?
@@ -259,7 +281,6 @@ module StringProcessing
       str_site_type = ''
       brands = {}
     end
-
 
     str_base = str_site + str_site_ua + str_site_type
     # Создать хэш с именами брендов в качестве ключей и URL в качестве значений
@@ -340,22 +361,22 @@ module StringProcessing
 
     type_diski = {
       'легкосплавные': { value: "type-legkosplavnyye",
-                     season: 1,
-                     state: { season_url: true,
-                              season_size: true,
-                              season_diameter: true
-                     },
-                     search_str: /((Л|л)(ит|егкославн)(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
-                     search_str_ua: /((Л|л)(ит|егкославн)(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/,
+                         season: 1,
+                         state: { season_url: true,
+                                  season_size: true,
+                                  season_diameter: true
+                         },
+                         search_str: /((Л|л)(ит|егкославн)(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
+                         search_str_ua: /((Л|л)(ит|егкославн)(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/,
       },
       'стальные': { value: 'type-stalnyye',
-                   season: 2,
-                   state: { season_url: true,
-                            season_size: true,
-                            season_diameter: true
-                   },
-                   search_str: /(((С|с)(тальн)|(Ш|ш)(тампован))(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
-                   search_str_ua: /(((С|с)(тальн)|(Ш|ш)(тампован))(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/
+                    season: 2,
+                    state: { season_url: true,
+                             season_size: true,
+                             season_diameter: true
+                    },
+                    search_str: /(((С|с)(тальн)|(Ш|ш)(тампован))(ые|ых|ыми)\s+(диск(и|ами|ах)))/,
+                    search_str_ua: /(((С|с)(тальн)|(Ш|ш)(тампован))(і|их|ими|іх|іми)\s+(диск(и|ами|ах)))/
       }
 
     }
@@ -457,7 +478,6 @@ module StringProcessing
           end
         end
 
-
         # ссылки на размеры диски
         if url_type_by_parameters == 1
           type_season.each do |key, value|
@@ -481,7 +501,6 @@ module StringProcessing
 
           end
         end
-
 
         # ссылки на диаметры
         type_season.each do |key, value|
