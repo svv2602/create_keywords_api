@@ -15,14 +15,11 @@ class ContentWriter
         model: MODEL,
         messages: [
           { role: "system",
-            #content: "You are a world class copywriter"
             content: 'Вы копирайтер мирового уровня. Пожалуйста, создайте SEO-текст с заголовками.'
           },
 
           { role: "system",
             content: "Текст должен быть на русском языке"
-            # content: "Your output is always correctly formatted markdown"
-            # content: 'Текст должен содержать информацию о летних шинах 205/55 R16 и ключевые слова: Киев, купить шины, резина, лето, летние, лучшие.'
           },
           { role: "user", content: prompt }
         ],

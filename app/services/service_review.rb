@@ -1,12 +1,6 @@
-# app/services/test_kod.rb
+# app/services/service_review.rb
 
-class TestKod
-  # include ServiceQuestion
-
-  def new_arr(n, m)
-    result = random_array_with_average(n, m)
-    result
-  end
+module ServiceQuestion
 
   def random_array_with_average(type_review,type_season)
     # результатом является массив с оценками для легковых шин!!!
@@ -43,7 +37,3 @@ class TestKod
   end
 
 end
-
-el = TestKod.new
-arr = el.new_arr(2,1)
-puts arr.inspect
