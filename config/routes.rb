@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       get '/total_arr_to_table_sentence', to: 'seo_texts#total_arr_to_table_sentence'
       get '/total_generate_seo_text', to: 'seo_texts#total_generate_seo_text'
       get '/mytest', to: 'seo_texts#mytest'
+      get '/my_test', to: 'reviews#my_test'
 
     end
 

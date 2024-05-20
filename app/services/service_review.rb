@@ -1,6 +1,6 @@
 # app/services/service_review.rb
 
-module ServiceQuestion
+module ServiceReview
 
   def random_array_with_average(type_review,type_season)
     # результатом является массив с оценками для легковых шин!!!
@@ -35,5 +35,8 @@ module ServiceQuestion
 
     result.to_f
   end
+
+
+
 
 end
