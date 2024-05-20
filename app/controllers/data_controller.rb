@@ -9,7 +9,7 @@ db_config = database_config['development']
 # Устанавливаем соединение с базой данных
 ActiveRecord::Base.establish_connection(db_config)
 
-# Ваш метод upload
+
 def upload
   excel_file = "lib/sizes_link.xlsx"
   excel = Roo::Excelx.new(excel_file)
