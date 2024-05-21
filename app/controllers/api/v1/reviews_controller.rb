@@ -4,7 +4,10 @@ class Api::V1::ReviewsController < ApplicationController
   include ServiceReview
 
   def my_test
-    result = generate_review
+    result = generating_texts_and_writing_to_tables
+
+    # result = additional_information_for_text_generation("зимние", "негативный")
+    # result =  str_additional_information_for_text_generation
     puts "#{result.inspect} " # #{result.inspect}
     render json: { result: result }
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_13_062147) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_21_120531) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -104,6 +104,22 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_13_062147) do
     t.string "answer_ru", default: ""
     t.string "question_ua", default: ""
     t.string "answer_ua", default: ""
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "reviews", force: :cascade do |t|
+    t.string "gender"
+    t.string "season"
+    t.string "type_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.integer "param1"
+    t.integer "param2"
+    t.integer "param3"
+    t.integer "param4"
+    t.integer "param5"
+    t.integer "param6"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
