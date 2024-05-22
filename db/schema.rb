@@ -112,14 +112,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_21_120531) do
     t.string "gender"
     t.string "season"
     t.string "type_review"
-    t.text "review_ru"
-    t.text "review_ua"
     t.integer "param1"
     t.integer "param2"
     t.integer "param3"
     t.integer "param4"
     t.integer "param5"
     t.integer "param6"
+    t.text "main_string"
+    t.text "additional_string"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

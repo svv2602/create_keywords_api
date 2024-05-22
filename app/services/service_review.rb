@@ -102,18 +102,15 @@ module ServiceReview
                 str = ''
                 str += "Тип отзыва: #{type_review}\n"
                 str += "Автор отзыва: #{gender}\n" unless gender == ""
-                str += "Сезонность: #{season}\n" unless season == ""
                 str += "Размер шины: #{size}\n" unless size == ""
                 str += "Бренд: #{brand}\n" unless brand == ""
                 str += "Модель шины: #{model}\n" unless model == ""
+                str += "Применимость шины (сезонность): #{season}\n" unless season == ""
                 params = {
-                  # size: size,
-                  # brand: brand,
-                  # model: model,
                   gender: gender,
                   season: season,
                   type_review: type_review,
-                  str: str
+                  main_string: str
                 }
                 arr << params
               end
@@ -157,8 +154,28 @@ module ServiceReview
     params
   end
 
-  def generating_texts_and_writing_to_tables
+  def generating_records_and_writing_to_table_review
+    Review.delete_all
+    i = 0
+    array_hash_topics = topics_array
+    array_hash_topics.each do |hash_topic|
+      season = hash_topic[:season]
+      types_review = hash_topic[:type_review]
+      arrays = array_additional_information_for_text_generation(season, types_review)
+      arrays.each do |array|
+        hash_additional_information = str_additional_information_for_text_generation(array)
+        merged_hash = hash_topic.merge(hash_additional_information)
+        add_new_record_to_review(merged_hash)
+        i+=1
+      end
+    end
+    return "Добавлено записей: #{i}"
+  end
 
+  def generating_texts_and_writing_to_tables
+    str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
+    i = 0
+    j = 0
     array_hash_topics = topics_array
     array_hash_topics.each do |hash_topic|
       season = hash_topic[:season]
@@ -168,24 +185,29 @@ module ServiceReview
         hash_additional_information = str_additional_information_for_text_generation(array)
         merged_hash = hash_topic.merge(hash_additional_information)
 
-        query_params = "#{merged_hash[:str]}\n#{merged_hash[:additional_string]}\n"
         # puts "str ===\n #{query_params}\n"
-        review = generate_review(query_params)
-        # puts review
+        TEXT_LENGTH.each_with_index do |arr_review_length, index|
+          count_repeat = TEXT_LENGTH.size - index
+          count_repeat.times do
+            str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
+            query_params = "#{merged_hash[:str]}\n#{str_errors}#{merged_hash[:additional_string]}\n"
+            review = generate_review(query_params, arr_review_length)
+            # puts review
+            merged_hash[:review_ru] = review
+            add_new_record_to_review(merged_hash)
+          end
 
-        merged_hash[:review_ru] = review
-        add_new_record_to_review(merged_hash)
-
+        end
+        i += 1
+        break if i == 3
       end
-
+      i=0
+      j += 1
+      break if j == 1
     end
-
   end
 
   def add_new_record_to_review(merged_hash)
-    merged_hash.delete(:str)
-    merged_hash.delete(:additional_string)
-
     attempts = 0
     begin
       record = Review.new(merged_hash)
@@ -201,20 +223,35 @@ module ServiceReview
     end
   end
 
-  def generate_review(query_params)
-    review_length = case rand(1..10) % 3
-                    when 1
-                      "небольшой (больше 100 и не более 300 печатных символов)"
-                    when 2
-                      "короткий (не более 100 печатных символов)"
-                    else
-                      "большой (не менее 300 печатных символов)"
-                    end
-
-    topics = "Создай #{review_length} отзыв о шинах, используя следующие параметры: "
+  def generate_review(query_params, arr_review_length)
+    # review_length = case rand(1..10) % 3
+    #                 when 1
+    #                   "небольшой (больше 100 и не более 300 печатных символов)"
+    #                 when 2
+    #                   "короткий (не более 100 печатных символов)"
+    #                 else
+    #                   "большой (не менее 300 печатных символов)"
+    #                 end
+    #
+    # topics = "Создай #{review_length} отзыв о шинах, используя следующие параметры: "
+    #
+    topics = "Создай отзыв о шинах (от #{arr_review_length[0]} до #{arr_review_length[1]} слов), используя следующие параметры: "
     topics += query_params
     topics += "\n"
     topics += "в результат выведи только сгенерированный отзыв на русском языке"
+    topics += "\n"
+    topics += "Хочу также обратить внимание на то, что:"
+    topics += "\n"
+    topics += "- если в параметрах есть слова '195/65R15','GreenTire', 'SuperDefender', то именно они и должны использоваться в отзыве для  размера, бренда или модели шины."
+    topics += "\n"
+    topics += "- если Сезонность указана как летняя, то в отзыве не нужно писать об управляемости или торможении шины в зимних условиях (снег, лед) "
+    topics += "\n"
+    topics += "- под управляемостью подразумеваются следующие свойства для  шины: Курсовая устойчивость, Маневренность, Плавность хода, Сцепление с дорогой, Разгон, Торможение, Устойчивость к заносам"
+    topics += "\n"
+    topics += "- избегай, пожалуйста, предложений, напоминающих рекламные слоганы, например такого как \"Шины BRAND - настоящий прорыв в мире автоаксессуаров!\" "
+    topics += "\n"
+    topics += "или вот такого: \"Шины SIZE - надежный выбор для летнего сезона!\" "
+    topics += "\n"
 
     attempts = 0
     new_text = nil
@@ -231,7 +268,42 @@ module ServiceReview
       end
     end
 
+    # очистить текст
+    new_text = first_text_clearing(new_text) if new_text
+
     new_text
+  end
+
+  def first_text_clearing(txt)
+    txt = txt.gsub(/["'“”]/, '')
+    txt = txt.gsub('*', '')
+    txt = txt.gsub('для любого климата', 'для любой погоды')
+    txt = txt.gsub('модель MODEL', 'MODEL')
+    txt = txt.gsub(/для летнего сезона/i, 'на лето')
+    txt = txt.gsub(/с дорожными условиями/i, 'с дорогой')
+
+    phrases_to_remove = ["для вашего автомобилЯ", "для беззаботных поездок на автомобиле", "в любых путешествиях",
+                         "во время летнего сезона", "для летних поездок", "для безопасной езды", "в жаркое время года",
+                         "для повседневного использования"]
+    phrases_to_remove.each do |phrase|
+      txt = txt.gsub(/#{phrase}/i, '')
+    end
+
+    words_to_remove = ["дюйм", "Спасибо", "(\d{3}\/\d{2})|(R\d{2,3})"]
+    words_to_remove.each do |word|
+      txt = remove_sentence_with_word(txt, word)
+    end
+
+    txt
+
+  end
+
+  def remove_sentence_with_word(txt, word)
+    # функция для удаления предложения содержащего слово [word]
+    # В этом регулярном выражении (?<=^|\.|\?|\!)\s* является положительной lookbehind проверкой,
+    # которая ищет начало строки или конец предыдущего предложения.
+    # [^\.!?]*#{word}[^\.!?]*[\.!?] матчит любое предложение которое содержит указанное слово.
+    txt.gsub(/(?<=^|\.|\?|\!)\s*([^\.!?]*#{word}[^\.!?]*[\.!?])/i, '')
   end
 
 end
