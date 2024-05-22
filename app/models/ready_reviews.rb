@@ -1,0 +1,3 @@
+class ReadyReviews < ApplicationRecord
+
+end

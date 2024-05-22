@@ -6,7 +6,7 @@ Rails.application.routes.draw do
       get '/show', to: 'keys#show'
       get '/generate_completion', to: 'openai#generate_completion'
       get '/generate_completion_season', to: 'openai#generate_completion_season'
-
+      # =========================================
       get '/questions', to: 'tyre_questions#questions'
       get '/questions_track', to: 'tyre_questions#questions_track'
       get '/questions_diski', to: 'tyre_questions#questions_diski'
@@ -17,6 +17,9 @@ Rails.application.routes.draw do
       get '/total_arr_to_table_sentence', to: 'seo_texts#total_arr_to_table_sentence'
       get '/total_generate_seo_text', to: 'seo_texts#total_generate_seo_text'
       get '/mytest', to: 'seo_texts#mytest'
+
+      # =========================================
+      get '/fill_table_review', to: 'reviews#fill_table_review'
       get '/my_test', to: 'reviews#my_test'
 
     end

@@ -1,6 +1,7 @@
 SIZES = ["195/65R15", ""]
 BRANDS = ["GreenTire", ""]
 MODELS = ["SuperDefender", ""]
+AUTO = ["JLT", ""]
 GENDERS = ["мужчина", "женщина"]
 SEASONS = ["летние", "зимние", "всесезонные"]
 TYPES_REVIEW = ["положительный", "негативный", "нейтральный"]

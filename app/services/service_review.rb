@@ -89,6 +89,7 @@ module ServiceReview
     sizes = SIZES
     brands = BRANDS
     models = MODELS
+    cars = AUTO
     genders = GENDERS
     seasons = SEASONS
     types_review = TYPES_REVIEW
@@ -96,23 +97,26 @@ module ServiceReview
     sizes.each do |size|
       brands.each do |brand|
         models.each do |model|
-          genders.each do |gender|
-            seasons.each do |season|
-              types_review.each do |type_review|
-                str = ''
-                str += "Тип отзыва: #{type_review}\n"
-                str += "Автор отзыва: #{gender}\n" unless gender == ""
-                str += "Размер шины: #{size}\n" unless size == ""
-                str += "Бренд: #{brand}\n" unless brand == ""
-                str += "Модель шины: #{model}\n" unless model == ""
-                str += "Применимость шины (сезонность): #{season}\n" unless season == ""
-                params = {
-                  gender: gender,
-                  season: season,
-                  type_review: type_review,
-                  main_string: str
-                }
-                arr << params
+          cars.each do |car|
+            genders.each do |gender|
+              seasons.each do |season|
+                types_review.each do |type_review|
+                  str = ''
+                  str += "Тип отзыва: #{type_review}\n"
+                  str += "Автор отзыва: #{gender}\n" unless gender == ""
+                  str += "Размер шины: #{size}\n" unless size == ""
+                  str += "Бренд: #{brand}\n" unless brand == ""
+                  str += "Модель шины: #{model}\n" unless model == ""
+                  str += "Применимость шины (сезонность): #{season}\n" unless season == ""
+                  str += "Использовались на автомобиле: #{car}\n" unless car == ""
+                  params = {
+                    gender: gender,
+                    season: season,
+                    type_review: type_review,
+                    main_string: str
+                  }
+                  arr << params
+                end
               end
             end
           end
@@ -165,52 +169,86 @@ module ServiceReview
       arrays.each do |array|
         hash_additional_information = str_additional_information_for_text_generation(array)
         merged_hash = hash_topic.merge(hash_additional_information)
-        add_new_record_to_review(merged_hash)
-        i+=1
+        add_new_record_to_model('Review', merged_hash)
+        i += 1
       end
     end
     return "Добавлено записей: #{i}"
   end
 
   def generating_texts_and_writing_to_tables
+    max_id = ReadyReviews.last&.id_review
+    records = max_id.nil? ? Review.all : Review.where("id > ?", max_id)
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
-    i = 0
-    j = 0
-    array_hash_topics = topics_array
-    array_hash_topics.each do |hash_topic|
-      season = hash_topic[:season]
-      types_review = hash_topic[:type_review]
-      arrays = array_additional_information_for_text_generation(season, types_review)
-      arrays.each do |array|
-        hash_additional_information = str_additional_information_for_text_generation(array)
-        merged_hash = hash_topic.merge(hash_additional_information)
+    records.each do |record|
 
-        # puts "str ===\n #{query_params}\n"
-        TEXT_LENGTH.each_with_index do |arr_review_length, index|
-          count_repeat = TEXT_LENGTH.size - index
-          count_repeat.times do
-            str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
-            query_params = "#{merged_hash[:str]}\n#{str_errors}#{merged_hash[:additional_string]}\n"
-            review = generate_review(query_params, arr_review_length)
-            # puts review
-            merged_hash[:review_ru] = review
-            add_new_record_to_review(merged_hash)
-          end
+      TEXT_LENGTH.each_with_index do |arr_review_length, index|
+        count_repeat = TEXT_LENGTH.size - index
+        count_repeat.times do
+          new_hash = {}
+
+          str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
+          query_params = "#{record.main_string}\n#{str_errors}#{record.additional_string}"
+          review = generate_review(query_params, arr_review_length)
+          # puts review
+          new_hash[:id_review] = record.id
+          new_hash[:review_ru] = review
+          new_hash[:characters] = review.length
+          new_hash[:control] = record.attributes.except('main_string', 'gender',
+                                                        'additional_string', 'id',
+                                                        'created_at', 'updated_at')
+                                     .values.map { |v| v.nil? ? 'nil' : v }.join("_")
+
+          add_new_record_to_model('ReadyReviews', new_hash)
 
         end
-        i += 1
-        break if i == 3
+        break
       end
-      i=0
-      j += 1
-      break if j == 1
+      break
     end
+
   end
 
-  def add_new_record_to_review(merged_hash)
+  # def generating_texts_and_writing_to_tables_old
+  #   str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
+  #   i = 0
+  #   j = 0
+  #   array_hash_topics = topics_array
+  #   array_hash_topics.each do |hash_topic|
+  #     season = hash_topic[:season]
+  #     types_review = hash_topic[:type_review]
+  #     arrays = array_additional_information_for_text_generation(season, types_review)
+  #     arrays.each do |array|
+  #       hash_additional_information = str_additional_information_for_text_generation(array)
+  #       merged_hash = hash_topic.merge(hash_additional_information)
+  #
+  #       # puts "str ===\n #{query_params}\n"
+  #       TEXT_LENGTH.each_with_index do |arr_review_length, index|
+  #         count_repeat = TEXT_LENGTH.size - index
+  #         count_repeat.times do
+  #           str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
+  #           query_params = "#{merged_hash[:str]}\n#{str_errors}#{merged_hash[:additional_string]}\n"
+  #           review = generate_review(query_params, arr_review_length)
+  #           # puts review
+  #           merged_hash[:review_ru] = review
+  #           add_new_record_to_review(merged_hash)
+  #         end
+  #
+  #       end
+  #       i += 1
+  #       break if i == 3
+  #     end
+  #     i = 0
+  #     j += 1
+  #     break if j == 1
+  #   end
+  # end
+
+  def add_new_record_to_model(model_name, merged_hash)
     attempts = 0
+    model_class = model_name.constantize
     begin
-      record = Review.new(merged_hash)
+      record = model_class.new(merged_hash)
       record.save!
     rescue ActiveRecord::RecordInvalid => e
       attempts += 1
