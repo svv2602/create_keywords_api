@@ -6,8 +6,7 @@ class Api::V1::ReviewsController < ApplicationController
   def my_test
     result = ''
 
-
-    # result = generating_texts_and_writing_to_tables
+    result = generating_texts_and_writing_to_tables
 
     # result = additional_information_for_text_generation("зимние", "негативный")
     # result =  str_additional_information_for_text_generation
