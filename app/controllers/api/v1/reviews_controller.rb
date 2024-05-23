@@ -48,10 +48,11 @@ class Api::V1::ReviewsController < ApplicationController
     file_path = 'lib/cars_db/test_table_car2_model.csv'
     CSV.foreach(file_path, headers: true) do |row|
       begin
-        brand_id = row['brand']
-        if TestTableCar2Brand.find_by(id: brand_id)
-          model = TestTableCar2Model.find_or_initialize_by(id: row['id'])
-          model.update(brand: brand_id, name: row['name'])
+        brand_id = row['brand'].to_i
+        brand = TestTableCar2Brand.find_by(id: brand_id)
+        if brand
+          model = TestTableCar2Model.find_or_create_by(id: row['id'])
+          model.update(brand: brand, name: row['name']) # использование объекта brand вместо строки
           i += 1
         end
       rescue CSV::MalformedCSVError
@@ -65,13 +66,16 @@ class Api::V1::ReviewsController < ApplicationController
     CSV.foreach(file_path, headers: true) do |row|
       begin
         year = row['year'].to_i
-        id_model = row['model']
-        if year > 2004 && TestTableCar2Model.find_by(id: id_model)
-          kit = TestTableCar2Kit.find_or_initialize_by(id: row['id'])
-          kit.update(model: id_model, year: year,
-                     name: row['name'], pcd: row['pcd'], bolt_count: row['bolt_count'],
-                     dia: row['dia'], bolt_size: row['bolt_size'])
-          i += 1
+        id_model = row['model'].to_i
+        if year > 2004
+          model = TestTableCar2Model.find_by(id: id_model)
+          if model
+            kit = TestTableCar2Kit.find_or_create_by(id: row['id'])
+            kit.update(model: model, year: year,  # использование объекта model вместо числа
+                       name: row['name'], pcd: row['pcd'], bolt_count: row['bolt_count'],
+                       dia: row['dia'], bolt_size: row['bolt_size'])
+            i += 1
+          end
         end
       rescue CSV::MalformedCSVError
         next
@@ -84,10 +88,11 @@ class Api::V1::ReviewsController < ApplicationController
     file_path = 'lib/cars_db/test_table_car2_kit_disk_size.csv'
     CSV.foreach(file_path, headers: true) do |row|
       begin
-        id_kit = row['kit']
-        if TestTableCar2Kit.find_by(id: id_kit)
-          disk_size = TestTableCar2KitDiskSize.find_or_initialize_by(id: row['id'])
-          disk_size.update(kit: id_kit, width: row['width'], diameter: row['diameter'],
+        id_kit = row['kit'].to_i
+        kit = TestTableCar2Kit.find_by(id: id_kit)
+        if kit
+          disk_size = TestTableCar2KitDiskSize.find_or_create_by(id: row['id'])
+          disk_size.update(kit: kit, width: row['width'], diameter: row['diameter'],
                            et: row['et'], type_type: row['type'], axle: row['axle'],
                            axle_group: row['axle_group'])
           i += 1
@@ -104,10 +109,11 @@ class Api::V1::ReviewsController < ApplicationController
     file_path = 'lib/cars_db/test_table_car2_kit_tyre_size.csv'
     CSV.foreach(file_path, headers: true) do |row|
       begin
-        id_kit = row['kit']
-        if TestTableCar2Kit.find_by(id: id_kit)
-          tyre_size = TestTableCar2KitTyreSize.find_or_initialize_by(id: row['id'])
-          tyre_size.update(kit: id_kit, width: row['width'], height: row['height'],
+        id_kit = row['kit'].to_i
+        kit = TestTableCar2Kit.find_by(id: id_kit)
+        if kit
+          tyre_size = TestTableCar2KitTyreSize.find_or_create_by(id: row['id'])
+          tyre_size.update(kit: kit, width: row['width'], height: row['height'],
                            diameter: row['diameter'], type_disabled: row['type'],
                            axle: row['axle'], axle_group: row['axle_group'])
           i += 1
