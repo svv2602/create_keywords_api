@@ -14,6 +14,16 @@ class Api::V1::ReviewsController < ApplicationController
     puts "#{result.inspect} " # #{result.inspect}
     render json: { result: result }
   end
+
+
+
+
+
+
+
+  # =================================================================
+  # Первоначальная загрузка данных
+  # =================================================================
   def download_car_tire_size_info
     result = ''
     # TestTableCar2Brand.delete_all
@@ -112,17 +122,15 @@ class Api::V1::ReviewsController < ApplicationController
 
     result += "в TestTableCar2KitDiskSize загружено записей: #{i}\n"
 
-    puts "#{result.inspect} "
+    puts "#{result} "
     render plain: result
 
   end
 
-
-
   def fill_table_review
     result = generating_records_and_writing_to_table_review
-    puts "#{result.inspect} " # #{result.inspect}
-    render json: { result: result }
+    puts "#{result} "
+    render plain: result
   end
 
 end
