@@ -14,9 +14,9 @@ class Api::V1::ReviewsController < ApplicationController
     render json: { result: result }
   end
 
+  def reviews
 
-
-
+  end
 
 
 
@@ -130,6 +130,11 @@ class Api::V1::ReviewsController < ApplicationController
     result = generating_records_and_writing_to_table_review
     puts "#{result} "
     render plain: result
+  end
+
+  private
+  def quire_params
+    params.require(:quire).permit(:w, :h, :r, :season, :b, :m,:rating, :type_block)
   end
 
 end
