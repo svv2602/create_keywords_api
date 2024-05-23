@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_22_101423) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_22_140312) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -186,6 +186,55 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_22_101423) do
     t.string "hh"
     t.string "rr"
     t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "test_table_car2_brands", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "test_table_car2_kit_disk_sizes", force: :cascade do |t|
+    t.integer "kit"
+    t.string "width"
+    t.string "diameter"
+    t.string "et"
+    t.string "type_type"
+    t.string "axle"
+    t.string "axle_group"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "test_table_car2_kit_tyre_sizes", force: :cascade do |t|
+    t.integer "kit"
+    t.string "width"
+    t.string "height"
+    t.string "diameter"
+    t.string "type_disabled"
+    t.string "axle"
+    t.string "axle_group"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "test_table_car2_kits", force: :cascade do |t|
+    t.integer "model"
+    t.string "year"
+    t.string "name"
+    t.string "pcd"
+    t.string "bolt_count"
+    t.string "dia"
+    t.string "bolt_size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "test_table_car2_models", force: :cascade do |t|
+    t.integer "brand"
+    t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

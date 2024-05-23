@@ -108,4 +108,9 @@ endpoint:
 ==============================
 
 ### Порядок добавления отзывов в базу данных
-* /api/v1/fill_table_review - создает параметры в таблицу Review для генерации отзывов - !!! заполнить один раз !!!
+#### Предварительная подготовка - !!! заполнить один раз !!!
+  * /api/v1/fill_table_review - создает параметры в таблицу Review для генерации отзывов  
+  * /api/v1/download_car_tire_size_info - первоначальная загрузка базы автомобилей с размерами шин и дисков
+    * задействованые таблицы: TestTableCar2Brand, TestTableCar2Model, TestTableCar2Kit, TestTableCar2KitDiskSize, TestTableCar2KitTyreSize
+
+

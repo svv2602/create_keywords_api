@@ -20,6 +20,7 @@ Rails.application.routes.draw do
 
       # =========================================
       get '/fill_table_review', to: 'reviews#fill_table_review'
+      get '/download_car_tire_size_info', to: 'reviews#download_car_tire_size_info'
       get '/my_test', to: 'reviews#my_test'
 
     end
