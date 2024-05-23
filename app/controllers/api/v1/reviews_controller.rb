@@ -40,7 +40,6 @@ class Api::V1::ReviewsController < ApplicationController
       rescue CSV::MalformedCSVError
         next
       end
-      break if i > 5
     end
 
     result += "в TestTableCar2Brand загружено записей: #{i}\n"
