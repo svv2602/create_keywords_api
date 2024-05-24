@@ -1,0 +1,42 @@
+{
+    "tyres": [
+      {
+        "brand": "michelin",
+        "model": "alpin",
+        "width": 205,
+        "height": 55,
+        "diameter": 16,
+        "season": 1,
+        "type_review": 1
+      },
+      {
+        "brand": "bridgestone",
+        "model": "blizzak",
+        "width": 185,
+        "height": 60,
+        "diameter": 16,
+        "season": 2,
+        "type_review": -1
+      }
+    ],
+
+  "request": {
+    "average_value": 9.5,
+    "reviews_count": 10,
+    "brand": "michelin",
+    "model": "pilot",
+    "season": 1,
+    "sizes": [
+      {
+        "width": 205,
+        "height": 65,
+        "diameter": 17
+      },
+      {
+        "width": 185,
+        "height": 60,
+        "diameter": 16
+      }
+    ]
+  }
+}

@@ -159,7 +159,7 @@ module ServiceReview
   end
 
   def generating_records_and_writing_to_table_review
-    Review.delete_all
+    # Review.delete_all
     i = 0
     array_hash_topics = topics_array
     array_hash_topics.each do |hash_topic|
@@ -175,6 +175,8 @@ module ServiceReview
     end
     return "Добавлено записей: #{i}"
   end
+
+
 
   def generating_texts_and_writing_to_tables
     max_id = ReadyReviews.last&.id_review
@@ -202,47 +204,11 @@ module ServiceReview
           add_new_record_to_model('ReadyReviews', new_hash)
 
         end
-        break
       end
-      break
     end
 
   end
 
-  # def generating_texts_and_writing_to_tables_old
-  #   str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
-  #   i = 0
-  #   j = 0
-  #   array_hash_topics = topics_array
-  #   array_hash_topics.each do |hash_topic|
-  #     season = hash_topic[:season]
-  #     types_review = hash_topic[:type_review]
-  #     arrays = array_additional_information_for_text_generation(season, types_review)
-  #     arrays.each do |array|
-  #       hash_additional_information = str_additional_information_for_text_generation(array)
-  #       merged_hash = hash_topic.merge(hash_additional_information)
-  #
-  #       # puts "str ===\n #{query_params}\n"
-  #       TEXT_LENGTH.each_with_index do |arr_review_length, index|
-  #         count_repeat = TEXT_LENGTH.size - index
-  #         count_repeat.times do
-  #           str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
-  #           query_params = "#{merged_hash[:str]}\n#{str_errors}#{merged_hash[:additional_string]}\n"
-  #           review = generate_review(query_params, arr_review_length)
-  #           # puts review
-  #           merged_hash[:review_ru] = review
-  #           add_new_record_to_review(merged_hash)
-  #         end
-  #
-  #       end
-  #       i += 1
-  #       break if i == 3
-  #     end
-  #     i = 0
-  #     j += 1
-  #     break if j == 1
-  #   end
-  # end
 
   def add_new_record_to_model(model_name, merged_hash)
     attempts = 0
@@ -288,7 +254,9 @@ module ServiceReview
     topics += "\n"
     topics += "- если Сезонность указана как летняя, то в отзыве не нужно писать об управляемости или торможении шины в зимних условиях (снег, лед) "
     topics += "\n"
-    topics += "- под управляемостью подразумеваются следующие свойства для  шины: Курсовая устойчивость, Маневренность, Плавность хода, Сцепление с дорогой, Разгон, Торможение, Устойчивость к заносам"
+    topics += "- под управляемостью подразумеваются следующие свойства для  шины: Курсовая устойчивость, Маневренность, Плавность хода, Сцепление с дорогой, Разгон, Торможение, Устойчивость к заносам."
+    topics += "\n"
+    topics += "Все эти свойства нужно использовать в отзыве вместо слова 'управляемость'"
     topics += "\n"
     topics += "- избегай, пожалуйста, предложений, напоминающих рекламные слоганы, например такого как \"Шины BRAND - настоящий прорыв в мире автоаксессуаров!\" "
     topics += "\n"
@@ -325,13 +293,20 @@ module ServiceReview
     txt = txt.gsub('модель MODEL', 'MODEL')
     txt = txt.gsub(/для летнего сезона/i, 'на лето')
     txt = txt.gsub(/с дорожными условиями/i, 'с дорогой')
+    txt = txt.gsub(/на любом асфальте/i, 'везде')
+    txt = txt.gsub(/мо(е|ё)м авто(|мобиле) JLT/i, 'моем JLT')
+    txt = txt.gsub(/своего авто(|мобиля) JLT/i, 'своего JLT')
+    txt = txt.gsub(/для авто(|мобиля) JLT/i, 'для JLT')
+
 
     # удаление фраз из текста
     phrases_to_remove = [
       "для ((беззаботных|летних|зимних) поездок|безопасной езды)(| на автомобиле)",
       "в любых путешествиях", "для вашего автомобилЯ",
       "во время (летнего|зимнего) сезона", "в (жаркое|холодное) время года",
-      "для повседневного использования", "Отзыв (женщины|мужчины):"
+      "для повседневного использования",
+      "(((нейтра|отрицате|положите)льный)|)(\s|)Отзыв(\s|)(женщин(ы|а)|мужчин(ы|а)|)(\s|)(:|)",
+      "(женщина|мужчина)(\s|)(:|)"
     ]
 
     phrases_to_remove.each do |phrase|

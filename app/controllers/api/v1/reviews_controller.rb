@@ -2,6 +2,7 @@
 
 class Api::V1::ReviewsController < ApplicationController
   include ServiceReview
+  include ServiceReviewOut
 
   def my_test
     result = ''
@@ -14,8 +15,20 @@ class Api::V1::ReviewsController < ApplicationController
     render json: { result: result }
   end
 
-  def reviews
+  def create_review_templates
+    # Генерация отзывов
+    result = generating_texts_and_writing_to_tables
+    render json: { result: result }
+  end
 
+  def reviews
+    result = ''
+    tyres = params[:tyres]
+    tyres.each do |el|
+      record = TestTableCar2KitTyreSize.where(width: "#{el[:width]}.00", height: "#{el[:height]}.00", diameter: "#{el[:diameter]}.00").order('RANDOM()').first
+      result += names_auto(record) if record
+    end
+    render json: { result: result }, status: :ok
   end
 
   # =================================================================
@@ -164,11 +177,11 @@ class Api::V1::ReviewsController < ApplicationController
 
   def download_car_tire_size_info
     result = ''
-    TestTableCar2Brand.delete_all
-    TestTableCar2Model.delete_all
-    TestTableCar2Kit.delete_all
-    TestTableCar2KitDiskSize.delete_all
-    TestTableCar2KitTyreSize.delete_all
+    # TestTableCar2Brand.delete_all
+    # TestTableCar2Model.delete_all
+    # TestTableCar2Kit.delete_all
+    # TestTableCar2KitDiskSize.delete_all
+    # TestTableCar2KitTyreSize.delete_all
 
     result += add_brand
     result += add_model
