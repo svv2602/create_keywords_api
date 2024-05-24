@@ -113,6 +113,5 @@ endpoint:
   * /api/v1/download_car_tire_size_info - первоначальная загрузка базы автомобилей с размерами шин и дисков
     * задействованые таблицы: TestTableCar2Brand, TestTableCar2Model, TestTableCar2Kit, TestTableCar2KitDiskSize, TestTableCar2KitTyreSize
 1
-    * 1
-    * 
+* /api/v1/create_review_templates - генерация шаблонов отзывов
 
