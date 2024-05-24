@@ -18,18 +18,12 @@ class Api::V1::ReviewsController < ApplicationController
 
   end
 
-
-
   # =================================================================
   # Первоначальная загрузка данных
   # =================================================================
-  def download_car_tire_size_info
+
+  def add_brand
     result = ''
-    # TestTableCar2Brand.delete_all
-    # TestTableCar2Model.delete_all
-    # TestTableCar2Kit.delete_all
-    # TestTableCar2KitDiskSize.delete_all
-    # TestTableCar2KitTyreSize.delete_all
     i = 0
     file_path = 'lib/cars_db/test_table_car2_brand.csv'
     CSV.foreach(file_path, headers: true) do |row|
@@ -43,6 +37,12 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     result += "в TestTableCar2Brand загружено записей: #{i}\n"
+    result
+
+  end
+
+  def add_model
+    result = ''
     i = 0
 
     file_path = 'lib/cars_db/test_table_car2_model.csv'
@@ -60,6 +60,12 @@ class Api::V1::ReviewsController < ApplicationController
       end
     end
     result += "в TestTableCar2Model загружено записей: #{i}\n"
+    result
+
+  end
+
+  def add_kit
+    result = ''
     i = 0
 
     file_path = 'lib/cars_db/test_table_car2_kit.csv'
@@ -71,10 +77,16 @@ class Api::V1::ReviewsController < ApplicationController
           model = TestTableCar2Model.find_by(id: id_model)
           if model
             kit = TestTableCar2Kit.find_or_create_by(id: row['id'])
-            kit.update(model: model, year: year,  # использование объекта model вместо числа
-                       name: row['name'], pcd: row['pcd'], bolt_count: row['bolt_count'],
-                       dia: row['dia'], bolt_size: row['bolt_size'])
-            i += 1
+            if kit.update(model: model, year: year,
+                          name: row['name'], pcd: row['pcd'], bolt_count: row['bolt_count'],
+                          dia: row['dia'], bolt_size: row['bolt_size'])
+              # Update was successful
+              puts "Successfully updated kit with id #{kit.id}"
+              i += 1
+            else
+              # Update failed
+              puts "Failed to update kit with id #{kit.id}. Errors: #{kit.errors.full_messages.join(", ")}"
+            end
           end
         end
       rescue CSV::MalformedCSVError
@@ -83,7 +95,14 @@ class Api::V1::ReviewsController < ApplicationController
     end
 
     result += "в TestTableCar2Kit загружено записей: #{i}\n"
+    result
+
+  end
+
+  def add_kit_disk
+    result = ''
     i = 0
+    j = 0
 
     file_path = 'lib/cars_db/test_table_car2_kit_disk_size.csv'
     CSV.foreach(file_path, headers: true) do |row|
@@ -91,7 +110,9 @@ class Api::V1::ReviewsController < ApplicationController
         id_kit = row['kit'].to_i
         kit = TestTableCar2Kit.find_by(id: id_kit)
         if kit
+
           disk_size = TestTableCar2KitDiskSize.find_or_create_by(id: row['id'])
+          puts "disk_size = #{disk_size.inspect}"
           disk_size.update(kit: kit, width: row['width'], diameter: row['diameter'],
                            et: row['et'], type_type: row['type'], axle: row['axle'],
                            axle_group: row['axle_group'])
@@ -100,31 +121,60 @@ class Api::V1::ReviewsController < ApplicationController
       rescue CSV::MalformedCSVError
         next
       end
-
+      # j +=1
+      # break if j == 20
     end
 
     result += "в TestTableCar2KitDiskSize загружено записей: #{i}\n"
-    i = 0
+    result
 
+  end
+
+  def add_kit_tyre
+    result = ''
+    i = 0
+    j = 0
     file_path = 'lib/cars_db/test_table_car2_kit_tyre_size.csv'
     CSV.foreach(file_path, headers: true) do |row|
       begin
         id_kit = row['kit'].to_i
         kit = TestTableCar2Kit.find_by(id: id_kit)
         if kit
+          puts "kit = #{kit.inspect}"
           tyre_size = TestTableCar2KitTyreSize.find_or_create_by(id: row['id'])
+          puts "tyre_size = #{tyre_size.inspect}"
           tyre_size.update(kit: kit, width: row['width'], height: row['height'],
                            diameter: row['diameter'], type_disabled: row['type'],
                            axle: row['axle'], axle_group: row['axle_group'])
+          puts "tyre_size2 = #{tyre_size.inspect}"
           i += 1
         end
       rescue CSV::MalformedCSVError
         next
       end
 
+      # j +=1
+      # break if j == 20
+
     end
 
     result += "в TestTableCar2KitDiskSize загружено записей: #{i}\n"
+    result
+  end
+
+  def download_car_tire_size_info
+    result = ''
+    TestTableCar2Brand.delete_all
+    TestTableCar2Model.delete_all
+    TestTableCar2Kit.delete_all
+    TestTableCar2KitDiskSize.delete_all
+    TestTableCar2KitTyreSize.delete_all
+
+    result += add_brand
+    result += add_model
+    result += add_kit
+    result += add_kit_disk
+    result += add_kit_tyre
 
     puts "#{result} "
     render plain: result
@@ -138,8 +188,9 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   private
+
   def quire_params
-    params.require(:quire).permit(:w, :h, :r, :season, :b, :m,:rating, :type_block)
+    params.require(:quire).permit(:w, :h, :r, :season, :b, :m, :rating, :type_block)
   end
 
 end

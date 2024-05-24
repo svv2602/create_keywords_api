@@ -1,7 +1,7 @@
 class TestTableCar2Kit < ApplicationRecord
   self.primary_key = 'id'
 
-  belongs_to :kits,
+  belongs_to :model,
              class_name: 'TestTableCar2Model',
              foreign_key: :model
 
