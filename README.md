@@ -114,4 +114,5 @@ endpoint:
     * задействованые таблицы: TestTableCar2Brand, TestTableCar2Model, TestTableCar2Kit, TestTableCar2KitDiskSize, TestTableCar2KitTyreSize
 1
 * /api/v1/create_review_templates - генерация шаблонов отзывов
+* 
 
