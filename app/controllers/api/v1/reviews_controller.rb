@@ -22,13 +22,28 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def reviews
-    result = ''
+    result = {}
     tyres = params[:tyres]
+
     tyres.each do |el|
+      array_info = el
       record = TestTableCar2KitTyreSize.where(width: "#{el[:width]}.00", height: "#{el[:height]}.00", diameter: "#{el[:diameter]}.00").order('RANDOM()').first
-      result += names_auto(record) if record
+      tyres_size = "#{el[:width]}/#{el[:height]}R#{el[:diameter]}"
+      season = el[:season]
+      type_review = el[:type_review]
+      array_average = random_array_with_average(el[:type_review], el[:season])
+      control = value_field_control(season, type_review, array_average)
+
+      array_info[:tyres_size] = tyres_size
+      array_info[:names_auto] = names_auto(record)
+      array_info[:array_average] = array_average
+      array_info[:control] = control
+      array_info[:control] = "летние_положительный_1_1_1_0_nil_nil" # тестовая строка!!!!!!!!!!!!!!
+      result = array_info
+      puts "tyres === #{result}"
+
     end
-    render json: { result: result }, status: :ok
+    render json: { result: result.inspect }, status: :ok
   end
 
   # =================================================================

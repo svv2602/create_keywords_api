@@ -2,39 +2,7 @@
 require_relative '../../app/services/dictionaries/const_reviews'
 module ServiceReview
 
-  def random_array_with_average(type_review, type_season)
-    # результатом является массив с оценками для легковых шин!!!
-    # type_review: 1 - положительный, 2 - нейтральный, 3 - негативный
-    # type_season: 1 - летние легковые шины, другое значение для остальных шин
-    number_of_ratings = type_season == 1 ? 4 : 6
-    n = values_for_review_type(type_review)
-    array = []
-    number_of_ratings.times do |i|
-      num = (rand(n..10.0) * 2).round / 2.0
-      el = i % 2 == 0 ? num : 2 * n - array[i - 1]
-      if el <= 9 && el >= 2.5
-        el += 0.5 * rand(1..10) % 2 == 0 ? -1 : 1 if rand(1..10) % 2 == 0
-      end
-      array[i] = el > 1 ? el : 1.0
-    end
-    # puts array.inspect
-    array
-  end
 
-  def values_for_review_type(n)
-    result = case n
-             when 1
-               rand(8..10)
-             when 2
-               rand(6..8)
-             when 3
-               rand(3..6)
-             else
-               10
-             end
-
-    result.to_f
-  end
 
   def array_params
     # результатом будет вспомагательный файл с хешами массивов, содержащих варианты оценки для  каждого свойства
@@ -180,7 +148,7 @@ module ServiceReview
 
   def generating_texts_and_writing_to_tables
     max_id = ReadyReviews.last&.id_review
-    records = max_id.nil? ? Review.all : Review.where("id > ?", max_id)
+    records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
     records.each do |record|
 
@@ -305,7 +273,9 @@ module ServiceReview
       "в любых путешествиях", "для вашего автомобилЯ", "для безопасного вождения(\s|)(на дороге|)",
       "для использования на авто(мобиле|) JLT",
       "во время (летнего|зимнего) сезона", "в (жаркое|холодное) время года",
-      "для повседневного использования",
+      "для повседневного использования", "для безопасности на дороге",
+      "для безопасности и комфорта(\s|)(вождения|поездки|езды|на дороге|)",
+      "Для тех, кто ценит безопасность и комфорт на дороге,",
       "(((нейтра|отрицате|положите)льный)|)(\s|)Отзыв(\s|)(женщин(ы|а)|мужчин(ы|а)|)(\s|)(:|)",
       "(женщина|мужчина)(\s|)(:|)"
     ]
