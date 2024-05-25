@@ -7,10 +7,6 @@ class Api::V1::ReviewsController < ApplicationController
   def my_test
     result = ''
 
-    result = generating_texts_and_writing_to_tables
-
-    # result = additional_information_for_text_generation("зимние", "негативный")
-    # result =  str_additional_information_for_text_generation
     puts "#{result.inspect} " # #{result.inspect}
     render json: { result: result }
   end
@@ -33,12 +29,16 @@ class Api::V1::ReviewsController < ApplicationController
       type_review = el[:type_review]
       array_average = random_array_with_average(el[:type_review], el[:season])
       control = value_field_control(season, type_review, array_average)
+      control = "летние_положительный_1_1_1_0_nil_nil" # тестовая строка!!!!!!!!!!!!!!
+      random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
+
 
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record)
       array_info[:array_average] = array_average
       array_info[:control] = control
-      array_info[:control] = "летние_положительный_1_1_1_0_nil_nil" # тестовая строка!!!!!!!!!!!!!!
+      array_info[:review] = random_review[:review_ru]
+
       result = array_info
       puts "tyres === #{result}"
 
