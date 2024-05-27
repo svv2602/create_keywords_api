@@ -210,7 +210,6 @@ class ExportsController < ApplicationController
     delete_records_for_id_diski
     # result = replace_errors_sentence_diski(table) # удаление записей с ошибками
 
-
     # add_sentence_ua   # украинский перевод - !!! сделать проверку по пустому украинскому тексту!!!
 
     # delete_records_with_instructions
@@ -253,32 +252,32 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
-  def export_questions_to_xlsx
-    count = 50000 # количество выгружаемых записей
-    max_id = 2666514
-    # @selected_records = SeoContentTextSentence.where("sentence_ua = '' and id < ?", max_id)
-    # @selected_records = SeoContentTextSentence.where("sentence_ua LIKE ?", "%укра%")
-    # @selected_records = SeoContentTextSentence.where("sentence_ua = ''")
-    @selected_records = QuestionsBlock
-                          .where("answer_ua = ''")
-                          .order(id: :desc)
-                          .limit(count)
-
+  def export_for_translit_xlsx
+    # выгрузка данных для транслитерации
+    @selected_records = TestTableCar2Model.all
+    name_file = "TestTableCar2Model"
     package = Axlsx::Package.new
     workbook = package.workbook
 
-    workbook.add_worksheet(name: "Questions") do |sheet|
+    workbook.add_worksheet(name: name_file) do |sheet|
       # Заголовки колонок
-      sheet.add_row ["ID", "Questions", "Answer"]
+      sheet.add_row ["ID", "name", "translit"]
 
       # Запись данных
       @selected_records.each do |record|
-        sheet.add_row [record.id, record.question_ru, record.answer_ru]
+        max_year_record = TestTableCar2Kit.where(model: record.id).order(year: :desc).first
+        max_year = max_year_record ? max_year_record.year.to_i : 0
+        brand_name = record.brand ? record.brand.name : ''
+
+        if max_year.to_i > 2004
+          sheet.add_row [record.id, record.name, brand_name, max_year]
+        end
+        # sheet.add_row [record.id, record.name, Translit.convert(record.name, :russian)]
       end
     end
 
     # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    send_data package.to_stream.read, :filename => "seo_question_ru_diski.xlsx", :type => "application/xlsx"
+    send_data package.to_stream.read, :filename => "#{name_file}.xlsx", :type => "application/xlsx"
   end
 
   def process_files_ua

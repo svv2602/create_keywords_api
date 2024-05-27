@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_27_060717) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -194,6 +194,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "translit"
   end
 
   create_table "test_table_car2_kit_disk_sizes", force: :cascade do |t|
@@ -206,6 +207,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.string "axle_group"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "test_table_car2_kits_id"
+    t.index ["test_table_car2_kits_id"], name: "idx_on_test_table_car2_kits_id_daa4c566c4"
   end
 
   create_table "test_table_car2_kit_tyre_sizes", force: :cascade do |t|
@@ -218,6 +221,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.string "axle_group"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "test_table_car2_kits_id"
+    t.index ["test_table_car2_kits_id"], name: "idx_on_test_table_car2_kits_id_a262e6288b"
   end
 
   create_table "test_table_car2_kits", force: :cascade do |t|
@@ -230,6 +235,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.string "bolt_size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "test_table_car2_models_id"
+    t.index ["test_table_car2_models_id"], name: "index_test_table_car2_kits_on_test_table_car2_models_id"
   end
 
   create_table "test_table_car2_models", force: :cascade do |t|
@@ -237,6 +244,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "test_table_car2_brand_id"
+    t.string "translit"
+    t.index ["test_table_car2_brand_id"], name: "index_test_table_car2_models_on_test_table_car2_brand_id"
   end
 
   create_table "text_errors", force: :cascade do |t|
@@ -276,8 +286,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_23_115814) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "test_table_car2_kit_disk_sizes", "test_table_car2_kits", column: "kit"
-  add_foreign_key "test_table_car2_kit_tyre_sizes", "test_table_car2_kits", column: "kit"
-  add_foreign_key "test_table_car2_kits", "test_table_car2_models", column: "model"
-  add_foreign_key "test_table_car2_models", "test_table_car2_brands", column: "brand"
+  add_foreign_key "test_table_car2_kit_disk_sizes", "test_table_car2_kits", column: "test_table_car2_kits_id"
+  add_foreign_key "test_table_car2_kit_tyre_sizes", "test_table_car2_kits", column: "test_table_car2_kits_id"
+  add_foreign_key "test_table_car2_kits", "test_table_car2_models", column: "test_table_car2_models_id"
+  add_foreign_key "test_table_car2_models", "test_table_car2_brands"
 end

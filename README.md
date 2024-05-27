@@ -112,7 +112,8 @@ endpoint:
   * /api/v1/fill_table_review - создает параметры в таблицу Review для генерации отзывов  
   * /api/v1/download_car_tire_size_info - первоначальная загрузка базы автомобилей с размерами шин и дисков
     * задействованые таблицы: TestTableCar2Brand, TestTableCar2Model, TestTableCar2Kit, TestTableCar2KitDiskSize, TestTableCar2KitTyreSize
-1
+    * /export_for_translit_xlsx - выгрузка данных для транслитерации (указать нужные таблицы) Внимание!!! - запуск без /api/v1/
+    
 * /api/v1/create_review_templates - генерация шаблонов отзывов
 * 
 

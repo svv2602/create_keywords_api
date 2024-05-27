@@ -23,6 +23,8 @@ Rails.application.routes.draw do
       get '/download_car_tire_size_info', to: 'reviews#download_car_tire_size_info'
       post '/reviews', to: 'reviews#reviews'
       get '/create_review_templates', to: 'reviews#create_review_templates'
+
+
       get '/my_test', to: 'reviews#my_test'
 
     end
@@ -45,7 +47,7 @@ Rails.application.routes.draw do
   get '/replace_text_in_seo_content_text_sentence', to: 'exports#replace_text_in_seo_content_text_sentence'
   get '/replace_size_in_seo_content_text_sentence_r22', to: 'exports#replace_size_in_seo_content_text_sentence_r22'
   get '/replace_name_brand_total', to: 'exports#replace_name_brand_total'
-
+  get '/export_for_translit_xlsx', to: 'exports#export_for_translit_xlsx'
 
 end
 

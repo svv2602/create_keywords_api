@@ -1,25 +1,24 @@
 {
-    "tyres": [
-      {
-        "brand": "michelin",
-        "model": "alpin",
-        "width": 205,
-        "height": 55,
-        "diameter": 16,
-        "season": 1,
-        "type_review": 1
-      },
-      {
-        "brand": "bridgestone",
-        "model": "blizzak",
-        "width": 185,
-        "height": 60,
-        "diameter": 16,
-        "season": 2,
-        "type_review": -1
-      }
-    ],
-
+  "tyres": [
+    {
+      "brand": "michelin",
+      "model": "alpin",
+      "width": 205,
+      "height": 55,
+      "diameter": 16,
+      "season": 1,
+      "type_review": 1
+    },
+    {
+      "brand": "bridgestone",
+      "model": "blizzak",
+      "width": 185,
+      "height": 60,
+      "diameter": 16,
+      "season": 2,
+      "type_review": -1
+    }
+  ],
   "request": {
     "average_value": 9.5,
     "reviews_count": 10,
@@ -39,4 +38,15 @@
       }
     ]
   }
+}
+
+
+{
+  "user": "ГРИГОРІЙ",
+  "auto": "Subaru Legacy",
+  "practice": "2 года",
+  "date_review": "08.07.2022",
+  "review": "Відстій! Купив собі шины Firestone R2 225/50 R18 на свою Subaru Legacy 2021 ",
+  "array_of_ratings": [6,3,4,8],
+  "total_average": 9,
 }
