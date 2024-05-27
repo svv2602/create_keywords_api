@@ -44,9 +44,20 @@ class Api::V1::ReviewsController < ApplicationController
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         array_info[:review] = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        array_info[:author] = gender
+        # array_info[:author] = gender
+      else
+        static_reviews = case type_review
+                         when 1
+                           STATIC_REVIEWS_POSITIVE
+                         when -1
+                           STATIC_REVIEWS_NEGATIVE
+                         when 0
+                           STATIC_REVIEWS_NEUTRAL
+                         end
+        array_info[:review] = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
+        array_info[:author] = get_author_name(language)
       end
-      array_info[:author] = get_author_name(language) if array_info[:author] = ''
+
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record)
       array_info[:array_average] = array_average
