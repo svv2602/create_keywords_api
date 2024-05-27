@@ -2,7 +2,7 @@
 require_relative '../../app/services/dictionaries/const_reviews'
 module ServiceReviewOut
 
-  def get_author_name(gender, language)
+  def get_author_name( language, gender = "мужчина")
 
     hash_names = gender == "мужчина" ? MALE_NAMES : FEMALE_NAMES
     hash_patronymics = gender == "мужчина" ? MALE_PATRNYMICS : FEMALE_PATRNYMICS

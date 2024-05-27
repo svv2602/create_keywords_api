@@ -36,22 +36,21 @@ class Api::V1::ReviewsController < ApplicationController
       # =========================================
       puts "control === #{control}"
       random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
-      gender = Review.find_by(id: random_review[:id_review])[:gender]
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
+      array_info[:language] = language
+      array_info[:author] = ''
 
-      # =========================================
-      # удалить!!!!!!!!!!!!!!!
-      # language = "ru"  #  тестовая !!!!!!!!!!!!!!
-      # =========================================
-
+      if random_review
+        gender = Review.find_by(id: random_review[:id_review])[:gender]
+        array_info[:author] = get_author_name(language, gender)
+        array_info[:review] = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        array_info[:author] = gender
+      end
+      array_info[:author] = get_author_name(language) if array_info[:author] = ''
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record)
       array_info[:array_average] = array_average
       array_info[:control] = control
-      array_info[:review] = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-      array_info[:author] = gender
-      array_info[:language] = language
-      array_info[:author] = get_author_name(gender, language)
 
       result = array_info
       puts "tyres === #{result}"
