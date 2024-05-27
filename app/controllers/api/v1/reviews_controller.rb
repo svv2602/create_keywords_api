@@ -32,9 +32,9 @@ class Api::V1::ReviewsController < ApplicationController
 
       # =========================================
       # удалить!!!!!!!!!!!!!!!
-      control = "летние_положительный_1_1_1_0_nil_nil" #  тестовая !!!!!!!!!!!!!!
+      # control = "летние_положительный_1_1_1_0_nil_nil" #  тестовая !!!!!!!!!!!!!!
       # =========================================
-
+      puts "control === #{control}"
       random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
       gender = Review.find_by(id: random_review[:id_review])[:gender]
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
@@ -48,7 +48,7 @@ class Api::V1::ReviewsController < ApplicationController
       array_info[:names_auto] = names_auto(record)
       array_info[:array_average] = array_average
       array_info[:control] = control
-      array_info[:review] = random_review[:review_ru]
+      array_info[:review] = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
       array_info[:author] = gender
       array_info[:language] = language
       array_info[:author] = get_author_name(gender, language)

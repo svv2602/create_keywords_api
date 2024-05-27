@@ -292,6 +292,12 @@ class ExportsController < ApplicationController
     render plain: "Обновление завершено.  Обработано  |  файлов:#{result[:files]} |  строк:#{result[:str]}"
   end
 
+  def import_translit_auto
+    # для обновления транслит по брендам и моделям автомобилей
+    result = import_text_translit
+    render plain: "Обновление завершено.  Обработано   строк:#{result}"
+
+  end
   def add_new_brand_entries
     excel_file = "lib/brands.xlsx"
     excel = Roo::Excelx.new(excel_file)

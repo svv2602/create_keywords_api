@@ -113,6 +113,8 @@ endpoint:
   * /api/v1/download_car_tire_size_info - первоначальная загрузка базы автомобилей с размерами шин и дисков
     * задействованые таблицы: TestTableCar2Brand, TestTableCar2Model, TestTableCar2Kit, TestTableCar2KitDiskSize, TestTableCar2KitTyreSize
     * /export_for_translit_xlsx - выгрузка данных для транслитерации (указать нужные таблицы) Внимание!!! - запуск без /api/v1/
+    * /import_translit_auto - для обновления транслит по брендам и моделям автомобилей для TestTableCar2Brand и TestTableCar2Model
+      * !!! подготовленные данные предварительно  сохранить в lib/cars_db/TestTableCar2Brand_ready.xlsx и lib/cars_db/TestTableCar2Model_ready.xlsx
     
 * /api/v1/create_review_templates - генерация шаблонов отзывов
 * 

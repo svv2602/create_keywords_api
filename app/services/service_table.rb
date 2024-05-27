@@ -746,6 +746,37 @@ module ServiceTable
 
   end
 
+
+  def import_text_translit
+    j = 0
+    array_date=[["lib/cars_db/TestTableCar2Brand_ready.xlsx","TestTableCar2Brand"],["lib/cars_db/TestTableCar2Model_ready.xlsx","TestTableCar2Model"]]
+    array_date.each do |el|
+      excel = Roo::Excelx.new(el[0])
+      name_table = el[1]
+      i = 0
+      excel.each_row_streaming(pad_cells: true) do |row|
+        begin
+          i += 1
+          id = row[0]&.value
+          translit_ru = row[2]&.value
+          translit_ua = row[3]&.value
+          record_updated = name_table.constantize.find_by(id: id)
+          record_updated.update(translit_ru: translit_ru, translit_ua: translit_ua) if translit_ru.present? && !translit_ru.nil?
+        rescue StandardError => e
+          puts "Error on row #{i}: #{e.message}"
+          next
+        end
+      end
+      j += i
+    end
+
+    return j
+
+  end
+
+
+
+
   def import_questions_ua(filename)
     # Заполнение таблицы с текстом по вопросам
     # lib/text_ua/seo_question_ru_diski.xlsx

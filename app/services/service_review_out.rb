@@ -58,6 +58,8 @@ module ServiceReviewOut
 
   def names_auto(record)
     result = {}
+    auto_brand_review =''
+    auto_model_review = ''
     if record
       auto_brand = record.kit.model.brand.name
       auto_model = record.kit.model.name
@@ -65,8 +67,10 @@ module ServiceReviewOut
     end
     result[:auto] = "#{auto_brand} #{auto_model} #{auto_year} "
 
-    auto_model_review = auto_model.size > 3 ? Translit.convert(auto_model, :russian) : auto_model
-    auto_brand_review = auto_model.size > 3 ? Translit.convert(auto_brand, :russian) : auto_brand
+    if auto_model
+      auto_model_review = auto_model&.size > 3 ? Translit.convert(auto_model, :russian) : auto_model
+      auto_brand_review = auto_model&.size > 3 ? Translit.convert(auto_brand, :russian) : auto_brand
+    end
 
     result[:auto_review] = "#{auto_brand_review} #{auto_model_review} "
     result
