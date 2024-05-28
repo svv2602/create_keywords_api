@@ -5,10 +5,34 @@ require_relative '../../app/services/dictionaries/const_reviews_gender_male'
 require_relative '../../app/services/dictionaries/const_reviews_gender_female'
 module ServiceReviewOut
 
-  def collect_the_answer(tyres)
+  def makes_hash_for_collect_the_answer(tyres)
+    new_hash = { tyres: [] }
+    array_with_average = random_array_with_average(10,
+                                                   tyres[:season],
+                                                   tyres[:grade],
+                                                   tyres[:number_of_reviews])
+    puts "array_with_average = #{array_with_average.inspect}"
+    array_with_average.each do |grade|
+      size = tyres[:sizes_of_model].shuffle.first
+      new_hash[:tyres] << {
+        grade: grade,
+        brand: tyres[:brand],
+        model: tyres[:model],
+        season: tyres[:season],
+        width: size[:width],
+        height: size[:height],
+        diameter: size[:diameter],
+        type_review: convert_rating_to_type(grade),
+        id: size[:id]
+      }
+    end
+    new_hash
+  end
+
+  def collect_the_answer(tyres, average = 0)
     result = []
     tyres.each do |el|
-      array_info = create_hash_with_params(el)
+      array_info = average == 0 ? create_hash_with_params(el) : el
       puts "array_info === #{array_info.inspect}"
       record = get_car_by_tire_size(array_info)
       puts "record === #{record.inspect}"
@@ -16,7 +40,7 @@ module ServiceReviewOut
       season = array_info[:season]
       type_review = array_info[:type_review]
 
-      array_average = random_array_with_average(type_review, season)
+      array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
       control = value_field_control(season, type_review, array_average)
 
       random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
@@ -84,7 +108,7 @@ module ServiceReviewOut
 
   def create_hash_with_params(hash_params)
     array_info = {}
-    array_sym = [:brand, :model, :width, :height, :diameter, :season, :type_review]
+    array_sym = [:brand, :model, :width, :height, :diameter, :season, :type_review, :id]
     array_sym.each { |sym| array_info[sym] = hash_params[sym] }
     array_info
   end
@@ -205,12 +229,19 @@ module ServiceReviewOut
 
   end
 
-  def random_array_with_average(type_review, type_season, evaluation_for_array = 0)
+  def random_array_with_average(type_review, type_season, evaluation_for_array = 0, amount_of_elements = 0)
     # результатом является массив с оценками для легковых шин!!!
-    # type_review: 1 - положительный, 2 - нейтральный, 3 - негативный
+    # type_review: 1 - положительный, 2 - нейтральный, 3 - негативный, для evaluation_for_array <> 0 - любое
     # type_season: 1 - летние легковые шины, другое значение для остальных шин
-    number_of_ratings = type_season == 1 ? 4 : 6
-    n = evaluation_for_array == 0 ? values_for_review_type(type_review) : values
+
+    if amount_of_elements == 0
+      number_of_ratings = type_season == 1 ? 4 : 6
+    else
+      number_of_ratings = amount_of_elements
+    end
+
+    n = evaluation_for_array == 0 ? values_for_review_type(type_review) : evaluation_for_array
+    puts "n == #{n}"
     array = []
     number_of_ratings.times do |i|
       num = (rand(n..10.0) * 2).round / 2.0
@@ -244,7 +275,14 @@ module ServiceReviewOut
     str = ''
     arr.each do |el|
       str += "_"
-      str += case el
+      str += convert_rating_to_type(el).to_s
+    end
+
+    str
+  end
+
+  def convert_rating_to_type(number)
+    result = case number
              when 7..10
                1
              when 5..8
@@ -253,11 +291,8 @@ module ServiceReviewOut
                -1
              else
                -1
-             end.to_s
-
-    end
-
-    str
+             end
+    result
   end
 
   def value_field_control(season_param, type_review_param, arr_values)

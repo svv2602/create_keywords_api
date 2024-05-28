@@ -21,9 +21,10 @@ Rails.application.routes.draw do
       # =========================================
       get '/fill_table_review', to: 'reviews#fill_table_review'
       get '/download_car_tire_size_info', to: 'reviews#download_car_tire_size_info'
-      post '/reviews', to: 'reviews#reviews'
       get '/create_review_templates', to: 'reviews#create_review_templates'
 
+      post '/reviews', to: 'reviews#reviews'
+      post '/reviews_for_model', to: 'reviews#reviews_for_model'
 
       get '/my_test', to: 'reviews#my_test'
 

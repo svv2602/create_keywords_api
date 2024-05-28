@@ -9,7 +9,8 @@ curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
 "height": 55,
 "diameter": 16,
 "season": 1,
-"type_review": 1
+"type_review": 1,
+"id": "m1"
 },
 {
 "brand": "bridgestone",
@@ -18,10 +19,40 @@ curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
 "height": 60,
 "diameter": 14,
 "season": 2,
-"type_review": -1
+"type_review": -1,
+"id": "m567"
+},
+{
+"brand": "sava",
+"model": "eskimos",
+"width": 195,
+"height": 55,
+"diameter": 15,
+"season": 2,
+"type_review": 0,
+"id": "ghj566"
 }
 ]
 }'       http://localhost:3000/api/v1/reviews
+
+=========================================================
+
+Пример запроса (тип2):
+=================================================
+
+curl -X POST -H "Content-Type: application/json"      -d '{
+"brand": "michelin",
+"model": "alpin",
+"season": 1,
+"grade": 9.5,
+"number_of_reviews": 20,
+"sizes_of_model" : [
+{"width": 205, "height": 55, "diameter": 16, "id": "m1"},
+{"width": 175, "height": 70, "diameter": 14, "id": "m22"},
+{"width": 185, "height": 55, "diameter": 15, "id": "m321"},
+{"width": 235, "height": 55, "diameter": 18, "id": "m45"}
+]
+}'       http://localhost:3000/api/v1/reviews_for_model
 
 =========================================================
 
