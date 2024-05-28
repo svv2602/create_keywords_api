@@ -1,6 +1,8 @@
 # app/services/service_review_out.rb
 require_relative '../../app/services/dictionaries/const_reviews'
 require_relative '../../app/services/dictionaries/const_reviews_static'
+require_relative '../../app/services/dictionaries/const_reviews_gender_male'
+require_relative '../../app/services/dictionaries/const_reviews_gender_female'
 module ServiceReviewOut
 
   def collect_the_answer(tyres)
