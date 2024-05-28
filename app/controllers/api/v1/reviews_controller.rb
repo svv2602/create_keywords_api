@@ -18,55 +18,8 @@ class Api::V1::ReviewsController < ApplicationController
   end
 
   def reviews
-    result = {}
     tyres = params[:tyres]
-
-    tyres.each do |el|
-      array_info = el
-      record = TestTableCar2KitTyreSize.where(width: "#{el[:width]}.00", height: "#{el[:height]}.00", diameter: "#{el[:diameter]}.00").order('RANDOM()').first
-      tyres_size = "#{el[:width]}/#{el[:height]}R#{el[:diameter]}"
-      season = el[:season]
-      type_review = el[:type_review]
-      array_average = random_array_with_average(el[:type_review], el[:season])
-      control = value_field_control(season, type_review, array_average)
-
-      # =========================================
-      # удалить!!!!!!!!!!!!!!!
-      # control = "летние_положительный_1_1_1_0_nil_nil" #  тестовая !!!!!!!!!!!!!!
-      # =========================================
-      puts "control === #{control}"
-      random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
-      language = rand(1..10) % 2 == 0 ? "ru" : "ua"
-      array_info[:language] = language
-      array_info[:author] = ''
-
-      if random_review
-        gender = Review.find_by(id: random_review[:id_review])[:gender]
-        array_info[:author] = get_author_name(language, gender)
-        array_info[:review] = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        # array_info[:author] = gender
-      else
-        static_reviews = case type_review
-                         when 1
-                           STATIC_REVIEWS_POSITIVE
-                         when -1
-                           STATIC_REVIEWS_NEGATIVE
-                         when 0
-                           STATIC_REVIEWS_NEUTRAL
-                         end
-        array_info[:review] = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
-        array_info[:author] = get_author_name(language)
-      end
-
-      array_info[:tyres_size] = tyres_size
-      array_info[:names_auto] = names_auto(record)
-      array_info[:array_average] = array_average
-      array_info[:control] = control
-
-      result = array_info
-      puts "tyres === #{result}"
-
-    end
+    result = collect_the_answer(tyres)
     render json: { result: result.inspect }, status: :ok
   end
 
@@ -246,11 +199,11 @@ class Api::V1::ReviewsController < ApplicationController
 
   def download_car_tire_size_info
     result = ''
-    TestTableCar2Brand.delete_all
-    TestTableCar2Model.delete_all
-    TestTableCar2Kit.delete_all
-    TestTableCar2KitDiskSize.delete_all
-    TestTableCar2KitTyreSize.delete_all
+    # TestTableCar2Brand.delete_all
+    # TestTableCar2Model.delete_all
+    # TestTableCar2Kit.delete_all
+    # TestTableCar2KitDiskSize.delete_all
+    # TestTableCar2KitTyreSize.delete_all
 
     result += add_brand
     result += add_model
