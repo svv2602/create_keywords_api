@@ -37,54 +37,61 @@ endpoint:
 
 
 * /api/v1/reviews - генерация отзывов по списку шин:
+  * значения параметров:
+    *  season:  1 - "летние";  2 - "зимние"; 3 - "всесезонные"
+    *  type_review:  1 - "положительный";  -1 -  "негативный";  0 -  "нейтральный"
 
-    Пример запроса:
-  curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
-      {
-        "brand": "michelin",
-        "model": "alpin",
-        "width": 205,
-        "height": 55,
-        "diameter": 16,
-        "season": 1,
-        "type_review": 1,
-        "id": "m1"
-      },
-      {
-        "brand": "bridgestone",
-        "model": "blizzak",
-        "width": 185,
-        "height": 60,
-        "diameter": 14,
-        "season": 2,
-        "type_review": -1,
-        "id": "m567"
-      }
-    ]
-  }'       http://localhost:3000/api/v1/reviews
+        Пример запроса:
+      curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
+          {
+            "brand": "michelin",
+            "model": "alpin",
+            "width": 205,
+            "height": 55,
+            "diameter": 16,
+            "season": 1,
+            "type_review": 1,
+            "id": "m1"
+          },
+          {
+            "brand": "bridgestone",
+            "model": "blizzak",
+            "width": 185,
+            "height": 60,
+            "diameter": 14,
+            "season": 2,
+            "type_review": -1,
+            "id": "m567"
+          }
+        ]
+      }'       http://localhost:3000/api/v1/reviews
 
 =========================================================
 
 
 
 * /api/v1/reviews_for_model - генерация отзывов для модели со списком размеров шин:
-
-   Пример запроса:
-  curl -X POST -H "Content-Type: application/json"      -d '{
-    "brand": "michelin",
-    "model": "alpin",
-    "season": 1,
-    "grade": 8.5,
-    "number_of_reviews": 20,
-    "sizes_of_model" : [
-      {"width": 205, "height": 55, "diameter": 16, "id": "m1"},
-      {"width": 175, "height": 70, "diameter": 14, "id": "m22"},
-      {"width": 185, "height": 55, "diameter": 15, "id": "m321"},
-      {"width": 235, "height": 55, "diameter": 18, "id": "m45"}
-    ]
-  }'       http://localhost:3000/api/v1/reviews_for_model
+  * значения параметров:
+    *  season:  1 - "летние";  2 - "зимние"; 3 - "всесезонные"
+    *  grade: средняя оценка для группы
+    *  number_of_reviews: количество отзывов для группы (размеры выбираются случайным образом)
   
-  =========================================================
+     Пример запроса:
+    curl -X POST -H "Content-Type: application/json"      -d '{
+      "brand": "michelin",
+      "model": "alpin",
+      "season": 1,
+      "grade": 8.5,
+      "number_of_reviews": 20,
+      "sizes_of_model" : [
+        {"width": 205, "height": 55, "diameter": 16, "id": "m1"},
+        {"width": 175, "height": 70, "diameter": 14, "id": "m22"},
+        {"width": 185, "height": 55, "diameter": 15, "id": "m321"},
+        {"width": 235, "height": 55, "diameter": 18, "id": "m45"}
+      ]
+    }'       http://localhost:3000/api/v1/reviews_for_model
+  
+    =========================================================
 
 
 
