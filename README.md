@@ -21,6 +21,73 @@ endpoint:
 * /api/v1/text_line?url=params_url - текст об ошибках при поиске размера
   * params_url - строка https://prokoleso.ua/shiny/w-175/h-70/r-13/', приведенная к виду: https%3A%2F%2Fprokoleso.ua%2Fshiny%w-175%2Fh-70%2Fr-13%2F
 
+
+
+  =================================================
+* /api/v1/seo_text?url=params_url - генерация текста под урл (с оптимизацией, заголовками, ошибками, ссылками и html-разметкой)
+
+  Пример запроса:
+   легковые:
+     curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+   грузовые:
+    curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
+
+  ================================================= 
+
+
+
+* /api/v1/reviews - генерация отзывов по списку шин:
+
+    Пример запроса:
+  curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
+      {
+        "brand": "michelin",
+        "model": "alpin",
+        "width": 205,
+        "height": 55,
+        "diameter": 16,
+        "season": 1,
+        "type_review": 1,
+        "id": "m1"
+      },
+      {
+        "brand": "bridgestone",
+        "model": "blizzak",
+        "width": 185,
+        "height": 60,
+        "diameter": 14,
+        "season": 2,
+        "type_review": -1,
+        "id": "m567"
+      }
+    ]
+  }'       http://localhost:3000/api/v1/reviews
+
+=========================================================
+
+
+
+* /api/v1/reviews_for_model - генерация отзывов для модели со списком размеров шин:
+
+   Пример запроса:
+  curl -X POST -H "Content-Type: application/json"      -d '{
+    "brand": "michelin",
+    "model": "alpin",
+    "season": 1,
+    "grade": 8.5,
+    "number_of_reviews": 20,
+    "sizes_of_model" : [
+      {"width": 205, "height": 55, "diameter": 16, "id": "m1"},
+      {"width": 175, "height": 70, "diameter": 14, "id": "m22"},
+      {"width": 185, "height": 55, "diameter": 15, "id": "m321"},
+      {"width": 235, "height": 55, "diameter": 18, "id": "m45"}
+    ]
+  }'       http://localhost:3000/api/v1/reviews_for_model
+  
+  =========================================================
+
+
+
 #### дополнительно:
 * /api/v1/generate_completion - формирование заголовков для статей, созраняются в lib/template_texts/title_h2.json
 * /api/v1/total_generate_seo_text - полный запуск всех операций по генерации текстов (json, абзацы, предложения).
@@ -32,7 +99,7 @@ endpoint:
 * /api/v1/json_write_for_read - перенос текстов из lib/template_texts/data.txt в lib/template_texts/data.json
 * /api/v1/total_arr_to_table - рерайт текста из lib/template_texts/data.json и запись в базу данных (по умолчанию по одному проходу для каждого абзаца)
 * /api/v1/total_arr_to_table_sentence - рерайт предложений в заданном а абзаце порядке (по умолчанию по одному проходу для каждого предложения)
-* /api/v1/seo_text?url=params_url - генерация текста под урл (с оптимизацией, заголовками, ошибками, ссылками и html-разметкой)
+
 
 #### Важно
 * в методе def total_arr_to_table Задаем количество повторов вариантов для всех текстов из data.json, 
@@ -117,5 +184,5 @@ endpoint:
       * !!! подготовленные данные предварительно  сохранить в lib/cars_db/TestTableCar2Brand_ready.xlsx и lib/cars_db/TestTableCar2Model_ready.xlsx
     
 * /api/v1/create_review_templates - генерация шаблонов отзывов
-* 
+
 

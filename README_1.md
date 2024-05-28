@@ -21,16 +21,6 @@ curl -X POST -H "Content-Type: application/json"      -d '{"tyres": [
 "season": 2,
 "type_review": -1,
 "id": "m567"
-},
-{
-"brand": "sava",
-"model": "eskimos",
-"width": 195,
-"height": 55,
-"diameter": 15,
-"season": 2,
-"type_review": 0,
-"id": "ghj566"
 }
 ]
 }'       http://localhost:3000/api/v1/reviews
@@ -44,7 +34,7 @@ curl -X POST -H "Content-Type: application/json"      -d '{
 "brand": "michelin",
 "model": "alpin",
 "season": 1,
-"grade": 9.5,
+"grade": 8.5,
 "number_of_reviews": 20,
 "sizes_of_model" : [
 {"width": 205, "height": 55, "diameter": 16, "id": "m1"},

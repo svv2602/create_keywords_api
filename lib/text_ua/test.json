@@ -1,7 +1,7 @@
 { "brand": "michelin",
   "model": "alpin",
   "season": 1,
-  "grade": 9.5,
+  "grade": 9,
   "number_of_reviews": 20,
   "tyres" : [
     {"width": 205, "height": 55, "diameter": 16, "id": "m1"},

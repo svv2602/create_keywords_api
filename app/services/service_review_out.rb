@@ -54,7 +54,7 @@ module ServiceReviewOut
       array_info[:language] = language
       array_info[:author] = ''
 
-      if random_review
+      if random_review && rand(1..100)%5 == 0
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
