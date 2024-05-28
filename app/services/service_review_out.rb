@@ -18,6 +18,12 @@ module ServiceReviewOut
 
       random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
+
+      # ===================================
+      # тест - удалить
+      language = "ru"
+      # ===================================
+
       array_info[:language] = language
       array_info[:author] = ''
 
@@ -25,20 +31,20 @@ module ServiceReviewOut
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+
         array_info[:review] = make_changes_to_review_template(review, array_info[:brand],
                                                               array_info[:model],
                                                               array_info[:width],
                                                               array_info[:height],
                                                               array_info[:diameter],
-                                                              names_auto(record)[:auto_review])
-        # array_info[:author] = gender
+                                                              names_auto(record, language)[:auto_review])
       else
         array_info[:review] = get_static_review(type_review, language)
         array_info[:author] = get_author_name(language)
       end
 
       array_info[:tyres_size] = tyres_size
-      array_info[:names_auto] = names_auto(record)[:auto]
+      array_info[:names_auto] = names_auto(record, language)[:auto]
       array_info[:array_average] = array_average
       array_info[:control] = control
 
@@ -145,25 +151,49 @@ module ServiceReviewOut
     result
   end
 
-  def names_auto(record)
+  def names_auto(record, language)
     result = {}
-    auto_brand_review = ''
-    auto_model_review = ''
-    if record
-      auto_brand = record.kit.model.brand.name
-      auto_model = record.kit.model.name
-      auto_year = record.kit.year
-    end
-    result[:auto] = "#{auto_brand} #{auto_model} #{auto_year} "
+    # выбор поля по языку
+    field = rand(1..5) % 2 == 1 ? "name" : "translit_#{language}"
+
+    auto_brand = record.kit.model.brand.send(field)
+    auto_model = record.kit.model.send(field)
+
+    # добавить год
+    str_year = rand(1..2) % 2 == 1 ? " г." : ""
+    auto_year = rand(1..2) % 2 == 1 ? record.kit.year + str_year : ""
+
+    # добавить двигатель
+    motor = rand(1..6) % 3 == 1 ? record.kit.name.split(' ')[0]+" " : ""
+
+
+
+    # бренд и модель для отзыва (body)
+    auto_brand_review = rand(1..5) % 2 == 1  ? record.kit.model.brand.name : auto_brand
 
     if auto_model
-      auto_model_review = auto_model&.size > 3 ? Translit.convert(auto_model, :russian) : auto_model
-      auto_brand_review = auto_model&.size > 3 ? Translit.convert(auto_brand, :russian) : auto_brand
+      auto_model_review = rand(1..5) % 2 == 1  ? record.kit.model.name : auto_model
+    else
+      auto_model_review = record.kit.model.name
     end
+    auto_review = case rand(1..3)
+                  when 1
+                    "#{auto_brand_review} #{auto_model_review} "
+                  when 2
+                    "#{auto_brand_review}"
+                  else
+                    "#{auto_model_review}"
+                  end
 
-    result[:auto_review] = "#{auto_brand_review} #{auto_model_review} "
+
+    # авто для заголовка и тела отзыва
+    result[:auto] = "#{auto_brand} #{auto_model} #{motor}#{auto_year} "
+    result[:auto_review] = auto_review
     result
+
   end
+
+
 
   def random_array_with_average(type_review, type_season, evaluation_for_array = 0)
     # результатом является массив с оценками для легковых шин!!!
