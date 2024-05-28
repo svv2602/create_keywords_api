@@ -1,5 +1,6 @@
 # app/services/service_review_out.rb
 require_relative '../../app/services/dictionaries/const_reviews'
+require_relative '../../app/services/dictionaries/const_reviews_static'
 module ServiceReviewOut
 
   def collect_the_answer(tyres)
@@ -57,7 +58,19 @@ module ServiceReviewOut
 
   def make_changes_to_review_template(text, brand, model, size_width, size_height, size_diameter, auto)
     result = text
-    puts result
+    n = rand(1..10)
+    case n
+    when 1, 3, 5, 7, 9
+      brand = brand.capitalize
+      model = model.capitalize
+    when 2, 4, 8
+      brand = brand.downcase
+      model = model.downcase
+    else
+      brand = brand.upcase
+      model = model.upcase
+    end
+
     tyres_size = "#{size_width}/#{size_height}R#{size_diameter}"
     result = result.gsub(/GreenTire/i, brand)
     result = result.gsub(/SuperDefender/i, model)
@@ -164,15 +177,13 @@ module ServiceReviewOut
     auto_year = rand(1..2) % 2 == 1 ? record.kit.year + str_year : ""
 
     # добавить двигатель
-    motor = rand(1..6) % 3 == 1 ? record.kit.name.split(' ')[0]+" " : ""
-
-
+    motor = rand(1..6) % 3 == 1 ? record.kit.name.split(' ')[0] + " " : ""
 
     # бренд и модель для отзыва (body)
-    auto_brand_review = rand(1..5) % 2 == 1  ? record.kit.model.brand.name : auto_brand
+    auto_brand_review = rand(1..5) % 2 == 1 ? record.kit.model.brand.name : auto_brand
 
     if auto_model
-      auto_model_review = rand(1..5) % 2 == 1  ? record.kit.model.name : auto_model
+      auto_model_review = rand(1..5) % 2 == 1 ? record.kit.model.name : auto_model
     else
       auto_model_review = record.kit.model.name
     end
@@ -185,15 +196,12 @@ module ServiceReviewOut
                     "#{auto_model_review}"
                   end
 
-
     # авто для заголовка и тела отзыва
     result[:auto] = "#{auto_brand} #{auto_model} #{motor}#{auto_year} "
     result[:auto_review] = auto_review
     result
 
   end
-
-
 
   def random_array_with_average(type_review, type_season, evaluation_for_array = 0)
     # результатом является массив с оценками для легковых шин!!!
@@ -210,7 +218,8 @@ module ServiceReviewOut
       end
       array[i] = el > 1 ? el : 1.0
     end
-    # puts array.inspect
+    array.shuffle!
+    puts array.inspect
     array
   end
 
