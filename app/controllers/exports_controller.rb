@@ -149,7 +149,7 @@ class ExportsController < ApplicationController
   def count_records
     # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
     last_id_text = ReadyReviews.last.id
-    review_last_id_text = Review.last.id_text
+    review_last_id_text = Review.last.id
 
     # ================ Временный счетчик ===============================
     now = Time.now
