@@ -15,13 +15,22 @@ Rails.application.routes.draw do
       get '/json_write_for_read', to: 'seo_texts#json_write_for_read'
       get '/total_arr_to_table', to: 'seo_texts#total_arr_to_table'
       get '/total_arr_to_table_sentence', to: 'seo_texts#total_arr_to_table_sentence'
-      get '/total_generate_seo_text', to: 'seo_texts#total_generate_seo_text'
+      # временная блокировка - вернуть после генерации отзывов
+      # get '/total_generate_seo_text', to: 'seo_texts#total_generate_seo_text'
+      # *********************************
+
       get '/mytest', to: 'seo_texts#mytest'
 
       # =========================================
       get '/fill_table_review', to: 'reviews#fill_table_review'
       get '/download_car_tire_size_info', to: 'reviews#download_car_tire_size_info'
       get '/create_review_templates', to: 'reviews#create_review_templates'
+
+      # Внимание - дубль ****************************************************
+      get '/total_generate_seo_text', to: 'reviews#create_review_templates' #удалить после генерации отзывов
+      # Удалить - дубль ****************************************************
+
+
 
       post '/reviews', to: 'reviews#reviews'
       post '/reviews_for_model', to: 'reviews#reviews_for_model'

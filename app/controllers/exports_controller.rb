@@ -148,8 +148,8 @@ class ExportsController < ApplicationController
 
   def count_records
     # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
-    seo_content_text_last_id = SeoContentText.last.id
-    seo_content_text_sentence_last_id_text = SeoContentTextSentence.last.id_text
+    last_id_text = ReadyReviews.last.id
+    review_last_id_text = Review.last.id_text
 
     # ================ Временный счетчик ===============================
     now = Time.now
@@ -157,8 +157,8 @@ class ExportsController < ApplicationController
 
     render json: {
       # SeoContentText: "#{seo_content_text_last_id}",
-      SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
-      SeoContentTextSentence: "#{seo_content_text_sentence_last_id_text}"
+      SeoContentText: "#{review_last_id_text}", # для блокировки автозапуска
+      SeoContentTextSentence: "#{last_id_text}"
     }
   end
 
