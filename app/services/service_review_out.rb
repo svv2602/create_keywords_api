@@ -50,10 +50,7 @@ module ServiceReviewOut
         random_review = ReadyReviews.order("RANDOM()").where(control: control).where.not(id: array_reviews_id).first
       end
 
-
-
       puts "array_reviews_id = #{array_reviews_id}"
-
 
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
 
@@ -65,12 +62,12 @@ module ServiceReviewOut
       array_info[:language] = language
       array_info[:author] = ''
 
-      if random_review && rand(1..100)%5 == 0
+      if random_review && rand(1..100) % 5 == 0
         array_reviews_id << random_review.id # массив для исключения id в дальнейшем
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-
+        review += add_emoji(type_review)
         array_info[:review] = make_changes_to_review_template(review, array_info[:brand],
                                                               array_info[:model],
                                                               array_info[:width],
@@ -115,6 +112,7 @@ module ServiceReviewOut
     result = result.gsub(/супердефендер/i, model)
     result = result.gsub(/195\/65R15/i, tyres_size)
     result = result.gsub(/JLT/i, auto)
+
     result
   end
 
@@ -145,6 +143,21 @@ module ServiceReviewOut
                        STATIC_REVIEWS_NEUTRAL
                      end
     result = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
+    result += add_emoji(type_review)
+    result
+
+  end
+
+  def add_emoji(type_review)
+    result = ''
+    # добавить эмодзи
+    if rand(1..100) % 4 == 0 && type_review != 0
+      arr_emoji = type_review == 1 ? POSITIVE_EMOTION_EMOJI : NEGATIVE_EMOTION_EMOJI
+      n = rand(1..100) % 5 == 0 ? rand(2..5) : rand(1..2)
+      n.times do
+        result += arr_emoji.sample
+      end
+    end
     result
   end
 
