@@ -68,11 +68,11 @@ module ServiceReviewOut
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
         review = make_changes_to_review_template(review, array_info[:brand],
-                                                              array_info[:model],
-                                                              array_info[:width],
-                                                              array_info[:height],
-                                                              array_info[:diameter],
-                                                              names_auto(record, language)[:auto_review])
+                                                 array_info[:model],
+                                                 array_info[:width],
+                                                 array_info[:height],
+                                                 array_info[:diameter],
+                                                 names_auto(record, language)[:auto_review])
       else
         review = get_static_review(type_review, language)
 
@@ -105,6 +105,7 @@ module ServiceReviewOut
     end
     result
   end
+
   def make_changes_to_review_template(text, brand, model, size_width, size_height, size_diameter, auto)
     result = text
     n = rand(1..10)
@@ -120,7 +121,25 @@ module ServiceReviewOut
       model = model.upcase
     end
 
-    tyres_size = "#{size_width}/#{size_height}R#{size_diameter}"
+    tyres_size = case rand(1..10)
+                 when 1
+                   "#{size_width}/#{size_height}R#{size_diameter}"
+                 when 2
+                   "#{size_width}/#{size_height} R#{size_diameter}"
+                 when 3
+                   "#{size_width} #{size_height} R#{size_diameter}"
+                 when 4
+                   "R#{size_diameter} на #{size_width}/#{size_height}"
+                 when 5
+                   "#{size_width}/#{size_height} #{size_diameter}"
+                 when 6
+                   "#{size_width} #{size_height} #{size_diameter}"
+                 when 7
+                   "#{size_width}/#{size_height} на #{size_diameter}"
+                 else
+                   "#{size_width}/#{size_height}R#{size_diameter}"
+                 end
+
     result = result.gsub(/GreenTire/i, brand)
     result = result.gsub(/SuperDefender/i, model)
     result = result.gsub(/супердефендер/i, model)
