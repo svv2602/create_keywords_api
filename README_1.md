@@ -34,8 +34,8 @@ curl -X POST -H "Content-Type: application/json"      -d '{
 "brand": "michelin",
 "model": "alpin",
 "season": 1,
-"grade": 8.5,
-"number_of_reviews": 20,
+"grade": 7.6,
+"number_of_reviews": 10,
 "sizes_of_model" : [
 {"width": 205, "height": 55, "diameter": 16, "id": "m1"},
 {"width": 175, "height": 70, "diameter": 14, "id": "m22"},

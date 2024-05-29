@@ -31,6 +31,7 @@ module ServiceReviewOut
 
   def collect_the_answer(tyres, average = 0)
     result = []
+    array_reviews_id = []
     tyres.each do |el|
       array_info = average == 0 ? create_hash_with_params(el) : el
       puts "array_info === #{array_info.inspect}"
@@ -43,7 +44,17 @@ module ServiceReviewOut
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
       control = value_field_control(season, type_review, array_average)
 
-      random_review = ReadyReviews.where("control = ?", control).order("RANDOM()").first
+      if array_reviews_id.empty?
+        random_review = ReadyReviews.order("RANDOM()").where(control: control).first
+      else
+        random_review = ReadyReviews.order("RANDOM()").where(control: control).where.not(id: array_reviews_id).first
+      end
+
+
+
+      puts "array_reviews_id = #{array_reviews_id}"
+
+
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
 
       # ===================================
@@ -55,6 +66,7 @@ module ServiceReviewOut
       array_info[:author] = ''
 
       if random_review && rand(1..100)%5 == 0
+        array_reviews_id << random_review.id # массив для исключения id в дальнейшем
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
@@ -73,7 +85,7 @@ module ServiceReviewOut
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
       array_info[:array_average] = array_average
-      array_info[:control] = control
+      # array_info[:control] = control
 
       result << array_info
       puts "tyres === #{result}"
@@ -246,13 +258,17 @@ module ServiceReviewOut
     number_of_ratings.times do |i|
       num = (rand(n..10.0) * 2).round / 2.0
       el = i % 2 == 0 ? num : 2 * n - array[i - 1]
+      el = (el * 2).round / 2.0 # округление с точностью 0,5
+
+      # внести в массив погрешность
       if el <= 9 && el >= 2.5
         el += 0.5 * rand(1..10) % 2 == 0 ? -1 : 1 if rand(1..10) % 2 == 0
       end
+
       array[i] = el > 1 ? el : 1.0
     end
     array.shuffle!
-    puts array.inspect
+    # puts array.inspect
     array
   end
 
