@@ -67,7 +67,6 @@ module ServiceReviewOut
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        review += add_emoji(type_review)
         array_info[:review] = make_changes_to_review_template(review, array_info[:brand],
                                                               array_info[:model],
                                                               array_info[:width],
@@ -79,6 +78,7 @@ module ServiceReviewOut
         array_info[:author] = get_author_name(language)
       end
 
+      array_info[:review] += add_emoji(type_review)
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
       array_info[:array_average] = array_average
@@ -143,7 +143,6 @@ module ServiceReviewOut
                        STATIC_REVIEWS_NEUTRAL
                      end
     result = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
-    result += add_emoji(type_review)
     result
 
   end
@@ -158,6 +157,8 @@ module ServiceReviewOut
         result += arr_emoji.sample
       end
     end
+    separator = result.size > 2 && rand(1..100) % 2 == 0 ? "\n" : (rand(1..100) % 2 == 0 ? "" : " ")
+    result = separator + result
     result
   end
 
