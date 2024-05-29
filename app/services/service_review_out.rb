@@ -67,18 +67,20 @@ module ServiceReviewOut
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        array_info[:review] = make_changes_to_review_template(review, array_info[:brand],
+        review = make_changes_to_review_template(review, array_info[:brand],
                                                               array_info[:model],
                                                               array_info[:width],
                                                               array_info[:height],
                                                               array_info[:diameter],
                                                               names_auto(record, language)[:auto_review])
       else
-        array_info[:review] = get_static_review(type_review, language)
+        review = get_static_review(type_review, language)
+
         array_info[:author] = get_author_name(language)
       end
+      review = change_chars_register(review) + add_emoji(type_review)
 
-      array_info[:review] += add_emoji(type_review)
+      array_info[:review] = review
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
       array_info[:array_average] = array_average
@@ -91,6 +93,18 @@ module ServiceReviewOut
     result
   end
 
+  def change_chars_register(text)
+    n = rand(1..10)
+    case n
+    when 1, 3, 5, 7, 9
+      result = text.capitalize
+    when 2, 4, 8
+      result = text.downcase
+    else
+      result = text.upcase
+    end
+    result
+  end
   def make_changes_to_review_template(text, brand, model, size_width, size_height, size_diameter, auto)
     result = text
     n = rand(1..10)
