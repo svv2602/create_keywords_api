@@ -187,7 +187,7 @@ module ServiceReview
     rescue ActiveRecord::RecordInvalid => e
       attempts += 1
       if attempts < 3
-        sleep(0.5) # Delay to not overwhelm the DB
+        sleep(2) # Delay to not overwhelm the DB
         retry
       else
         puts "Failed to save record after 3 attempts: #{e.message}"
@@ -196,24 +196,13 @@ module ServiceReview
   end
 
   def generate_review(query_params, arr_review_length)
-    # review_length = case rand(1..10) % 3
-    #                 when 1
-    #                   "небольшой (больше 100 и не более 300 печатных символов)"
-    #                 when 2
-    #                   "короткий (не более 100 печатных символов)"
-    #                 else
-    #                   "большой (не менее 300 печатных символов)"
-    #                 end
-    #
-    # topics = "Создай #{review_length} отзыв о шинах, используя следующие параметры: "
-
      # topics = "Создай отзыв о шинах , используя следующие параметры: "
     topics = "Создай эмоциональный раскрепощенный отзыв о шинах от лица водителя со стажем вождения от 5 до 15 лет, используя следующие параметры: "
     topics += "\n"
     topics += query_params
     topics += "\n"
     topics += "Длина отзыва: от #{arr_review_length[0]} до #{arr_review_length[1]} слов"
-    puts " topics ======  #{topics}"
+    # puts " topics ======  #{topics}"
     topics += "\n"
     topics += "в результат выведи только сгенерированный отзыв на русском языке"
     topics += "\n"
@@ -240,7 +229,7 @@ module ServiceReview
     rescue => e
       attempts += 1
       if attempts < 3
-        sleep(0.5) # Delay to not overwhelm the service
+        sleep(2) # Delay to not overwhelm the service
         retry
       else
         puts "Произошла ошибка при получении текста: #{e.message}"
