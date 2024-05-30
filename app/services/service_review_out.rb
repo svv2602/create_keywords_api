@@ -42,6 +42,11 @@ module ServiceReviewOut
       type_review = array_info[:type_review]
 
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
+      array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
+
+
+
+      puts "array_info[:grade] ===== #{array_info[:grade]}"
       control = value_field_control(season, type_review, array_average)
 
       if array_reviews_id.empty?
