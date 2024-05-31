@@ -187,11 +187,11 @@ module ServiceReview
     puts "2 max_id = #{max_id}"
 
     records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    # result = generating_texts_and_writing_to_tables(records)
+    result = generating_texts_and_writing_to_tables(records,table_name)
     # result
   end
 
-  def generating_texts_and_writing_to_tables(records)
+  def generating_texts_and_writing_to_tables(records,table_name)
 
     # max_id = ReadyReviews.last&.id_review
     # records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
@@ -218,7 +218,7 @@ module ServiceReview
                                                         'created_at', 'updated_at')
                                      .values.map { |v| v.nil? ? 'nil' : v }.join("_")
 
-          add_new_record_to_model('ReadyReviews', new_hash)
+          add_new_record_to_model(table_name, new_hash)
           i += 1
         end
       end
