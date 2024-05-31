@@ -13,7 +13,10 @@ class Api::V1::ReviewsController < ApplicationController
 
   def create_review_templates
     # Генерация отзывов
+    # /api/v1/create_review_templates?min=25000&max=30000 - пример вызова с параметрами - 1
     # /api/v1/create_review_templates?min=30000&max=35000 - пример вызова с параметрами
+    # /api/v1/create_review_templates?min=35000&max=40000 - пример вызова с параметрами
+    # /api/v1/create_review_templates?min=40000&max=45000 - пример вызова с параметрами
     result = select_texts_for_generating_reviews
     result = "Добавлено записей: #{result} "
     render json: { result: result }
