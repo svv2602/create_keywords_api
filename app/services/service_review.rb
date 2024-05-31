@@ -153,17 +153,17 @@ module ServiceReview
                  when 10000
                    "ReadyReviews"
                  when 20000
-                   "СopyReadyReviews20"
+                   "CopyReadyReviews20"
                  when 25000
-                   "СopyReadyReviews25"
+                   "CopyReadyReviews25"
                  when 30000
-                   "СopyReadyReviews30"
+                   "CopyReadyReviews30"
                  when 35000
-                   "СopyReadyReviews35"
+                   "CopyReadyReviews35"
                  when 40000
-                   "СopyReadyReviews40"
+                   "CopyReadyReviews40"
                  when 45000
-                   "СopyReadyReviews45"
+                   "CopyReadyReviews45"
                  else
                    "ReadyReviews"
                  end
@@ -179,7 +179,9 @@ module ServiceReview
     hash_params = select_params_for_generating_reviews
     min_id = hash_params[:min_id]
     max_id = hash_params[:max_id]
+    puts "table_name = #{hash_params[:table_name]}"
     table_name = hash_params[:table_name].constantize
+    # CopyReadyReviews20
 
     min_id = table_name.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc)&.first&.id_review || min_id
 
@@ -228,7 +230,10 @@ module ServiceReview
 
   def add_new_record_to_model(model_name, merged_hash)
     attempts = 0
-    model_class = model_name.constantize
+    # model_class = model_name.constantize
+
+    model_class = model_name.is_a?(String) ? model_name.constantize : model_name
+
     begin
       record = model_class.new(merged_hash)
       record.save!

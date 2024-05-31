@@ -69,7 +69,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews20", force: :cascade do |t|
+  create_table "copy_ready_reviews20s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
@@ -79,7 +79,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews25", force: :cascade do |t|
+  create_table "copy_ready_reviews25s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
@@ -89,7 +89,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews30", force: :cascade do |t|
+  create_table "copy_ready_reviews30s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
@@ -99,7 +99,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews35", force: :cascade do |t|
+  create_table "copy_ready_reviews35s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
@@ -109,7 +109,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews40", force: :cascade do |t|
+  create_table "copy_ready_reviews40s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
@@ -119,7 +119,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "copy_ready_reviews45", force: :cascade do |t|
+  create_table "copy_ready_reviews45s", force: :cascade do |t|
     t.integer "id_review"
     t.text "review_ru"
     t.text "review_ua"
