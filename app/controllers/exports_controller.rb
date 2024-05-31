@@ -157,7 +157,7 @@ class ExportsController < ApplicationController
 
     render json: {
       # SeoContentText: "#{seo_content_text_last_id}",
-      SeoContentText: "#{review_last_id_text}", # для блокировки автозапуска
+      SeoContentText: "#{total_seconds_and_minutes}", # для блокировки автозапуска
       SeoContentTextSentence: "#{last_id_text}"
     }
   end
