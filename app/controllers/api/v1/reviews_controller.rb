@@ -13,7 +13,7 @@ class Api::V1::ReviewsController < ApplicationController
 
   def create_review_templates
     # Генерация отзывов
-    result = generating_texts_and_writing_to_tables
+    result = select_texts_for_generating_reviews
     render json: { result: result }
   end
 

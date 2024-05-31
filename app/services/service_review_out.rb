@@ -42,7 +42,6 @@ module ServiceReviewOut
       type_review = array_info[:type_review]
 
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
-      array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
 
 
 
@@ -68,7 +67,7 @@ module ServiceReviewOut
       array_info[:author] = ''
 
       if random_review && rand(1..100) % 5 == 0
-        array_reviews_id << random_review.id # массив для исключения id в дальнейшем
+        array_reviews_id << random_review.id # массив для исключения одинаковых id в дальнейшей обработке
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
@@ -88,7 +87,15 @@ module ServiceReviewOut
       array_info[:review] = review
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
-      array_info[:array_average] = array_average
+
+      if rand(1..100)%10==0
+        array_info[:array_average] = []
+        array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
+      else
+        array_info[:array_average] = array_average
+        array_info[:grade] = 0
+      end
+
       # array_info[:control] = control
 
       result << array_info

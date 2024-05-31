@@ -2,8 +2,6 @@
 require_relative '../../app/services/dictionaries/const_reviews'
 module ServiceReview
 
-
-
   def array_params
     # результатом будет вспомагательный файл с хешами массивов, содержащих варианты оценки для  каждого свойства
     path = Rails.root.join('app', 'services', 'dictionaries', 'combination_results.rb')
@@ -144,11 +142,21 @@ module ServiceReview
     return "Добавлено записей: #{i}"
   end
 
+  def select_texts_for_generating_reviews
+    min_id = params[:min].to_i
+    max_id = params[:max].to_i
 
+    max_id = 30000 if max_id == 0
+    min_id = Review.where("id >= ? and id < ?", min_id, max_id).last&.id_review if min_id == 0
 
-  def generating_texts_and_writing_to_tables
-    max_id = ReadyReviews.last&.id_review
-    records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
+    records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
+    records
+
+  end
+
+  def generating_texts_and_writing_to_tables(records)
+    # max_id = ReadyReviews.last&.id_review
+    # records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
     records.each do |record|
 
@@ -177,7 +185,6 @@ module ServiceReview
 
   end
 
-
   def add_new_record_to_model(model_name, merged_hash)
     attempts = 0
     model_class = model_name.constantize
@@ -196,7 +203,7 @@ module ServiceReview
   end
 
   def generate_review(query_params, arr_review_length)
-     # topics = "Создай отзыв о шинах , используя следующие параметры: "
+    # topics = "Создай отзыв о шинах , используя следующие параметры: "
     topics = "Создай эмоциональный раскрепощенный отзыв о шинах от лица водителя со стажем вождения от 5 до 15 лет, используя следующие параметры: "
     topics += "\n"
     topics += query_params
@@ -255,7 +262,6 @@ module ServiceReview
     txt = txt.gsub(/мо(е|ё)м авто(|мобиле) JLT/i, 'моем JLT')
     txt = txt.gsub(/своего авто(|мобиля) JLT/i, 'своего JLT')
     txt = txt.gsub(/для авто(|мобиля) JLT/i, 'для JLT')
-
 
     # удаление фраз из текста
     phrases_to_remove = [
