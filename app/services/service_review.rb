@@ -164,9 +164,9 @@ module ServiceReview
     i = 0
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
     records.each do |record|
-      puts "MAIN_METOD records Review id = #{records.id}"
+      puts "MAIN_METOD records Review id = #{record.id}"
       TEXT_LENGTH.each_with_index do |arr_review_length, index|
-        puts "TEXT_LENGTH records Review id = #{records.id}"
+        puts "TEXT_LENGTH records Review id = #{record.id}"
         count_repeat = TEXT_LENGTH.size - index
         count_repeat.times do
           new_hash = {}
