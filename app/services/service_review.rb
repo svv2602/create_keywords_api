@@ -153,8 +153,8 @@ module ServiceReview
     puts "2 max_id = #{max_id}"
 
     records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    result = generating_texts_and_writing_to_tables(records)
-    result
+    # result = generating_texts_and_writing_to_tables(records)
+    # result
   end
 
   def generating_texts_and_writing_to_tables(records)
