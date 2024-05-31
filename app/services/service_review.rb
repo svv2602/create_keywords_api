@@ -146,17 +146,21 @@ module ServiceReview
     min_id = params[:min].to_i
     max_id = params[:max].to_i
 
-    max_id = 30000 if max_id == 0
-    min_id = Review.where("id >= ? and id < ?", min_id, max_id).last&.id_review if min_id == 0
+    max_id = 25000 if max_id == 0
+    min_id = ReadyReviews.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc).first.id_review if min_id == 0
+
+    puts "2 min_id = #{min_id}"
+    puts "2 max_id = #{max_id}"
 
     records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    records
-
+    result = generating_texts_and_writing_to_tables(records)
+    result
   end
 
   def generating_texts_and_writing_to_tables(records)
     # max_id = ReadyReviews.last&.id_review
     # records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
+    i = 0
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
     records.each do |record|
 
@@ -178,11 +182,11 @@ module ServiceReview
                                      .values.map { |v| v.nil? ? 'nil' : v }.join("_")
 
           add_new_record_to_model('ReadyReviews', new_hash)
-
+          i +=1
         end
       end
     end
-
+    i
   end
 
   def add_new_record_to_model(model_name, merged_hash)
