@@ -153,17 +153,17 @@ module ServiceReview
                  when 10000
                    "ReadyReviews"
                  when 20000
-                   "ReadyReviews20"
+                   "СopyReadyReviews20"
                  when 25000
-                   "ReadyReviews25"
+                   "СopyReadyReviews25"
                  when 30000
-                   "ReadyReviews30"
+                   "СopyReadyReviews30"
                  when 35000
-                   "ReadyReviews35"
+                   "СopyReadyReviews35"
                  when 40000
-                   "ReadyReviews40"
+                   "СopyReadyReviews40"
                  when 45000
-                   "ReadyReviews45"
+                   "СopyReadyReviews45"
                  else
                    "ReadyReviews"
                  end

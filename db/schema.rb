@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_27_140426) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -65,6 +65,66 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_27_140426) do
   create_table "city_urls", force: :cascade do |t|
     t.string "name"
     t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews20", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews25", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews30", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews35", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews40", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "copy_ready_reviews45", force: :cascade do |t|
+    t.integer "id_review"
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.integer "characters"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
