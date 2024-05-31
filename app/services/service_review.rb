@@ -142,6 +142,39 @@ module ServiceReview
     return "Добавлено записей: #{i}"
   end
 
+  def select_params_for_generating_reviews
+    min_id = params[:min].to_i == 0 ? 10000 : params[:min].to_i
+    max_id = params[:max].to_i == 0 ? 20000 : params[:max].to_i
+
+    valid_min_ids = [10000, 20000, 25000, 30000, 35000, 40000, 45000]
+    raise StandardError.new("Invalid min_id") unless valid_min_ids.include?(min_id)
+
+    table_name = case min_id
+                 when 10000
+                   "ReadyReviews"
+                 when 20000
+                   "ReadyReviews20"
+                 when 25000
+                   "ReadyReviews25"
+                 when 30000
+                   "ReadyReviews30"
+                 when 35000
+                   "ReadyReviews35"
+                 when 40000
+                   "ReadyReviews40"
+                 when 45000
+                   "ReadyReviews45"
+                 else
+                   "ReadyReviews"
+                 end
+    result = {
+      min_id: min_id,
+      max_id: max_id,
+      table_name: table_name
+    }
+    result
+  end
+
   def select_texts_for_generating_reviews
     min_id = params[:min].to_i
     max_id = params[:max].to_i
@@ -186,7 +219,7 @@ module ServiceReview
                                      .values.map { |v| v.nil? ? 'nil' : v }.join("_")
 
           add_new_record_to_model('ReadyReviews', new_hash)
-          i +=1
+          i += 1
         end
       end
     end
