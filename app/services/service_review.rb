@@ -240,7 +240,7 @@ module ServiceReview
     rescue ActiveRecord::RecordInvalid => e
       attempts += 1
       if attempts < 3
-        sleep(attempts*2) # Delay to not overwhelm the DB
+        sleep(attempts*5) # Delay to not overwhelm the DB
         retry
       else
         puts "Failed to save record after 3 attempts: #{e.message}"
