@@ -146,14 +146,15 @@ module ServiceReview
     min_id = params[:min].to_i
     max_id = params[:max].to_i
 
-    max_id = 25000 if max_id == 0
-    min_id = ReadyReviews.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc).first.id_review if min_id == 0
+    max_id = 20000 if max_id == 0
+    min_id = 10000 if min_id == 0
+    min_id = ReadyReviews.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc)&.first&.id_review || min_id
 
     puts "2 min_id = #{min_id}"
     puts "2 max_id = #{max_id}"
 
     records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    # result = generating_texts_and_writing_to_tables(records)
+    result = generating_texts_and_writing_to_tables(records)
     # result
   end
 
@@ -169,6 +170,7 @@ module ServiceReview
         puts "TEXT_LENGTH records Review id = #{record.id}"
         count_repeat = TEXT_LENGTH.size - index
         count_repeat.times do
+          puts "TEXT_LENGTH count_repeat.times records Review id = #{record.id}"
           new_hash = {}
 
           str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
