@@ -13,6 +13,8 @@ class Api::V1::ReviewsController < ApplicationController
 
   def create_review_templates
     # Генерация отзывов
+    # /api/v1/create_review_templates?min=16000&max=20000
+    # /api/v1/create_review_templates?min=20000&max=25000
     # /api/v1/create_review_templates?min=25000&max=30000
     # /api/v1/create_review_templates?min=30000&max=35000
     # /api/v1/create_review_templates?min=35000&max=40000

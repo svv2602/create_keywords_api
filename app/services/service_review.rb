@@ -158,13 +158,15 @@ module ServiceReview
   end
 
   def generating_texts_and_writing_to_tables(records)
+
     # max_id = ReadyReviews.last&.id_review
     # records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
     i = 0
     str_errors_template = "Сделай в отзыве несколько грамматических ошибок в словах на кириллице так, как это мог бы сделать человек\n"
     records.each do |record|
-
+      puts "MAIN_METOD records Review id = #{records.id}"
       TEXT_LENGTH.each_with_index do |arr_review_length, index|
+        puts "TEXT_LENGTH records Review id = #{records.id}"
         count_repeat = TEXT_LENGTH.size - index
         count_repeat.times do
           new_hash = {}
