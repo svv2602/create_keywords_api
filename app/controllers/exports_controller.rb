@@ -156,19 +156,18 @@ class ExportsController < ApplicationController
     # countReadyReviews40 = CopyReadyReviews40.count
     # countReadyReviews45 = CopyReadyReviews45.count
 
-
     # ================ Временный счетчик ===============================
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
 
     render json: {
-    countReadyReviews: ReadyReviews.count,
-    countReadyReviews20: CopyReadyReviews20.count,
-    countReadyReviews25: CopyReadyReviews25.count,
-    countReadyReviews30: CopyReadyReviews30.count,
-    countReadyReviews35: CopyReadyReviews35.count,
-    countReadyReviews40: CopyReadyReviews40.count,
-    countReadyReviews45: CopyReadyReviews45.count
+      countReadyReviews: ReadyReviews.count,
+      countReadyReviews20: CopyReadyReviews20.count,
+      countReadyReviews25: CopyReadyReviews25.count,
+      countReadyReviews30: CopyReadyReviews30.count,
+      countReadyReviews35: CopyReadyReviews35.count,
+      countReadyReviews40: CopyReadyReviews40.count,
+      countReadyReviews45: CopyReadyReviews45.count
 
     }
   end
@@ -309,6 +308,7 @@ class ExportsController < ApplicationController
     render plain: "Обновление завершено.  Обработано   строк:#{result}"
 
   end
+
   def add_new_brand_entries
     excel_file = "lib/brands.xlsx"
     excel = Roo::Excelx.new(excel_file)
