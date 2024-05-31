@@ -176,18 +176,18 @@ module ServiceReview
   end
 
   def select_texts_for_generating_reviews
-    min_id = params[:min].to_i
-    max_id = params[:max].to_i
+    hash_params = select_params_for_generating_reviews
+    min_id = hash_params[:min_id]
+    max_id = hash_params[:max_id]
+    table_name = hash_params[:table_name].constantize
 
-    max_id = 20000 if max_id == 0
-    min_id = 10000 if min_id == 0
-    min_id = ReadyReviews.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc)&.first&.id_review || min_id
+    min_id = table_name.where("id_review >= ? and id_review < ?", min_id, max_id).order(id_review: :desc)&.first&.id_review || min_id
 
     puts "2 min_id = #{min_id}"
     puts "2 max_id = #{max_id}"
 
     records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    result = generating_texts_and_writing_to_tables(records)
+    # result = generating_texts_and_writing_to_tables(records)
     # result
   end
 
