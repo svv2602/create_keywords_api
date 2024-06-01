@@ -190,6 +190,12 @@ endpoint:
     * /import_translit_auto - для обновления транслит по брендам и моделям автомобилей для TestTableCar2Brand и TestTableCar2Model
       * !!! подготовленные данные предварительно  сохранить в lib/cars_db/TestTableCar2Brand_ready.xlsx и lib/cars_db/TestTableCar2Model_ready.xlsx
     
-* /api/v1/create_review_templates - генерация шаблонов отзывов
-
-
+    * /api/v1/create_review_templates - генерация шаблонов отзывов по таблице Review (min..max - диапазон id в Review)
+    Раскладка по таблицам (запросы с параметрами):
+    countReadyReviews:    # /api/v1/create_review_templates?min=10000&max=20000
+    countReadyReviews20:  # /api/v1/create_review_templates?min=20000&max=25000
+    countReadyReviews25:  # /api/v1/create_review_templates?min=25000&max=30000
+    countReadyReviews30:  # /api/v1/create_review_templates?min=30000&max=35000
+    countReadyReviews35:  # /api/v1/create_review_templates?min=35000&max=40000
+    countReadyReviews40:  # /api/v1/create_review_templates?min=40000&max=45000
+    countReadyReviews45:  # /api/v1/create_review_templates?min=45000&max=50000
