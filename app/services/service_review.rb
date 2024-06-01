@@ -229,7 +229,7 @@ module ServiceReview
   end
 
   def add_new_record_to_model(model_name, merged_hash)
-    sleep(1)
+
     attempts = 0
     # model_class = model_name.constantize
 
