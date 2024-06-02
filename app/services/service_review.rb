@@ -188,7 +188,7 @@ module ServiceReview
     puts "2 min_id = #{min_id}"
     puts "2 max_id = #{max_id}"
 
-    if min_id >= max_id
+    if min_id >= max_id - 1
       result = " 0, - достигнут конец выборки"
     else
       records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
