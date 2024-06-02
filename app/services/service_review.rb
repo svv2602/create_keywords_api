@@ -179,7 +179,7 @@ module ServiceReview
     hash_params = select_params_for_generating_reviews
     min_id = hash_params[:min_id]
     max_id = hash_params[:max_id]
-    puts "table_name = #{hash_params[:table_name]}"
+    # puts "table_name = #{hash_params[:table_name]}"
     table_name = hash_params[:table_name].constantize
     # CopyReadyReviews20
 
@@ -188,12 +188,18 @@ module ServiceReview
     puts "2 min_id = #{min_id}"
     puts "2 max_id = #{max_id}"
 
-    records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
-    result = generating_texts_and_writing_to_tables(records,table_name)
-    # result
+    if min_id >= max_id
+      result = " 0, - достигнут конец выборки"
+    else
+      records = max_id.nil? ? Review.all : Review.where("id >= ? and id < ?", min_id, max_id)
+      result = generating_texts_and_writing_to_tables(records, table_name)
+    end
+
+    result
+
   end
 
-  def generating_texts_and_writing_to_tables(records,table_name)
+  def generating_texts_and_writing_to_tables(records, table_name)
 
     # max_id = ReadyReviews.last&.id_review
     # records = max_id.nil? ? Review.all : Review.where("id >= ?", max_id)
@@ -241,7 +247,7 @@ module ServiceReview
     rescue ActiveRecord::RecordInvalid => e
       attempts += 1
       if attempts < 3
-        sleep(attempts*5) # Delay to not overwhelm the DB
+        sleep(attempts * 5) # Delay to not overwhelm the DB
         retry
       else
         puts "Failed to save record after 3 attempts: #{e.message}"
