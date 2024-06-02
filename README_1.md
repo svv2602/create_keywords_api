@@ -47,4 +47,11 @@ curl -X POST -H "Content-Type: application/json"      -d '{
 =========================================================
 
 
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=10000&max=20000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=20000&max=25000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=25000&max=30000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=30000&max=35000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=35000&max=40000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=40000&max=45000"
+curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=45000&max=50000"
 

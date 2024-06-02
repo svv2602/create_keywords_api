@@ -148,26 +148,29 @@ class ExportsController < ApplicationController
 
   def count_records
     # вывод количества записей в таблицах - сделан для крона (запуск процедуры если количество записей не меняетс)
-    # countReadyReviews = ReadyReviews.count
-    # countReadyReviews20 = CopyReadyReviews20.count
-    # countReadyReviews25 = CopyReadyReviews25.count
-    # countReadyReviews30 = CopyReadyReviews30.count
-    # countReadyReviews35 = CopyReadyReviews35.count
-    # countReadyReviews40 = CopyReadyReviews40.count
-    # countReadyReviews45 = CopyReadyReviews45.count
 
-    # ================ Временный счетчик ===============================
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
+    countReadyReviews = ReadyReviews.count
+    countReadyReviews20 = CopyReadyReviews20.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews20.count
+    countReadyReviews25 = CopyReadyReviews25.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews25.count
+    countReadyReviews30 = CopyReadyReviews30.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews30.count
+    countReadyReviews35 = CopyReadyReviews35.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews35.count
+    countReadyReviews40 = CopyReadyReviews40.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews40.count
+    countReadyReviews45 = CopyReadyReviews45.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews45.count
+
+
+    # ================ Временный счетчик ===============================
+
 
     render json: {
-      countReadyReviews: ReadyReviews.count,
-      countReadyReviews20: CopyReadyReviews20.count,
-      countReadyReviews25: CopyReadyReviews25.count,
-      countReadyReviews30: CopyReadyReviews30.count,
-      countReadyReviews35: CopyReadyReviews35.count,
-      countReadyReviews40: CopyReadyReviews40.count,
-      countReadyReviews45: CopyReadyReviews45.count
+      countReadyReviews: countReadyReviews,
+      countReadyReviews20: countReadyReviews20,
+      countReadyReviews25: countReadyReviews25,
+      countReadyReviews30: countReadyReviews30,
+      countReadyReviews35: countReadyReviews35,
+      countReadyReviews40: countReadyReviews40,
+      countReadyReviews45: countReadyReviews45
 
     }
   end
