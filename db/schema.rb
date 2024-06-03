@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
@@ -173,6 +173,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_31_113020) do
     t.text "review_ru"
     t.text "review_ua"
     t.string "control"
+    t.integer "characters"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "ready_reviews_without_params", force: :cascade do |t|
+    t.text "review_ru"
+    t.text "review_ua"
+    t.string "control"
+    t.string "gender"
     t.integer "characters"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

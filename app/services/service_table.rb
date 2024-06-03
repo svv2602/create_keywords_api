@@ -161,24 +161,19 @@ module ServiceTable
     #   1834388, 1806943, 1806942, 1806941, 1886964, 1881630, 1678721, 1678720,
     # ]
 
-
     array_id = [1956526, 1952635]
 
     array_id.each do |id|
       SeoContentTextSentence.destroy_by(id: id)
     end
 
-
-
     words = [
       'светил', 'настольн', 'пространств', 'палитр', 'мелод', 'компьют', 'ASUS', 'ноутбук', 'Dell',
       'мистич', 'джунгли', 'тарелк', 'Моё', 'одеж', 'фар', 'Light', 'деликатес', 'органические', 'FashionFusion',
-      'TechSolutions', 'NeoSolutions', 'Bio', 'harmful','подпис','убликац','XYZ',' зрител','крыло','Крыл', 'литр'
+      'TechSolutions', 'NeoSolutions', 'Bio', 'harmful', 'подпис', 'убликац', 'XYZ', ' зрител', 'крыло', 'Крыл', 'литр'
     ]
     query = words.map { |word| "sentence LIKE '%#{word}%'" }.join(" OR ")
     SeoContentTextSentence.where(query).delete_all
-
-
 
     # #=======================================
     # SeoContentTextSentence.where("sentence like ? or sentence like ? or sentence like ?", "% 4.%", "% 5.%", "% 6.%").delete_all
@@ -189,13 +184,11 @@ module ServiceTable
     # SeoContentTextSentence.where("sentence like ? ", "%архитект%").delete_all
     # SeoContentTextSentence.where("sentence like ? ", "%фильм%").delete_all
 
-
     # records = SeoContentTextSentence.where("sentence like ?", "%Предложение:%")
     # records.each do |record|
     #   record.update_columns(sentence: record.sentence.gsub(/^Предложение:/, ""),
     #                         sentence_ua: record.sentence_ua.gsub(/^Пропозиція:/, ""))
     # end
-
 
     # QuestionsBlock.where("question_ua ='' ").delete_all
     #
@@ -746,10 +739,9 @@ module ServiceTable
 
   end
 
-
   def import_text_translit
     j = 0
-    array_date=[["lib/cars_db/TestTableCar2Brand_ready.xlsx","TestTableCar2Brand"],["lib/cars_db/TestTableCar2Model_ready.xlsx","TestTableCar2Model"]]
+    array_date = [["lib/cars_db/TestTableCar2Brand_ready.xlsx", "TestTableCar2Brand"], ["lib/cars_db/TestTableCar2Model_ready.xlsx", "TestTableCar2Model"]]
     array_date.each do |el|
       excel = Roo::Excelx.new(el[0])
       name_table = el[1]
@@ -774,8 +766,50 @@ module ServiceTable
 
   end
 
+  def import_reviews_templates
+    ReadyReviewsWithoutParam.delete_all
+    file_path = "lib/reviews_templates/reviews_for_load.xlsx"
+    excel = Roo::Excelx.new(file_path)
 
+    i = 0
+    excel.sheets.each do |sheet|
+      excel.default_sheet = sheet
+      j = 0
+      excel.each_row_streaming(pad_cells: true) do |row|
+        j += 1
+        next if j == 1
+        begin
+          i += 1
+          review_ru = row[0]&.value.gsub("\"",'')
+          review_ua = row[4]&.value.gsub("\"",'')
 
+          types_review = case row[1]&.value
+                         when "positive"
+                           "положительный"
+                         when "negative"
+                           "негативный"
+                         when "neutral"
+                           "нейтральный"
+                         end
+
+          control = "#{row[2]&.value}_#{types_review}"
+          gender = row[3]&.value == "male" ? "мужчина" : "женщина"
+          characters = review_ru.size
+
+          ReadyReviewsWithoutParam.create(review_ru: review_ru,
+                                          review_ua: review_ua,
+                                          control: control,
+                                          gender: gender,
+                                          characters: characters)
+
+        rescue StandardError => e
+          puts "Error on row #{i}: #{e.message}"
+          next
+        end
+      end
+    end
+    i
+  end
 
   def import_questions_ua(filename)
     # Заполнение таблицы с текстом по вопросам

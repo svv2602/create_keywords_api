@@ -1,0 +1,2 @@
+class ReadyReviewsWithoutParam < ApplicationRecord
+end

@@ -77,6 +77,7 @@ module ServiceReviewOut
                                                  array_info[:height],
                                                  array_info[:diameter],
                                                  names_auto(record, language)[:auto_review])
+
       else
         review = get_static_review(type_review, language)
 

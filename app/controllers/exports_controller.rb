@@ -312,6 +312,15 @@ class ExportsController < ApplicationController
 
   end
 
+
+  def import_reviews_without_params
+    # добавление отзывов из файла "lib/reviews_templates/reviews_for_load.xlsx"
+
+    result = import_reviews_templates
+    render plain: "Обновление завершено.  Обработано   строк:#{result}"
+
+  end
+
   def add_new_brand_entries
     excel_file = "lib/brands.xlsx"
     excel = Roo::Excelx.new(excel_file)

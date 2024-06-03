@@ -60,6 +60,8 @@ Rails.application.routes.draw do
   # =====================================
   get '/export_for_translit_xlsx', to: 'exports#export_for_translit_xlsx'
   get '/import_translit_auto', to: 'exports#import_translit_auto'
+  get '/import_reviews_without_params', to: 'exports#import_reviews_without_params'
+
 
 end
 
