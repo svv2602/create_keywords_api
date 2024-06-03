@@ -151,15 +151,15 @@ class ExportsController < ApplicationController
 
     now = Time.now
     total_seconds_and_minutes = now.sec + now.min * 160
-    countReadyReviews = ReadyReviews.count
-    countReadyReviews20 = CopyReadyReviews20.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews20.count
+    countReadyReviews = total_seconds_and_minutes
+    countReadyReviews20 = total_seconds_and_minutes
     countReadyReviews25 = CopyReadyReviews25.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews25.count
     countReadyReviews30 = CopyReadyReviews30.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews30.count
     countReadyReviews35 = CopyReadyReviews35.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews35.count
     countReadyReviews40 = CopyReadyReviews40.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews40.count
     countReadyReviews45 = CopyReadyReviews45.count >= 50000 ?  total_seconds_and_minutes : CopyReadyReviews45.count
 
-
+    256286
     # ================ Временный счетчик ===============================
 
 
