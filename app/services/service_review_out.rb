@@ -32,6 +32,7 @@ module ServiceReviewOut
   def collect_the_answer(tyres, average = 0)
     result = []
     array_reviews_id = []
+    array_reviews_without_params_id = []
     tyres.each do |el|
       array_info = average == 0 ? create_hash_with_params(el) : el
       puts "array_info === #{array_info.inspect}"
@@ -42,8 +43,6 @@ module ServiceReviewOut
       type_review = array_info[:type_review]
 
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
-
-
 
       puts "array_info[:grade] ===== #{array_info[:grade]}"
       control = value_field_control(season, type_review, array_average)
@@ -67,6 +66,9 @@ module ServiceReviewOut
       array_info[:author] = ''
 
       if random_review && rand(1..100) % 5 == 0
+        # подбор отзыва с учетом параметров
+        array_info[:type_table] = 1
+
         array_reviews_id << random_review.id # массив для исключения одинаковых id в дальнейшей обработке
         gender = Review.find_by(id: random_review[:id_review])[:gender]
         array_info[:author] = get_author_name(language, gender)
@@ -77,19 +79,38 @@ module ServiceReviewOut
                                                  array_info[:height],
                                                  array_info[:diameter],
                                                  names_auto(record, language)[:auto_review])
+      elsif rand(1..100) % 4 == 0
+        # подбор отзыва с сезонностью без учета параметров
+        array_info[:type_table] = 2
+
+        control = control.split('_').take(2).join('_')
+
+        random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
+        array_reviews_without_params_id << random_review.id
+        gender = random_review[:gender]
+        array_info[:author] = get_author_name(language, gender)
+        review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        review = make_changes_to_review_template(review, array_info[:brand],
+                                                 array_info[:model],
+                                                 array_info[:width],
+                                                 array_info[:height],
+                                                 array_info[:diameter],
+                                                 names_auto(record, language)[:auto_review])
 
       else
+        # подбор короткого отзыва без сезонности и параметров
+        array_info[:type_table] = 3
         review = get_static_review(type_review, language)
-
         array_info[:author] = get_author_name(language)
       end
+
       review = change_chars_register(review) + add_emoji(type_review)
 
       array_info[:review] = review
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
 
-      if rand(1..100)%10==0
+      if rand(1..100) % 10 == 0
         array_info[:array_average] = []
         array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
       else
@@ -189,6 +210,14 @@ module ServiceReviewOut
                        STATIC_REVIEWS_NEUTRAL
                      end
     result = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
+
+    # добавить рекомендации
+    if rand(1..100) % 3 == 0 && (static_reviews != STATIC_REVIEWS_NEUTRAL)
+      result += " "
+      result += language == "ru" ? static_reviews[:advices_ru]&.shuffle.first : static_reviews[:advices_ua]&.shuffle.first
+      result += rand(1..100) % 10 == 0 ? "!!!" : "!"
+    end
+
     result
 
   end
