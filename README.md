@@ -191,7 +191,13 @@ endpoint:
       * !!! подготовленные данные предварительно  сохранить в lib/cars_db/TestTableCar2Brand_ready.xlsx и lib/cars_db/TestTableCar2Model_ready.xlsx
     
     * /import_reviews_without_params - добавление шаблонов отзывов без учета параметров из файла "lib/reviews_templates/reviews_for_load.xlsx"
-    
+    * /export_reviews_to_xlsx?max=max_id,
+        * где max_id - максимальный номер id с которого начинать новый отсчет записей для выгрузки в папку,
+        * выгружается по 50 000 записей (условие для выгрузки  - where("sentence_ua = '' and id < max_id ")
+        * выгрузка в папку lib/text_ua/ файл вида - seo_content_text_sentences_1_534_655.xlsx
+        * файл импортировать в таблицу google и сделать перевод (=googletranslate(B2;"ru";"uk"))
+        * все переводы сохранить в сформированных файлах для дальнейшей обработки
+
     * /api/v1/create_review_templates - генерация шаблонов отзывов по таблице Review (min..max - диапазон id в Review)
     Раскладка по таблицам (запросы с параметрами):
     countReadyReviews:    # /api/v1/create_review_templates?min=10000&max=20000
@@ -201,5 +207,6 @@ endpoint:
     countReadyReviews35:  # /api/v1/create_review_templates?min=35000&max=40000
     countReadyReviews40:  # /api/v1/create_review_templates?min=40000&max=45000
     countReadyReviews45:  # /api/v1/create_review_templates?min=45000&max=50000
+    * /copy_ready_reviews_to_main_tab - перенос данных из копий таблиц отзывов в основную таблицу ReadyReviews
 
 

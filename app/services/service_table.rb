@@ -780,8 +780,8 @@ module ServiceTable
         next if j == 1
         begin
           i += 1
-          review_ru = row[0]&.value.gsub("\"",'')
-          review_ua = row[4]&.value.gsub("\"",'')
+          review_ru = row[0]&.value.gsub("\"", '')
+          review_ua = row[4]&.value.gsub("\"", '')
 
           types_review = case row[1]&.value
                          when "positive"
@@ -835,6 +835,81 @@ module ServiceTable
     end
     return i
 
+  end
+
+  # =================================================================
+  def replace_errors_for_reviews(table)
+    model = table.camelize.constantize
+    i = 0
+    j = 0
+    arr = []
+    model.find_each do |record|
+      if record.review_ru.include?("\n")
+        record.review_ru.gsub!(/\n/, ' ')
+      end
+      if record.review_ru =~ /ГринТ(и|ай|ае)р/i
+        record.review_ru.gsub!(/ГринТ(и|ай|ае)р/i, 'GreenTire')
+      end
+
+      if record.review_ru =~ /^.*?:\s*/
+        record.review_ru.gsub!(/^.*?:\s*/, '')
+      end
+      unless record.review_ru =~ /^\s*[a-zа-яё]/i
+        record.review_ru.sub!(/^[^a-zа-яё]+/i, '')
+      end
+
+      arr_err = ["стаж", "водителя", "опытом", "водила", "оценил", "отзыв", "оценку"]
+
+      # удаляем первое предложение
+      if record.review_ru =~ /^\s*[a-zа-яё]/
+        first_sentence = record.review_ru[/[^\.!?]+[\.!?]/]
+        if first_sentence && arr_err.any? { |word| first_sentence.include?(word) }
+          record.review_ru = record.review_ru[first_sentence.length..-1].lstrip
+        end
+      end
+
+      if record.changed?
+        record.save!
+        j += 1
+      end
+
+      if !(record.review_ru.match?(/[а-яА-ЯёЁ]/)) ||
+        record.review_ru.blank?
+        arr << [record.id, record.id_review, record.review_ru]
+        i += 1
+      end
+
+      if record.review_ru =~ /^\s*[a-zа-яё]/
+        first_sentence = record.review_ru[/[^\.!?]+[\.!?]/]
+        if first_sentence.nil? || arr_err.any? { |word| first_sentence.include?(word) }
+          arr << [record.id, record.id_review, record.review_ru]
+          i += 1
+        end
+      end
+
+      # unless record.review_ru =~ /^\s*[a-zа-яё]/i
+      #   record.review_ru.sub!(/^[^a-zа-яё]+/i, '')
+      #   record.save!
+      # end
+
+    end
+    result = "Количество измененных записей  #{j}  удаленных записей:  #{i}  "
+
+    #  http://127.0.0.1:3000/control_records_reviews
+
+    File.open('lib/reviews_templates/error_reviews_for_load.txt', 'w') do |f|
+        f.puts(arr.inspect)
+    end
+
+    puts arr.inspect
+    puts result
+    return result
+  end
+
+  def copy_ready_reviews_to_main_tab
+    CopyReadyReviews40s.find_each do |record|
+      ReadyReviews.create!(record.attributes.except("id"))
+    end
   end
 
 end

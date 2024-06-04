@@ -61,6 +61,9 @@ Rails.application.routes.draw do
   get '/export_for_translit_xlsx', to: 'exports#export_for_translit_xlsx'
   get '/import_translit_auto', to: 'exports#import_translit_auto'
   get '/import_reviews_without_params', to: 'exports#import_reviews_without_params'
+  get '/export_reviews_to_xlsx', to: 'exports#export_reviews_to_xlsx'
+  get '/control_records_reviews', to: 'exports#control_records_reviews'
+  get '/copy_ready_reviews_to_main_tab', to: 'exports#copy_ready_reviews_to_main_tab'
 
 
 end

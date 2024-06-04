@@ -55,3 +55,5 @@ curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=35000&max=400
 curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=40000&max=45000"
 curl "http://192.168.3.145:3003/api/v1/create_review_templates?min=45000&max=50000"
 
+удалить все по двоеточие
+и вывести в отдельный файл все с маленькой буквы и все не кириллица 
