@@ -906,10 +906,18 @@ module ServiceTable
     return result
   end
 
-  def copy_ready_reviews_to_main_tab
-    CopyReadyReviews40s.find_each do |record|
-      ReadyReviews.create!(record.attributes.except("id"))
+  def copy_ready_reviews_to_main_tab_reviews
+    result = "Сделана загрузка из таблиц: \n"
+    table_names = ['CopyReadyReviews20', 'CopyReadyReviews25', 'CopyReadyReviews30', 'CopyReadyReviews35', 'CopyReadyReviews40', 'CopyReadyReviews45']
+
+    table_names.each do |table_name|
+      table_name.constantize.find_each do |record|
+        ReadyReviews.create!(record.attributes.except("id"))
+      end
+      result += "#{table_name} \n"
     end
+
+    result
   end
 
 end

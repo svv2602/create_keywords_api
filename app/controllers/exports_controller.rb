@@ -379,6 +379,11 @@ class ExportsController < ApplicationController
     replace_errors_for_reviews(table)
   end
 
+  def copy_ready_reviews_to_main_tab
+    copy_ready_reviews_to_main_tab_reviews
+    render plain: "Добавление записей завершено."
+  end
+
 
   # ========================последний end=======================
 
