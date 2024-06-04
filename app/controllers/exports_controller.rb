@@ -372,10 +372,8 @@ class ExportsController < ApplicationController
   end
 
   def control_records_reviews
-    # table="ready_reviews"
+    table="ready_reviews"
     # table="copy_ready_reviews25"
-    # table="copy_ready_reviews30"
-    table="copy_ready_reviews35"
     replace_errors_for_reviews(table)
   end
 

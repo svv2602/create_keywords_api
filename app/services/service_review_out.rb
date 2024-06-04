@@ -400,6 +400,18 @@ module ServiceReviewOut
     result
   end
 
+  def value_type_review(text)
+    type_review = case text
+                  when "положительный"
+                    1
+                  when "негативный"
+                    -1
+                  when "нейтральный"
+                    0
+                  end
+    type_review
+  end
+
   def value_field_control(season_param, type_review_param, arr_values)
     # летние_положительный_1_1_1_1_nil_nil
     season = case season_param

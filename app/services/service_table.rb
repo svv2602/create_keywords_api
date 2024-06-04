@@ -2,6 +2,7 @@ module ServiceTable
   include StringProcessingServices
   include StringProcessing
   include TextOptimization
+  include ServiceReviewOut
 
   # Копирование таблицы, переменная - объект
   def copy_table_to_table_copy(model, model_copy)
@@ -868,29 +869,32 @@ module ServiceTable
         end
       end
 
+      # делаем замены пустых на короткий отзыв
+      if !(record.review_ru.match?(/[а-яА-ЯёЁ]/)) ||
+        record.review_ru.blank?
+        type_review = value_type_review(record.control.split('_')[1])
+        record.review_ru = get_static_review(type_review, "ru")
+      end
+
+      # из одного предложения замена на короткий отзыв
+      if record.review_ru =~ /^\s*[a-zа-яё]/
+        first_sentence = record.review_ru[/[^\.!?]+[\.!?]/]
+        if first_sentence.nil? || arr_err.any? { |word| first_sentence.include?(word) }
+          # arr << [record.id, record.id_review, record.review_ru]
+          # i += 1
+          type_review = value_type_review(record.control.split('_')[1])
+          record.review_ru = get_static_review(type_review, "ru")
+        end
+      end
+
       if record.changed?
         record.save!
         j += 1
       end
 
-      if !(record.review_ru.match?(/[а-яА-ЯёЁ]/)) ||
-        record.review_ru.blank?
-        arr << [record.id, record.id_review, record.review_ru]
-        i += 1
-      end
 
-      if record.review_ru =~ /^\s*[a-zа-яё]/
-        first_sentence = record.review_ru[/[^\.!?]+[\.!?]/]
-        if first_sentence.nil? || arr_err.any? { |word| first_sentence.include?(word) }
-          arr << [record.id, record.id_review, record.review_ru]
-          i += 1
-        end
-      end
 
-      # unless record.review_ru =~ /^\s*[a-zа-яё]/i
-      #   record.review_ru.sub!(/^[^a-zа-яё]+/i, '')
-      #   record.save!
-      # end
+
 
     end
     result = "Количество измененных записей  #{j}  удаленных записей:  #{i}  "
@@ -898,7 +902,7 @@ module ServiceTable
     #  http://127.0.0.1:3000/control_records_reviews
 
     File.open('lib/reviews_templates/error_reviews_for_load.txt', 'w') do |f|
-        f.puts(arr.inspect)
+      f.puts(arr.inspect)
     end
 
     puts arr.inspect
