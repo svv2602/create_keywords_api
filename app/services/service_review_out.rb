@@ -104,6 +104,7 @@ module ServiceReviewOut
         array_info[:author] = get_author_name(language)
       end
 
+      review = correct_text(review, language)
       review = change_chars_register(review) + add_emoji(type_review)
 
       array_info[:review] = review
@@ -183,6 +184,40 @@ module ServiceReviewOut
     result
   end
 
+  def correct_text(text, language)
+    result = text
+    if language == "ru"
+      result = result.gsub(/эт(о|и)/i, "") if rand(1..10) % 2 == 0
+      result = result.gsub(/(Братцы|Друзья|Дорогие друзья|Мужики|Блин)(,|!|)/i, "") unless rand(1..10) % 4 == 0
+      result = result.gsub(/на любо(й|м) (покрытии|трассе|поверхности|дороге)/i, "") unless rand(1..10) % 4 == 0
+    else
+      result = result.gsub(/це|ці/i, "") if rand(1..10) % 2 == 0
+      result = result.gsub(/(Братці|Друзі|Дорогі друзі|Чоловіки|Млинець)(,|!|)/i, "")
+      result = result.gsub(/на будь-як(ому|ій) (покритті|трасі|поверхні|дорозі)/i, "") unless rand(1..10) % 4 == 0
+    end
+    result = replace_synonyms_in_sentence(result, language)
+    result
+  end
+
+  def replace_synonyms_in_sentence(sentence, language)
+    words = sentence.split(' ')
+    replaced_words = words.map do |word|
+      replace_synonym(word, language)
+    end
+    replaced_words.join(' ')
+  end
+
+  def replace_synonym(word, language)
+    const_name = language == "ru" ? :ru : :ua
+    SINONIMS[const_name].each do |arr|
+      if arr.any? { |synonym| synonym == word }
+        new_arr = arr.reject { |synonym| synonym == word }
+        return new_arr.sample
+      end
+    end
+    word
+  end
+
   def create_hash_with_params(hash_params)
     array_info = {}
     array_sym = [:brand, :model, :width, :height, :diameter, :season, :type_review, :id]
@@ -210,6 +245,12 @@ module ServiceReviewOut
                        STATIC_REVIEWS_NEUTRAL
                      end
     result = language == "ru" ? static_reviews[:reviews_ru].shuffle.first : static_reviews[:reviews_ua].shuffle.first
+    # Добавляем ! в конец предложения, если там его нет
+    if rand(1..10) % 2 == 0
+      unless result.end_with?('.', '!', '?')
+        result += "!"
+      end
+    end
 
     # добавить рекомендации
     if rand(1..100) % 3 == 0 && (static_reviews != STATIC_REVIEWS_NEUTRAL)

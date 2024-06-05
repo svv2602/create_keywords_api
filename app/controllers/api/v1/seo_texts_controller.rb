@@ -69,7 +69,7 @@ class Api::V1::SeoTextsController < ApplicationController
     # ============== проверено ==========
     # update_seo_content_text_sentence_id_text # обновление id_text - не обязательная
     # total_arr_to_table_sentence(5, 3, order_out) # - для дисков !!!! сделать
-    update_seo_content_text_sentence_id_text
+    # update_seo_content_text_sentence_id_text
     # # сделать копию базы и запустить( для легковых )
     # table = 'seo_content_text_sentences'
     # remove_empty_sentences(table) # удаление пустых записей
