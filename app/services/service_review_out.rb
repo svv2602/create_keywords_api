@@ -56,16 +56,13 @@ module ServiceReviewOut
       puts "array_reviews_id = #{array_reviews_id}"
 
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
-
-      # ===================================
-      # тест - удалить
-      language = "ru"
-      # ===================================
-
       array_info[:language] = language
       array_info[:author] = ''
 
-      if random_review && rand(1..100) % 5 == 0
+      # вероятность развернутого отзыва
+      n = type_review == -1 ? 3 : 5
+
+      if random_review && rand(1..100) % n == 0
         # подбор отзыва с учетом параметров
         array_info[:type_table] = 1
 
@@ -105,9 +102,11 @@ module ServiceReviewOut
       end
 
       review = correct_text(review, language)
-      review = change_chars_register(review) + add_emoji(type_review)
+      review = change_chars_register(review) if review
+      review = review ? review + add_emoji(type_review) : add_emoji(type_review)
 
       array_info[:review] = review
+      array_info[:experience] = get_experience(review)
       array_info[:tyres_size] = tyres_size
       array_info[:names_auto] = names_auto(record, language)[:auto]
 
@@ -131,9 +130,10 @@ module ServiceReviewOut
   def change_chars_register(text)
     n = rand(1..10)
     case n
-    when 1, 3, 5, 7, 9
-      result = text.capitalize
-    when 2, 4, 8
+    when 2, 3, 4, 5, 7, 9
+      splitted_text = text.split(/(?<=[.!?])/)
+      result = splitted_text.map { |sentence| sentence.strip.capitalize }.join(' ')
+    when 1, 8
       result = text.downcase
     else
       result = text.upcase
@@ -175,27 +175,33 @@ module ServiceReviewOut
                    "#{size_width}/#{size_height}R#{size_diameter}"
                  end
 
-    result = result.gsub(/GreenTire/i, brand)
-    result = result.gsub(/SuperDefender/i, model)
-    result = result.gsub(/супердефендер/i, model)
-    result = result.gsub(/195\/65R15/i, tyres_size)
-    result = result.gsub(/JLT|ЖЛТ/i, auto)
+    if result
+      result = result.gsub(/GreenTire/i, brand)
+      result = result.gsub(/SuperDefender/i, model)
+      result = result.gsub(/супердефендер/i, model)
+      result = result.gsub(/195\/65R15/i, tyres_size)
+      result = result.gsub(/JLT|ЖЛТ/i, auto)
+    end
 
     result
+
   end
 
   def correct_text(text, language)
     result = text
-    if language == "ru"
-      result = result.gsub(/эт(о|и)/i, "") if rand(1..10) % 2 == 0
-      result = result.gsub(/(Братцы|Друзья|Дорогие друзья|Мужики|Блин)(,|!|)/i, "") unless rand(1..10) % 4 == 0
-      result = result.gsub(/на любо(й|м) (покрытии|трассе|поверхности|дороге)/i, "") unless rand(1..10) % 4 == 0
-    else
-      result = result.gsub(/це|ці/i, "") if rand(1..10) % 2 == 0
-      result = result.gsub(/(Братці|Друзі|Дорогі друзі|Чоловіки|Млинець)(,|!|)/i, "")
-      result = result.gsub(/на будь-як(ому|ій) (покритті|трасі|поверхні|дорозі)/i, "") unless rand(1..10) % 4 == 0
+    if result
+      if language == "ru"
+        result = result.gsub(/эт(о|и)/i, "") if rand(1..10) % 2 == 0
+        result = result.gsub(/(Братцы|Друзья|Дорогие друзья|Мужики|Блин)(,|!|)/i, "") unless rand(1..10) % 4 == 0
+        result = result.gsub(/на любо(й|м) (покрытии|трассе|поверхности|дороге)/i, "") unless rand(1..10) % 4 == 0
+      else
+        result = result.gsub(/це|ці/i, "") if rand(1..10) % 2 == 0
+        result = result.gsub(/(Братці|Друзі|Дорогі друзі|Чоловіки|Млинець)(,|!|)/i, "")
+        result = result.gsub(/на будь-як(ому|ій) (покритті|трасі|поверхні|дорозі)/i, "") unless rand(1..10) % 4 == 0
+      end
+      result = replace_synonyms_in_sentence(result, language)
     end
-    result = replace_synonyms_in_sentence(result, language)
+
     result
   end
 
@@ -233,6 +239,14 @@ module ServiceReviewOut
                                               .order('RANDOM()')
                                               .first
     record_with_car
+  end
+
+  def get_experience(text)
+    # генерация стажа, если есть в тексте - берем из текста, иначе - случайное число
+    matches = text.scan(/\b(?<=\s|^)(\d{1,2})\b/)
+    experience = matches[0].nil? ? rand(3..30) : matches[0][0].to_i
+    result = rand(1..100) % 3 == 0 ? "" : experience
+    result
   end
 
   def get_static_review(type_review, language = "ru")

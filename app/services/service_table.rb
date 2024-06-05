@@ -703,13 +703,20 @@ module ServiceTable
   def proc_import_text_ua(proc)
     #  ручное импортирование данных в таблицы базы данных
     # в lib/text_ua должны находится файлы только для одной загрузки!!!
+    path = case proc
+           when 1, 2
+             Rails.root.join('lib', 'text_ua', '*.xlsx')
+           when 3
+             Rails.root.join('lib', 'text_reviews_ua', '*.xlsx')
+           end
 
-    path = Rails.root.join('lib', 'text_ua', '*.xlsx')
+    # path = Rails.root.join('lib', 'text_ua', '*.xlsx')
     j = 0
     result = 0
     Dir.glob(path).each do |filename|
       j += import_text_ua(filename) if proc == 1 # для таблицы SeoContentTextSentence
       j += import_questions_ua(filename) if proc == 2 # для таблицы QuestionsBlock
+      j += import_reviews_ua(filename) if proc == 3 # для таблицы ReadyReviews
       result += 1
     end
     return { str: j, files: result }
@@ -731,6 +738,31 @@ module ServiceTable
         sentence_ua = sentence_ua.gsub("​​", '') if sentence_ua.present?
         sentence_ua_updated = SeoContentTextSentence.find_by_id(id)
         sentence_ua_updated.update(sentence: sentence, sentence_ua: sentence_ua) if sentence_ua.present? && !sentence_ua_updated.nil?
+      rescue StandardError => e
+        puts "Error on row #{i}: #{e.message}"
+        next
+      end
+    end
+    return i
+
+  end
+
+  def import_reviews_ua(filename)
+    # Заполнение таблицы с отзывами
+    # пример файла: lib/text_reviews_ua/ready_reviews_023_899.xlsx
+
+    excel = Roo::Excelx.new(filename)
+    i = 0
+    excel.each_row_streaming(pad_cells: true) do |row|
+      begin
+        i += 1
+        id = row[0]&.value
+        review_ru = row[1]&.value
+        review_ua = row[2]&.value
+        review_ru = review_ru.gsub("​​", '') if review_ru.present?
+        review_ua = review_ua.gsub("​​", '') if review_ua.present?
+        review_ua_updated = ReadyReviews.find_by_id(id)
+        review_ua_updated.update(review_ru: review_ru, review_ua: review_ua) if review_ua.present? && !review_ua_updated.nil?
       rescue StandardError => e
         puts "Error on row #{i}: #{e.message}"
         next

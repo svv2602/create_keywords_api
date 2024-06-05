@@ -211,3 +211,5 @@ endpoint:
       * выгрузка в папку lib/text_reviews_ua файл вида - ready_reviews_6_286.xlsx
       * файл импортировать в таблицу google и сделать перевод (=googletranslate(B2;"ru";"uk"))
       * все переводы сохранить в сформированных файлах для дальнейшей обработки
+      * /process_files_ua?proc=3 - для таблицы ReadyReviews
+        * в цикле будут обработаны все xlsx-файлы в директории lib/text_reviews_ua (обновление полей с отзывами по id)
