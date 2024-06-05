@@ -247,6 +247,7 @@ module ServiceReviewOut
     experience = matches[0].nil? ? rand(3..30) : matches[0][0].to_i
     result = rand(1..100) % 3 == 0 ? "" : experience
     result
+
   end
 
   def get_static_review(type_review, language = "ru")
