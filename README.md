@@ -205,9 +205,9 @@ endpoint:
     * /copy_ready_reviews_to_main_tab - перенос данных из копий таблиц отзывов в основную таблицу ReadyReviews
     * /control_records_reviews - исправление распространенных ошибок генерации
 
-    * /export_reviews_to_xlsx?max=max_id,
+    * /export_reviews_to_xlsx,
       * где max_id - максимальный номер id с которого начинать новый отсчет записей для выгрузки в папку,
-      * выгружается по 50 000 записей (условие для выгрузки  - ReadyReviews.where("review_ua = '' and id < max_id ")
+      * выгружается по 20 000 записей (условие для выгрузки  - ReadyReviews.where("review_ua is null ")
       * выгрузка в папку lib/text_reviews_ua файл вида - ready_reviews_6_286.xlsx
       * файл импортировать в таблицу google и сделать перевод (=googletranslate(B2;"ru";"uk"))
       * все переводы сохранить в сформированных файлах для дальнейшей обработки

@@ -265,7 +265,7 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
-  def export_reviews_to_xlsx
+  def export_reviews_to_xlsx_old
     # выгрузка из базы данных записей для дальнейшего перевода в google
     # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
     count = 50000 # количество выгружаемых записей
@@ -296,6 +296,42 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "ready_reviews_#{max_id}.xlsx", :type => "application/xlsx"
 
   end
+
+  def export_reviews_to_xlsx
+    # выгрузка из базы данных записей для дальнейшего перевода в google
+    # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
+    batch_size = 20000 # количество выгружаемых записей за одну итерацию
+
+    # Define a directory path in Rails
+    dir_path = Rails.root.join('lib', 'text_reviews_ua')
+
+    # Create the directory if not exists
+    FileUtils.mkdir_p(dir_path) unless Dir.exist?(dir_path)
+
+    ReadyReviews.where("review_ua is null ").find_in_batches(batch_size: batch_size) do |group|
+      min_id = group.first.id
+      max_id = group.last.id
+
+      package = Axlsx::Package.new
+      workbook = package.workbook
+
+      workbook.add_worksheet(name: "Content") do |sheet|
+        # Заголовки колонок
+        sheet.add_row ["ID", "review_ru"]
+
+        # Запись данных
+        group.each do |record|
+          sheet.add_row [record.id, record.review_ru]
+        end
+      end
+
+      # Save the file to directory
+      package.serialize("#{dir_path}/ready_reviews_#{min_id}_to_#{max_id}.xlsx")
+    end
+    render plain: "Обновление завершено.  Обработано  "
+  end
+
+
 
   def export_for_translit_xlsx
     # выгрузка данных для транслитерации
