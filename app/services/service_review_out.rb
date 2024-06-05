@@ -179,7 +179,7 @@ module ServiceReviewOut
     result = result.gsub(/SuperDefender/i, model)
     result = result.gsub(/супердефендер/i, model)
     result = result.gsub(/195\/65R15/i, tyres_size)
-    result = result.gsub(/JLT/i, auto)
+    result = result.gsub(/JLT|ЖЛТ/i, auto)
 
     result
   end

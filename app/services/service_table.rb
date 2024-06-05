@@ -848,8 +848,20 @@ module ServiceTable
       if record.review_ru.include?("\n")
         record.review_ru.gsub!(/\n/, ' ')
       end
+
       if record.review_ru =~ /ГринТ(и|ай|ае)р/i
         record.review_ru.gsub!(/ГринТ(и|ай|ае)р/i, 'GreenTire')
+      end
+
+      arr_regex = [
+        /\b(из\s*|)(Росси(я|и)|москв(ы|а))\b([,.]|)/i,
+        /^(.+|)мужик(а|ам|ом|)(\s*|)(из (JLT|ЖЛТ)|)(\s*|)([,!]\s*|)/i,
+        /\bR15\b/i
+      ]
+      arr_regex.each do |regex|
+        if record.review_ru =~ regex
+          record.review_ru.gsub!(regex, '')
+        end
       end
 
       if record.review_ru =~ /^.*?:\s*/
@@ -891,10 +903,6 @@ module ServiceTable
         record.save!
         j += 1
       end
-
-
-
-
 
     end
     result = "Количество измененных записей  #{j}  удаленных записей:  #{i}  "
