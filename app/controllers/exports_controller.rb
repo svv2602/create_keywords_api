@@ -265,38 +265,6 @@ class ExportsController < ApplicationController
     send_data package.to_stream.read, :filename => "seo_content_text_sentences_#{max_id}.xlsx", :type => "application/xlsx"
   end
 
-  def export_reviews_to_xlsx_old
-    # выгрузка из базы данных записей для дальнейшего перевода в google
-    # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу
-    count = 50000 # количество выгружаемых записей
-    max_id = params[:max].to_i == 0 ? ReadyReviews.where("review_ua = ''").maximum(:id) : params[:max].to_i
-
-    @selected_records = ReadyReviews
-    # .where("sentence like ? and sentence_ua not like ?", "%size%", "%size%")
-                          .where("review_ua is null and id < ?", max_id)
-                          .order(id: :desc)
-                          .limit(count)
-
-    package = Axlsx::Package.new
-    workbook = package.workbook
-
-    workbook.add_worksheet(name: "Content") do |sheet|
-      # Заголовки колонок
-      sheet.add_row ["ID", "review_ru"]
-
-      # Запись данных
-      @selected_records.each do |record|
-        sheet.add_row [record.id, record.review_ru]
-      end
-    end
-
-    max_id = (max_id - 1).to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1_').reverse
-
-    # timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    send_data package.to_stream.read, :filename => "ready_reviews_#{max_id}.xlsx", :type => "application/xlsx"
-
-  end
-
   def export_reviews_to_xlsx
     # выгрузка из базы данных записей для дальнейшего перевода в google
     # перевод грузится в этот же файл, и потом, после обработки всех записей таблицы, все файлы грузятся обратно в базу

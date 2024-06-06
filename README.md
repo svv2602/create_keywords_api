@@ -80,8 +80,8 @@ endpoint:
     curl -X POST -H "Content-Type: application/json"      -d '{
       "brand": "michelin",
       "model": "alpin",
-      "season": 1,
-      "grade": 8.5,
+      "season": 2,
+      "grade": 4.0,
       "number_of_reviews": 20,
       "sizes_of_model" : [
         {"width": 205, "height": 55, "diameter": 16, "id": "m1"},

@@ -68,43 +68,37 @@ module ServiceReviewOut
 
         array_reviews_id << random_review.id # массив для исключения одинаковых id в дальнейшей обработке
         gender = Review.find_by(id: random_review[:id_review])[:gender]
-        array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        review = make_changes_to_review_template(review, array_info[:brand],
-                                                 array_info[:model],
-                                                 array_info[:width],
-                                                 array_info[:height],
-                                                 array_info[:diameter],
-                                                 names_auto(record, language)[:auto_review])
+
       elsif rand(1..100) % 4 == 0
         # подбор отзыва с сезонностью без учета параметров
         array_info[:type_table] = 2
 
         control = control.split('_').take(2).join('_')
-
         random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
         array_reviews_without_params_id << random_review.id
         gender = random_review[:gender]
-        array_info[:author] = get_author_name(language, gender)
         review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-        review = make_changes_to_review_template(review, array_info[:brand],
-                                                 array_info[:model],
-                                                 array_info[:width],
-                                                 array_info[:height],
-                                                 array_info[:diameter],
-                                                 names_auto(record, language)[:auto_review])
 
       else
         # подбор короткого отзыва без сезонности и параметров
         array_info[:type_table] = 3
         review = get_static_review(type_review, language)
-        array_info[:author] = get_author_name(language)
       end
+
+
+      review = make_changes_to_review_template(review, array_info[:brand],
+                                               array_info[:model],
+                                               array_info[:width],
+                                               array_info[:height],
+                                               array_info[:diameter],
+                                               names_auto(record, language)[:auto_review])
 
       review = correct_text(review, language)
       review = change_chars_register(review) if review
       review = review ? review + add_emoji(type_review) : add_emoji(type_review)
 
+      array_info[:author] = get_author_name(language, gender)
       array_info[:review] = review
       array_info[:experience] = get_experience(review)
       array_info[:tyres_size] = tyres_size
@@ -191,11 +185,13 @@ module ServiceReviewOut
     result = text
     if result
       if language == "ru"
-        result = result.gsub(/эт(о|и)/i, "") if rand(1..10) % 2 == 0
+        result = result.gsub(/\bМария\b/i, "")
+        result = result.gsub(/\bэт(о|и)\b/i, "") if rand(1..10) % 2 == 0
         result = result.gsub(/(Братцы|Друзья|Дорогие друзья|Мужики|Блин)(,|!|)/i, "") unless rand(1..10) % 4 == 0
         result = result.gsub(/на любо(й|м) (покрытии|трассе|поверхности|дороге)/i, "") unless rand(1..10) % 4 == 0
       else
-        result = result.gsub(/це|ці/i, "") if rand(1..10) % 2 == 0
+        result = result.gsub(/\bМарія\b/i, "")
+        result = result.gsub(/\bце|ці\b/i, "") if rand(1..10) % 2 == 0
         result = result.gsub(/(Братці|Друзі|Дорогі друзі|Чоловіки|Млинець)(,|!|)/i, "")
         result = result.gsub(/на будь-як(ому|ій) (покритті|трасі|поверхні|дорозі)/i, "") unless rand(1..10) % 4 == 0
       end
