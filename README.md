@@ -78,13 +78,15 @@ endpoint:
   
      Пример запроса:
     curl -X POST -H "Content-Type: application/json"      -d '{
-      "brand": "michelin",
-      "model": "alpin",
+      "brand": "hankook",
+      "model": "k435",
       "season": 2,
       "grade": 4.0,
       "number_of_reviews": 20,
       "sizes_of_model" : [
         {"width": 205, "height": 55, "diameter": 16, "id": "m1"},
+        {"width": 215, "height": 55, "diameter": 16, "id": "m1"},
+        {"width": 215, "height": 55, "diameter": 17, "id": "m1"},
         {"width": 175, "height": 70, "diameter": 14, "id": "m22"},
         {"width": 185, "height": 55, "diameter": 15, "id": "m321"},
         {"width": 235, "height": 55, "diameter": 18, "id": "m45"}

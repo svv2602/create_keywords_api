@@ -334,6 +334,7 @@ class ExportsController < ApplicationController
     # в lib/text_ua должны находится файлы только для  загрузки в одну из таблиц!!!
     # /process_files_ua?proc=1 - import_text_ua(filename) - для таблицы SeoContentTextSentence
     # /process_files_ua?proc=2 - import_questions_ua(filename) - для таблицы QuestionsBlock
+    # /process_files_ua?proc=3 -  для таблицы ReadyReviews
 
     proc = params[:proc].to_i
     result = proc_import_text_ua(proc)

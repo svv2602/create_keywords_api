@@ -3,6 +3,7 @@ require_relative '../../app/services/dictionaries/const_reviews'
 require_relative '../../app/services/dictionaries/const_reviews_static'
 require_relative '../../app/services/dictionaries/const_reviews_gender_male'
 require_relative '../../app/services/dictionaries/const_reviews_gender_female'
+require_relative '../../app/services/dictionaries/const_replace_for_reviews'
 module ServiceReviewOut
 
   def makes_hash_for_collect_the_answer(tyres)
@@ -35,16 +36,13 @@ module ServiceReviewOut
     array_reviews_without_params_id = []
     tyres.each do |el|
       array_info = average == 0 ? create_hash_with_params(el) : el
-      puts "array_info === #{array_info.inspect}"
       record = get_car_by_tire_size(array_info)
-      puts "record === #{record.inspect}"
       tyres_size = "#{array_info[:width]}/#{array_info[:height]}R#{array_info[:diameter]}"
       season = array_info[:season]
       type_review = array_info[:type_review]
 
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
 
-      puts "array_info[:grade] ===== #{array_info[:grade]}"
       control = value_field_control(season, type_review, array_average)
 
       if array_reviews_id.empty?
@@ -60,11 +58,11 @@ module ServiceReviewOut
       array_info[:author] = ''
 
       # вероятность развернутого отзыва
-      n = type_review == -1 ? 3 : 5
+      n = type_review == -1 ? 2 : 5
 
       if random_review && rand(1..100) % n == 0
         # подбор отзыва с учетом параметров
-        array_info[:type_table] = 1
+        # array_info[:type_table] = 1
 
         array_reviews_id << random_review.id # массив для исключения одинаковых id в дальнейшей обработке
         gender = Review.find_by(id: random_review[:id_review])[:gender]
@@ -72,7 +70,7 @@ module ServiceReviewOut
 
       elsif rand(1..100) % 4 == 0
         # подбор отзыва с сезонностью без учета параметров
-        array_info[:type_table] = 2
+        # array_info[:type_table] = 2
 
         control = control.split('_').take(2).join('_')
         random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
@@ -82,10 +80,9 @@ module ServiceReviewOut
 
       else
         # подбор короткого отзыва без сезонности и параметров
-        array_info[:type_table] = 3
+        # array_info[:type_table] = 3
         review = get_static_review(type_review, language)
       end
-
 
       review = make_changes_to_review_template(review, array_info[:brand],
                                                array_info[:model],
@@ -114,9 +111,9 @@ module ServiceReviewOut
 
       # array_info[:control] = control
 
+      # result << array_info[:grade]
+      # result << array_info[:array_average]
       result << array_info
-      puts "tyres === #{result}"
-
     end
     result
   end
@@ -171,8 +168,7 @@ module ServiceReviewOut
 
     if result
       result = result.gsub(/GreenTire/i, brand)
-      result = result.gsub(/SuperDefender/i, model)
-      result = result.gsub(/супердефендер/i, model)
+      result = result.gsub(/SuperDefender|супердефендер/i, model)
       result = result.gsub(/195\/65R15/i, tyres_size)
       result = result.gsub(/JLT|ЖЛТ/i, auto)
     end
@@ -182,24 +178,35 @@ module ServiceReviewOut
   end
 
   def correct_text(text, language)
+    hash_delete_text_ru = HASH_DELETE_TEXT_RU
+    hash_delete_text_ua = HASH_DELETE_TEXT_UA
+    hash_replace_text_ru = HASH_REPLACE_TEXT_RU
+    hash_replace_text_ua = HASH_REPLACE_TEXT_UA
     result = text
+
+    if language == "ru"
+      hash_delete_text = hash_delete_text_ru
+      hash_replace_text = hash_replace_text_ru
+    else
+      hash_delete_text = hash_delete_text_ua
+      hash_replace_text = hash_replace_text_ua
+    end
+
     if result
-      if language == "ru"
-        result = result.gsub(/\bМария\b/i, "")
-        result = result.gsub(/\bэт(о|и)\b/i, "") if rand(1..10) % 2 == 0
-        result = result.gsub(/(Братцы|Друзья|Дорогие друзья|Мужики|Блин)(,|!|)/i, "") unless rand(1..10) % 4 == 0
-        result = result.gsub(/на любо(й|м) (покрытии|трассе|поверхности|дороге)/i, "") unless rand(1..10) % 4 == 0
-      else
-        result = result.gsub(/\bМарія\b/i, "")
-        result = result.gsub(/\bце|ці\b/i, "") if rand(1..10) % 2 == 0
-        result = result.gsub(/(Братці|Друзі|Дорогі друзі|Чоловіки|Млинець)(,|!|)/i, "")
-        result = result.gsub(/на будь-як(ому|ій) (покритті|трасі|поверхні|дорозі)/i, "") unless rand(1..10) % 4 == 0
+      hash_delete_text.each do |key, value|
+        value.each do |regex|
+          result = result.gsub(regex, "") if rand(1..100) % key == 0
+        end
       end
-      result = replace_synonyms_in_sentence(result, language)
+      hash_replace_text.each do |key, value|
+        result = result.gsub(key, value)
+      end
     end
 
     result
   end
+
+
 
   def replace_synonyms_in_sentence(sentence, language)
     words = sentence.split(' ')
@@ -333,7 +340,7 @@ module ServiceReviewOut
                 else
                   ""
                 end
-    result += separator if rand(1..5) % 2 == 0
+    result += separator if rand(1..5) % 2 == 0 && separator == "_"
     result += rand(1..5) % 2 == 0 ? rand(100..10000).to_s : dd + separator + mm
     result
   end
@@ -416,11 +423,11 @@ module ServiceReviewOut
   def values_for_review_type(n)
     result = case n
              when 1
-               rand(8..10)
+               rand(7..10)
              when 0
-               rand(6..8)
+               rand(5..6)
              when -1
-               rand(3..6)
+               rand(1..4)
              else
                10
              end
