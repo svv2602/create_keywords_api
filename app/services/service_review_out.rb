@@ -84,6 +84,8 @@ module ServiceReviewOut
         review = get_static_review(type_review, language)
       end
 
+      review ||= get_static_review(type_review, language) # если review равно nil или false
+
       review = make_changes_to_review_template(review, array_info[:brand],
                                                array_info[:model],
                                                array_info[:width],
