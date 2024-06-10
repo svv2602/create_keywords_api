@@ -195,13 +195,18 @@ module ServiceReviewOut
     if result
       hash_delete_text.each do |key, value|
         value.each do |regex|
-          result = result.gsub(regex, "") if rand(1..100) % key == 0
+          result = result.gsub(regex, "") unless rand(1..100) % key == 0
         end
       end
+
       hash_replace_text.each do |key, value|
         result = result.gsub(key, value)
       end
+
+      result = replace_synonyms_in_sentence(result, language)
     end
+
+
 
     result
   end
