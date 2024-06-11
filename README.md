@@ -1,4 +1,11 @@
 # README
+
+Для индексации группы урлов 
+* /size_to_index_google - ( размер| +сезонность | +ua) - 8шт
+    * Пример запуска с параметрами: /size_to_index_google?w=175&h=70&r=13
+
+
+
 Для сборки использовать:
 * sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
 

@@ -1,6 +1,7 @@
 class ExportsController < ApplicationController
   include ServiceTable
   include ServiceQuestion
+  include IndexPageGoogle
 
   def control_question
     # Необходимо указать type_paragraph, 0- легковые, 1- диски, 2- грузовые

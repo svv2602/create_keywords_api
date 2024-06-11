@@ -65,6 +65,9 @@ Rails.application.routes.draw do
   get '/control_records_reviews', to: 'exports#control_records_reviews'
   get '/copy_ready_reviews_to_main_tab', to: 'exports#copy_ready_reviews_to_main_tab'
 
+  # ==================================================================
+  get '/size_to_index_google', to: 'exports#size_to_index_google'
+
 
 end
 
