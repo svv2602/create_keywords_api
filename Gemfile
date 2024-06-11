@@ -58,6 +58,8 @@ gem 'translit', '~> 0.1.5'
 gem 'caxlsx'
 
 
-
+# ========================================
+gem 'googleauth'
+gem 'google-api-client'
 
 

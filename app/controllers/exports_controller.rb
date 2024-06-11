@@ -387,7 +387,33 @@ class ExportsController < ApplicationController
     render plain: "Добавление записей завершено."
   end
 
+  # =================================================
+  def size_to_index_google
+    # size_to_index_google?w=175&h=70&r=13
+    width = params[:w].to_i
+    height = params[:h].to_i
+    diameter = params[:r].to_s.gsub(/с|c|С/, 'C')
 
+    tire_width_values = (125..345).step(10).to_a
+    tire_width_values += [30, 31, 33, 35, 37, 39, 6.5, 7.5]
+
+    tire_height_values = (10..90).step(5).to_a
+    tire_height_values += (9.5..13.5).step(1).to_a
+
+    tire_diameter_values = (12..23).step(1).to_a
+    tire_diameter_values += ["12C","13C","14C","15C","16C","17C"]
+    tire_diameter_values = tire_diameter_values.map(&:to_s)
+
+    if tire_width_values.include?(width)  &&
+      tire_height_values.include?(height) &&
+      tire_diameter_values.include?(diameter)
+
+      result = urls_to_index_google(width, height, diameter)
+      render plain: "Отправлены на индексацию url: #{result}"
+    else
+      render plain: "Неверное значение. Проверьте отсылаемые параметры"
+    end
+  end
   # ========================последний end=======================
 
 end
