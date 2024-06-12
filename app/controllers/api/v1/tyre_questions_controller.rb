@@ -19,8 +19,8 @@ class Api::V1::TyreQuestionsController < ApplicationController
     #   list_questions << question(table) unless question(table)[:question] == ""
     # end
     # # добавляем еще 1-4 вопроса по константам
-    # list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
-    #                                 [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
+    list_questions += questions_dop([CITIES, BRANDS, DIAMETERS, TOP_SIZE],
+                                    [DIAMETERS_TRUCK, BRANDS_TRUCK, SIZE_TRUCK, DIAMETERS_WHEELS, BRANDS_WHEELS])
     #
     # result = format_question_full(list_questions)
     # puts result

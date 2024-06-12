@@ -52,12 +52,12 @@ module ServiceReview
   def topics_array
     arr = []
 
-    sizes = SIZES
-    brands = BRANDS
-    models = MODELS
-    cars = AUTO
-    genders = GENDERS
-    seasons = SEASONS
+    sizes = SIZES_REVIEW
+    brands = BRANDS_REVIEW
+    models = MODELS_REVIEW
+    cars = AUTO_REVIEW
+    genders = GENDERS_REVIEW
+    seasons = SEASONS_REVIEW
     types_review = TYPES_REVIEW
 
     sizes.each do |size|

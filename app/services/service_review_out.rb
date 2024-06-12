@@ -86,7 +86,9 @@ module ServiceReviewOut
 
       review ||= get_static_review(type_review, language) # если review равно nil или false
 
-      review = make_changes_to_review_template(review, array_info[:brand],
+      review = make_changes_to_review_template(review,
+                                               language,
+                                               array_info[:brand],
                                                array_info[:model],
                                                array_info[:width],
                                                array_info[:height],
@@ -134,19 +136,36 @@ module ServiceReviewOut
     result
   end
 
-  def make_changes_to_review_template(text, brand, model, size_width, size_height, size_diameter, auto)
+  def get_sample_brand(brand,language)
+    brand_2 = ""
+    arr_name_brand_2 = NAME_BRANDS_REVIEW.reject { |hash| hash.key?(brand) }
+    brand_2_sample = arr_name_brand_2.sample
+    brand_2_sample.each do |key, value|
+      brand_2 = rand(1..100)%2==0? value[:en] : value[language.to_sym]
+    end
+    brand_2
+  end
+
+  def make_changes_to_review_template(text, language, brand, model, size_width, size_height, size_diameter, auto)
     result = text
+
+    brand_2 = get_sample_brand(brand,language)
+    puts "brand_2 = #{brand_2.inspect}"
+
     n = rand(1..10)
     case n
     when 1, 3, 5, 7, 9
       brand = brand.capitalize
       model = model.capitalize
+      brand_2 = brand_2.capitalize
     when 2, 4, 8
       brand = brand.downcase
       model = model.downcase
+      brand_2 = brand_2.downcase
     else
       brand = brand.upcase
       model = model.upcase
+      brand_2 = brand_2.upcase
     end
 
     tyres_size = case rand(1..10)
@@ -170,6 +189,7 @@ module ServiceReviewOut
 
     if result
       result = result.gsub(/GreenTire/i, brand)
+      result = result.gsub(/GreenTire_2/i, brand_2)
       result = result.gsub(/SuperDefender|супердефендер/i, model)
       result = result.gsub(/195\/65R15/i, tyres_size)
       result = result.gsub(/JLT|ЖЛТ/i, auto)
