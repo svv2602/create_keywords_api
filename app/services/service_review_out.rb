@@ -130,8 +130,10 @@ module ServiceReviewOut
       result = splitted_text.map { |sentence| sentence.strip.capitalize }.join(' ')
     when 1, 8
       result = text.downcase
+      result =  result.gsub(/,|\./,"") if rand(1..100)%2 == 0
     else
       result = text.upcase
+      result =  result.gsub(/,|\./,"") if rand(1..100)%3 == 0
     end
     result
   end

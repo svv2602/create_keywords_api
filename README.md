@@ -199,7 +199,7 @@ endpoint:
     * /import_translit_auto - для обновления транслит по брендам и моделям автомобилей для TestTableCar2Brand и TestTableCar2Model
       * !!! подготовленные данные предварительно  сохранить в lib/cars_db/TestTableCar2Brand_ready.xlsx и lib/cars_db/TestTableCar2Model_ready.xlsx
     
-    * /import_reviews_without_params - добавление шаблонов отзывов без учета параметров из файла "lib/reviews_templates/reviews_for_load.xlsx"
+    * /import_reviews_without_params - добавление шаблонов отзывов без учета параметров из файла типа "lib/reviews_templates/reviews_for_load.xlsx"
 
     * /api/v1/create_review_templates - генерация шаблонов отзывов по таблице Review (min..max - диапазон id в Review)
     Раскладка по таблицам (запросы с параметрами):

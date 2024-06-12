@@ -801,7 +801,8 @@ module ServiceTable
 
   def import_reviews_templates
     ReadyReviewsWithoutParam.delete_all
-    file_path = "lib/reviews_templates/reviews_for_load.xlsx"
+    # file_path = "lib/reviews_templates/reviews_for_load.xlsx"
+    file_path = "lib/reviews_templates/reviews_for_load_0706.xlsx"
     excel = Roo::Excelx.new(file_path)
 
     i = 0
