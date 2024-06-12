@@ -188,8 +188,8 @@ module ServiceReviewOut
                  end
 
     if result
-      result = result.gsub(/GreenTire/i, brand)
-      result = result.gsub(/GreenTire_2/i, brand_2)
+      result = result.gsub(/\b(GreenTire|ГринТа(е|й)р)_2\b/i, brand_2)
+      result = result.gsub(/\bGreenTire|ГринТа(е|й)р\b/i, brand)
       result = result.gsub(/SuperDefender|супердефендер/i, model)
       result = result.gsub(/195\/65R15/i, tyres_size)
       result = result.gsub(/JLT|ЖЛТ/i, auto)
