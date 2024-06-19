@@ -1,5 +1,5 @@
 source "https://rubygems.org"
-
+rub
 ruby "3.2.2"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
@@ -58,8 +58,6 @@ gem 'translit', '~> 0.1.5'
 gem 'caxlsx'
 
 
-# ========================================
-gem 'googleauth'
-gem 'google-api-client'
+
 
 
