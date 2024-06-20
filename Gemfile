@@ -57,7 +57,9 @@ gem "ruby-openai", "~> 6.3"
 gem 'translit', '~> 0.1.5'
 gem 'caxlsx'
 
-
+# Для индексации размеров
+gem 'googleauth'
+gem 'google-api-client'
 
 
 
