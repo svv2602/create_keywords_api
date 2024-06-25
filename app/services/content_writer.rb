@@ -146,25 +146,23 @@ class ContentWriter
 
 
 
-  def write_seo_review(prompt, max_tokens)
+  def write_seo_city(prompt)
     attempts = 0
 
     begin
-
-      # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
       @client.chat(
         parameters: {
           model: MODEL,
           messages: [
-            # { role: "system",
-            #   content: 'Вы копирайтер мирового уровня с отличным знанием украинского языка.'
-            # },
+            { role: "system",
+              content: 'You are a world-class copywriter with excellent knowledge of Russian and Ukrainian.'
+            },
             { role: "user", content: prompt }
           ],
-          temperature: 0.7,
-          max_tokens: max_tokens,
+          temperature: 0.8,
+          # max_tokens: max_tokens,
           top_p: 0.9,
-          frequency_penalty: 0.4,
+          # frequency_penalty: 0.4,
           presence_penalty: 0.3
         }
       )

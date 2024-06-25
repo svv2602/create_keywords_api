@@ -8,12 +8,21 @@ class Api::V1::SeoTextsController < ApplicationController
   include StringProcessingServices
   include ServiceTable
   include ServiceQuestion
+  include CityProcessing
 
   def mytest
-
+    # curl 'http://localhost:3000/api/v1/mytest?language=ru&city=%22%D0%A5%D0%B0%D1%80%D1%8C%D0%BA%D0%BE%D0%B2%22'
     # all_questions_for_page
-    result = count_text_type("data_disk")
+    result = generate_text_for_city
     puts "Все сделано! ===== #{result.inspect} " # #{result.inspect}
+    render json: { result: result }
+  end
+
+
+  def seo_text_city
+    # curl 'http://localhost:3000/api/v1/seo_text_city?language=ru&city=%22%D0%A5%D0%B0%D1%80%D1%8C%D0%BA%D0%BE%D0%B2%22'
+    result = generate_text_for_city
+    puts "Все сделано! ===== #{result} " # #{result.inspect}
     render json: { result: result }
   end
 
