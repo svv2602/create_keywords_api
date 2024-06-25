@@ -57,7 +57,7 @@ module CityProcessing
     str += "Текст має бути українською мовою та оптимізований для пошукових запитів."
     str += "\n"
 
-    str += "Покажи результат разом з тегами"
+    # str += "Покажи результат разом з тегами"
     str
 
   end
@@ -92,6 +92,7 @@ module CityProcessing
         end
 
         topics += "Покажи результат с тегами."
+
         new_text = ContentWriter.new.write_seo_city(topics)
         new_text = new_text['choices'][0]['message']['content'].strip if new_text
         if key == :faqs
