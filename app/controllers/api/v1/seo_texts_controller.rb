@@ -20,7 +20,7 @@ class Api::V1::SeoTextsController < ApplicationController
 
 
   def seo_text_city
-    # curl 'http://localhost:3000/api/v1/seo_text_city?language=ru&city=%22%D0%A5%D0%B0%D1%80%D1%8C%D0%BA%D0%BE%D0%B2%22'
+    # curl 'http://localhost:3000/api/v1/seo_text_city?language=ru&city="Киев"
     result = generate_text_for_city
     puts "Все сделано! ===== #{result} " # #{result.inspect}
     render json: { result: result }
