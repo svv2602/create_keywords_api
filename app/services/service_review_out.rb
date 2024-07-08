@@ -44,11 +44,13 @@ module ServiceReviewOut
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
 
       control = value_field_control(season, type_review, array_average)
-
+      puts " control = value_field_control(season, type_review, array_average) ===== #{control}"
       if array_reviews_id.empty?
         random_review = ReadyReviews.order("RANDOM()").where(control: control).first
+        puts "random_review .empty"
       else
         random_review = ReadyReviews.order("RANDOM()").where(control: control).where.not(id: array_reviews_id).first
+        puts "random_review  not empty"
       end
 
       puts "array_reviews_id = #{array_reviews_id}"
@@ -74,9 +76,11 @@ module ServiceReviewOut
 
         control = control.split('_').take(2).join('_')
         random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
-        array_reviews_without_params_id << random_review.id
-        gender = random_review[:gender]
-        review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        if random_review
+          array_reviews_without_params_id << random_review&.id
+          gender = random_review[:gender]
+          review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        end
 
       else
         # подбор короткого отзыва без сезонности и параметров
@@ -113,10 +117,6 @@ module ServiceReviewOut
         array_info[:grade] = 0
       end
 
-      # array_info[:control] = control
-
-      # result << array_info[:grade]
-      # result << array_info[:array_average]
       result << array_info
     end
     result
@@ -433,13 +433,13 @@ module ServiceReviewOut
     puts "n == #{n}"
     array = []
     number_of_ratings.times do |i|
-      num = (rand(n..10.0) * 2).round / 2.0
+      num = (rand(n..5.0) * 2).round / 2.0
       el = i % 2 == 0 ? num : 2 * n - array[i - 1]
       el = (el * 2).round / 2.0 # округление с точностью 0,5
 
       # внести в массив погрешность
-      if el <= 9 && el >= 2.5
-        el += 0.5 * rand(1..10) % 2 == 0 ? -1 : 1 if rand(1..10) % 2 == 0
+      if el <= 4 && el >= 1
+        el += 0.5 * rand(1..5) % 2 == 0 ? -1 : 1 if rand(1..5) % 2 == 0
       end
 
       array[i] = el > 1 ? el : 1.0
@@ -452,13 +452,13 @@ module ServiceReviewOut
   def values_for_review_type(n)
     result = case n
              when 1
-               rand(7..10)
+               rand(4.0..5.0)
              when 0
-               rand(5..6)
+               rand(2.0...4.0)
              when -1
-               rand(1..4)
+               rand(0...2.0)
              else
-               10
+               5
              end
 
     result.to_f
@@ -476,11 +476,11 @@ module ServiceReviewOut
 
   def convert_rating_to_type(number)
     result = case number
-             when 7..10
+             when 4.0..5.0
                1
-             when 5..8
+             when 2.0...4.0
                0
-             when 0..5
+             when 0...2.0
                -1
              else
                -1

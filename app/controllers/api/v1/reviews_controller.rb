@@ -27,9 +27,14 @@ class Api::V1::ReviewsController < ApplicationController
 
   def reviews_for_model
     tyres = params
-    new_hash = makes_hash_for_collect_the_answer(tyres)
-    result = collect_the_answer(new_hash[:tyres], new_hash[:grade])
-    render json: { result: result.inspect }, status: :ok
+    if (0..5.0).include?(params[:grade].to_f)
+      new_hash = makes_hash_for_collect_the_answer(tyres)
+      result = collect_the_answer(new_hash[:tyres], new_hash[:grade])
+      render json: { result: result.inspect }, status: :ok
+    else
+      render json: { result: "неверный параметр :grade " }, status: :ok
+    end
+
   end
 
   # =================================================================
