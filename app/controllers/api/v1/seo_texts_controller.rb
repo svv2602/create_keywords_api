@@ -1,6 +1,6 @@
 # app/controllers/api/v1/seo_texts_controller.rb
 require 'benchmark'
-
+require 'cgi'
 class Api::V1::SeoTextsController < ApplicationController
   include StringProcessing
   include StringErrorsProcessing
@@ -252,6 +252,7 @@ class Api::V1::SeoTextsController < ApplicationController
     puts "#{result}\n#{result_questions}"
 
     if params[:without_questions]
+      result = CGI::unescapeHTML(result)
       render json: { result: result }
     else
       render json: { result: result,
