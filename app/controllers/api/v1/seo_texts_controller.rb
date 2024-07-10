@@ -18,7 +18,6 @@ class Api::V1::SeoTextsController < ApplicationController
     render json: { result: result }
   end
 
-
   def seo_text_city
     # curl 'http://localhost:3000/api/v1/seo_text_city?language=ru&city="Киев"
     result = generate_text_for_city
@@ -239,19 +238,26 @@ class Api::V1::SeoTextsController < ApplicationController
   def seo_text
     # пример:
     # легковые:
-    # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F
+    # curl "http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F"
+    # или без вопросов
+    # curl "http://localhost:3000/api/v1/seo_text?without_questions=1&url=https%3A%2F%2Fprokoleso.ua%2Fshiny%2Fletnie%2Fkumho%2Fw-175%2Fh-70%2Fr-13%2F"
+
     # грузовые
     # curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
 
     # text_params = params
     result = raw_text_final || ""
-    result_questions = all_questions_for_page || ""
+    result_questions = params[:without_questions] ? "": all_questions_for_page
 
-    puts result + "\n" + result_questions
-    render json: { result: result,
-                   result_questions: result_questions
-    }
+    puts "#{result}\n#{result_questions}"
 
+    if params[:without_questions]
+      render json: { result: result }
+    else
+      render json: { result: result,
+                     result_questions: result_questions
+      }
+    end
 
   end
 
