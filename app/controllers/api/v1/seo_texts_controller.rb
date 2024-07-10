@@ -1,6 +1,6 @@
 # app/controllers/api/v1/seo_texts_controller.rb
 require 'benchmark'
-require 'cgi'
+require 'oj'
 class Api::V1::SeoTextsController < ApplicationController
   include StringProcessing
   include StringErrorsProcessing
@@ -252,8 +252,8 @@ class Api::V1::SeoTextsController < ApplicationController
     puts "#{result}\n#{result_questions}"
 
     if params[:without_questions]
-      result = CGI::unescapeHTML(result)
-      render json: { result: result }
+      result = Oj.dump(result, mode: :compat).gsub(/^\"|\"?$/, '')
+      render html: result
     else
       render json: { result: result,
                      result_questions: result_questions

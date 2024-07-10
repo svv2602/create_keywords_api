@@ -61,5 +61,7 @@ gem 'caxlsx'
 gem 'googleauth'
 gem 'google-api-client'
 
+gem 'oj' # Oj - это Ruby gem для выполнения быстрых операций JSON
+
 
 
