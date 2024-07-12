@@ -44,13 +44,13 @@ module ServiceReviewOut
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
 
       control = value_field_control(season, type_review, array_average)
-      puts " control = value_field_control(season, type_review, array_average) ===== #{control}"
+      # puts " control = value_field_control(season, type_review, array_average) ===== #{control}"
       if array_reviews_id.empty?
         random_review = ReadyReviews.order("RANDOM()").where(control: control).first
-        puts "random_review .empty"
+        # puts "random_review .empty"
       else
         random_review = ReadyReviews.order("RANDOM()").where(control: control).where.not(id: array_reviews_id).first
-        puts "random_review  not empty"
+        # puts "random_review  not empty"
       end
 
       puts "array_reviews_id = #{array_reviews_id}"
@@ -192,7 +192,7 @@ module ServiceReviewOut
     if result
       result = result.gsub(/\b(GreenTire|ГринТа(е|й)р)_2\b/i, brand_2)
       result = result.gsub(/\bGreenTire|ГринТа(е|й)р\b/i, brand)
-      result = result.gsub(/SuperDefender|супердефендер/i, model)
+      result = result.gsub(/SuperDefender|супердефендер|суперdefender/i, model)
       result = result.gsub(/195\/65R15/i, tyres_size)
       result = result.gsub(/JLT|ЖЛТ/i, auto)
     end
@@ -276,7 +276,7 @@ module ServiceReviewOut
   def get_experience(text)
     # генерация стажа, если есть в тексте - берем из текста, иначе - случайное число
     matches = text.scan(/\b(?<=\s|^)(\d{1,2})\b/)
-    experience = matches[0].nil? ? rand(3..30) : matches[0][0].to_i
+    experience = matches[0].nil? ? rand(3..20) : matches[0][0].to_i
     result = rand(1..100) % 3 == 0 ? "" : experience
     result
 
