@@ -65,7 +65,7 @@ MALE_NAMES = {
     "Steve", "Valentin", "Miro", "Adam", "Yegor", "Ilyusha", "Matt", "Julik", "Borya", "Valera",
     "Dave", "Art", "Ostik", "Izya", "Semen", "Kolya", "Lev", "Vit", "Dan", "Dima",
     "Gleb", "Lyosha", "Russ", "Tim", "Herm", "Bogdan", "Ark", "Myron", "Vlad", "Ed",
-    "Ad", "Zin", "Rodya", "Erast", "Opanas", "Kuz", "Plat", "Sav", "Troy", "Yak",
+    "Ad", "Zin", "Rodya", "Erast", "Kuz", "Plat", "Sav", "Troy", "Yak",
     "Justin", "Sil", "Naz", "Yev", "Ernie"
   ]
 }
