@@ -342,13 +342,13 @@ module ServiceReviewOut
     if array1.include?(author)
       author += " " + array_patronymics.shuffle.first if rand(1..5) % 4 == 0
     elsif array2.include?(author)
-      author += date_birthday if rand(1..5) % 4 == 0
+      author += date_birthday if rand(1..10) % 5 == 0
       author.downcase! if rand(1..2) % 2 == 0
     elsif array3.include?(author)
-      author += date_birthday if rand(1..5) % 4 == 0
+      author += date_birthday if rand(1..10) % 4 == 0
       author.downcase! if rand(1..2) % 2 == 0
     elsif array4.include?(author)
-      author += date_birthday if rand(1..2) % 2 == 0
+      author += date_birthday if rand(1..10) % 3 == 0
       author.downcase! if rand(1..2) % 2 == 0
     end
 
