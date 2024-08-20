@@ -1,4 +1,4 @@
-FROM ruby:3.2.2
+FROM ruby:3.3.4
 # В параметрах сборки укажите API-ключ
 ARG OPENAI_API_KEY
 ENV OPENAI_API_KEY=$OPENAI_API_KEY
