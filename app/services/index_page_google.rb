@@ -6,7 +6,7 @@ require 'google/apis/indexing_v3'
 
 module IndexPageGoogle
 
-  def urls_to_index_google(width,height,diameter)
+  def urls_to_index_google(arr_url)
     # Создаем объект сервиса
     service = Google::Apis::IndexingV3::IndexingService.new
     result = ""
@@ -22,16 +22,7 @@ module IndexPageGoogle
     service.authorization = authorizer
 
     # Пример списка URL для индексации:
-    urls_to_index = [
-      "https://prokoleso.ua/shiny/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/shiny/zimnie/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/shiny/letnie/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/shiny/vsesezonie/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/ua/shiny/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/ua/shiny/zimnie/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/ua/shiny/letnie/w-#{width}/h-#{height}/r-#{diameter}",
-      "https://prokoleso.ua/ua/shiny/vsesezonie/w-#{width}/h-#{height}/r-#{diameter}"
-    ]
+    urls_to_index = arr_url
 
     urls_to_index.each do |url|
       begin
@@ -45,6 +36,36 @@ module IndexPageGoogle
     end
     result
 
+  end
+
+
+  def urls_sizes_to_index(width,height,diameter)
+    urls_to_index = [
+      "https://prokoleso.ua/shiny/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/shiny/zimnie/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/shiny/letnie/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/shiny/vsesezonie/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/ua/shiny/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/ua/shiny/zimnie/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/ua/shiny/letnie/w-#{width}/h-#{height}/r-#{diameter}",
+      "https://prokoleso.ua/ua/shiny/vsesezonie/w-#{width}/h-#{height}/r-#{diameter}"
+    ]
+    urls_to_index
+  end
+
+  def urls_articles_to_index(article)
+    article = article.gsub('"', "")
+    puts "z tut article = #{article}"
+    return [] if article.nil? or !article.start_with?("https://prokoleso.ua/")
+    puts "z tut article = #{article}"
+    str = article.sub("https://prokoleso.ua/", "")
+    str =  str.sub(/\Aua\//, '')
+    urls_to_index = [
+      "https://prokoleso.ua/#{str}",
+      "https://prokoleso.ua/ua/#{str}"
+    ]
+    puts urls_to_index.inspect
+    urls_to_index
   end
 
 end

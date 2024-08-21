@@ -68,6 +68,7 @@ Rails.application.routes.draw do
 
   # ==================================================================
   get '/size_to_index_google', to: 'exports#size_to_index_google'
+  get '/article_to_index_google', to: 'exports#article_to_index_google'
 
 
 end

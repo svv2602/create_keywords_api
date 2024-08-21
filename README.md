@@ -4,7 +4,10 @@
 * /size_to_index_google - ( размер| +сезонность | +ua) - 8шт
     * Пример запуска с параметрами: /size_to_index_google?w=175&h=70&r=13
 
-
+Для индексации статьи
+* /article_to_index_google - ( ru|ua) - 2шт
+    * Пример запуска с параметрами: 
+  /article_to_index_google?article="https://prokoleso.ua/ua/info/vse-o-shinah/laufenn-firestone-roadstone-starmaxx-taurus-ta-premiorri-shyny-dlya-zymy-2024-2025/"
 
 Для сборки использовать:
 * sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .

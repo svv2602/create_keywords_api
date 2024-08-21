@@ -409,12 +409,24 @@ class ExportsController < ApplicationController
       tire_height_values.include?(height) &&
       tire_diameter_values.include?(diameter)
 
-      result = urls_to_index_google(width, height, diameter)
+      arr_url= urls_sizes_to_index(width,height,diameter)
+
+      result = urls_to_index_google(arr_url)
       render plain: "Отправлены на индексацию url: #{result}"
     else
       render plain: "Неверное значение. Проверьте отсылаемые параметры"
     end
   end
+
+  def article_to_index_google
+    article = params[:article]
+    arr_url= urls_articles_to_index(article)
+    result = urls_to_index_google(arr_url)
+    render plain: "Отправлены на индексацию url: #{result}"
+  end
+
+
+
   # ========================последний end=======================
 
 end
