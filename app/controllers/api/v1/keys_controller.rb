@@ -14,7 +14,7 @@ class Api::V1::KeysController < ApplicationController
     arr4 = []
     # используется с combinations_with_sorted_ratings, в коментах кол- во элементов
     # arr1 = [["Season", 1], ["Brand", 2], ['Diameter', 3], ["Addon", 4]]
-    arr1 = [['Size', 3], ["Addon", 4], ['City', 5]]
+    arr1 = [['Size', 1], ["Addon", 2], ['City', 3]]
     arr2 = [["Season", 1], ['Size', 3], ["Addon", 4]] # 29 элементов
     arr3 = [["Brand", 2], ['Size', 3], ["Addon", 4]]
 
@@ -45,9 +45,20 @@ class Api::V1::KeysController < ApplicationController
 
     merged_array = combinations_with_sorted_ratings(arr1) + combinations_with_sorted_ratings(arr2)
     unique_values = merged_array + combinations_with_sorted_ratings(arr3) + arr4
+    # unique_values.each do |arr|
+    #   record = str_hash(arr)
+    #   h << { keywords: normal_str(record[:keywords]), url: record[:url] }
+    #   i += 1
+    # end
     unique_values.each do |arr|
       record = str_hash(arr)
-      h << { keywords: normal_str(record[:keywords]), url: record[:url] }
+      next if record.nil? # пропустить, если нет данных
+
+      h << {
+        keywords: normal_str(record[:keywords]),
+        url: record[:url]
+      }
+      puts h
       i += 1
     end
     puts "===================== #{unique_values.inspect}"
@@ -95,19 +106,34 @@ class Api::V1::KeysController < ApplicationController
     rez = {}
     result = []
     city_url = ""
-    random_number = rand(1..100)
+    # random_number = rand(1..100)
 
     # Проверяем, делится ли случайное число на 2
-    if random_number % 2 == 0
-      url_new = "https://prokoleso.ua/shiny/"
-    else
-      url_new = "https://prokoleso.ua/ua/shiny/"
-    end
+    # if random_number % 2 == 0
+    #   url_new = "https://prokoleso.ua/shiny/"
+    # else
+    #   url_new = "https://prokoleso.ua/ua/shiny/"
+    # end
+
+
+    url_new = url_new_params(params[:language])
+
 
     tables.each do |table_name|
       received_record = find_and_destroy_random_record(table_name)
-      record = received_record[:name]
-      record = [received_record[:ww], received_record[:hh], received_record[:rr]] if table_name == "SizeCopy"
+      # record = received_record[:name]
+      puts "received_record === #{received_record}"
+
+       if table_name == "SizeCopy"
+         record = [received_record[:ww], received_record[:hh], received_record[:rr]]
+       else
+         record = params[:language] == "ua" ? received_record[:language] : received_record[:name]
+       end
+      record = received_record[:name] if table_name == "DiameterCopy"
+
+      # if table_name == "CityCopy"
+      #   record = params[:language] == "ua" ? received_record[:language] : received_record[:name]
+      # end
 
       url_new += partial_url(table_name, received_record[:url])
 
@@ -117,13 +143,9 @@ class Api::V1::KeysController < ApplicationController
 
     end
 
+
     if city_url.present?
-      if random_number % 2 == 0
-        city_url = "https://prokoleso.ua/#{city_url}"
-      else
-        city_url = "https://prokoleso.ua/ua/#{city_url}"
-      end
-      url_new = city_url
+      url_new = URI.join(url_new_params(params[:language]), city_url).to_s
     end
 
     # result.shuffle.join(" ")
@@ -161,48 +183,27 @@ class Api::V1::KeysController < ApplicationController
   # обработка вариантов написания размеров
   def size_name(ww, hh, rr)
     result = []
-    case rand(1..400)
-    when 1..10
-      # 2055516
-      result << "#{ww}#{hh}#{rr}"
-    when 11..30
-      # 205 55R16
-      result << "#{ww} #{hh}R#{rr}"
-    when 41..50
-      # 205 5516
-      result << "#{ww} #{hh}#{rr}"
-    when 51..60
-      result << "#{ww} #{hh}"
-      result << "#{rr}"
-    when 71..90
-      result << "#{ww}/#{hh}"
-      result << "#{rr}"
-    when 91..110
-      result << "#{ww}/#{hh}"
-      result << "R#{rr}"
-    when 111..120
-      result << "#{ww}х#{hh}"
-      result << "#{rr}"
-    when 121..130
-      result << "#{ww}х#{hh}"
-      result << "Р#{rr}"
-    when 141..150
-      result << "#{ww}x#{hh}"
-      result << "R#{rr}"
-    when 151..160
-      result << "#{ww}х#{hh}"
-      result << "на #{rr}"
-    when 161..180
-      result << "#{ww}/#{hh}"
-      result << "на #{rr}"
-    when 181..190
-      result << "#{ww}-#{hh}-#{rr}"
-    when 191..230
-      result << "#{ww}/#{hh}R#{rr}"
-    when 231..290
-      result << "#{ww} #{hh} #{rr}"
+    case rand(1..11)
+    when 1
+      result << "#{ww} #{hh}R#{rr}"       # 205 55R16
+    when 2
+      result << "#{ww} #{hh} #{rr}"       # 205 55 16
+    when 3
+      result << "#{ww}/#{hh} #{rr}"       # 205/55 16
+    when 4
+      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+    when 5
+      result << "#{ww}х#{hh} #{rr}"       # 205х55 16
+    when 6
+      result << "#{ww}х#{hh} Р#{rr}"      # 205х55 Р16 (русская "Р")
+    when 7
+      result << "#{ww}/#{hh} на #{rr}"    # 205/55 на 16
+    when 8
+      result << "#{ww}/#{hh}R#{rr}"       # 205/55R16
+    when 9
+      result << "R#{rr} на #{ww} #{hh}"   # R16 на 205/55
     else
-      result << "#{ww}/#{hh} R#{rr}"
+      result << "#{ww}/#{hh} R#{rr}"      # 205 55 R16
     end
     result
   end
@@ -218,7 +219,7 @@ class Api::V1::KeysController < ApplicationController
 
     # Сначала сортируем исходный массив по рейтингу
     sorted_arr = arr.sort_by { |item| item[1] }
-
+    puts "sorted_arr = = = #{sorted_arr}"
     # Затем создаем комбинации первых элементов, исключая те, у которых рейтинг больше 4
     (1..sorted_arr.length).each do |n|
       sorted_arr.combination(n).each do |combo|
@@ -231,5 +232,14 @@ class Api::V1::KeysController < ApplicationController
 
     combinations
   end
+
+
+  def url_new_params(language = nil)
+    base_url = "https://prokoleso.ua"
+    lang_path = language.to_s == 'ua' ? '/ua' : ''
+    "#{base_url}#{lang_path}/shiny/"
+  end
+
+
 
 end

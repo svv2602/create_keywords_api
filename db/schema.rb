@@ -10,12 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
+ActiveRecord::Schema[7.1].define(version: 2025_04_10_024128) do
   create_table "addon_copies", force: :cascade do |t|
     t.string "name"
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "addons", force: :cascade do |t|
@@ -23,6 +24,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "brand_copies", force: :cascade do |t|
@@ -31,6 +33,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "type_url", default: 0
+    t.string "language"
   end
 
   create_table "brands", force: :cascade do |t|
@@ -39,6 +42,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "type_url", default: 0
+    t.string "language"
   end
 
   create_table "cities", force: :cascade do |t|
@@ -46,6 +50,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "city_copies", force: :cascade do |t|
@@ -53,6 +58,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "city_url_copies", force: :cascade do |t|
@@ -60,6 +66,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "city_urls", force: :cascade do |t|
@@ -67,6 +74,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "copy_ready_reviews20s", force: :cascade do |t|
@@ -209,6 +217,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "seasons", force: :cascade do |t|
@@ -216,6 +225,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_03_082239) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "language"
   end
 
   create_table "seo_content_text_sentences", force: :cascade do |t|
