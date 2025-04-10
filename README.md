@@ -25,7 +25,8 @@
 
 endpoint:
 * /api/v1/questions  - для блока FAQs легковые шины
-* /api/v1/show - внутренняя перелинковка по ключевикам
+* /api/v1/show - внутренняя перелинковка по ключевикам (с параметром ua для украинской версии, без параметра - ru)
+  * пример: /api/v1/show?language=ua
 * /api/v1/questions_track - для блока FAQs грузовые шины
 * /api/v1/questions_diski - для блока FAQs диски
 * /api/v1/text_line?url=params_url - текст об ошибках при поиске размера
