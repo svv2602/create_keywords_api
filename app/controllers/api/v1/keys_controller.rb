@@ -58,7 +58,7 @@ class Api::V1::KeysController < ApplicationController
         keywords: normal_str(record[:keywords]),
         url: record[:url]
       }
-      puts h
+      # puts h
       i += 1
     end
     puts "===================== #{unique_values.inspect}"
@@ -122,7 +122,7 @@ class Api::V1::KeysController < ApplicationController
     tables.each do |table_name|
       received_record = find_and_destroy_random_record(table_name)
       # record = received_record[:name]
-      puts "received_record === #{received_record}"
+      # puts "received_record === #{received_record}"
 
        if table_name == "SizeCopy"
          record = [received_record[:ww], received_record[:hh], received_record[:rr]]
@@ -183,27 +183,45 @@ class Api::V1::KeysController < ApplicationController
   # обработка вариантов написания размеров
   def size_name(ww, hh, rr)
     result = []
-    case rand(1..11)
-    when 1
+    case rand(1..120)
+    when 1..5
       result << "#{ww} #{hh}R#{rr}"       # 205 55R16
-    when 2
-      result << "#{ww} #{hh} #{rr}"       # 205 55 16
-    when 3
-      result << "#{ww}/#{hh} #{rr}"       # 205/55 16
-    when 4
+    when 6..10
       result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
-    when 5
+    when 11..15
+      result << "#{ww} #{hh} #{rr}"       # 205 55 16
+    when 16..20
+      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+    when 21..25
+      result << "#{ww}/#{hh} #{rr}"       # 205/55 16
+    when 26..30
+      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+    when 31..40
+      result << "#{ww} #{hh} R#{rr}"      # 205 55 R16
+    when 41..45
       result << "#{ww}х#{hh} #{rr}"       # 205х55 16
-    when 6
+    when 46..50
+      result << "#{ww}/#{hh}/#{rr}"       # 205/55/16
+    when 51..55
       result << "#{ww}х#{hh} Р#{rr}"      # 205х55 Р16 (русская "Р")
-    when 7
+    when 56..60
+      result << "#{ww}/#{hh} р#{rr}"      # 205/55 Р16 (русская "Р")
+    when 61..65
       result << "#{ww}/#{hh} на #{rr}"    # 205/55 на 16
-    when 8
+    when 66..70
+      result << "#{ww}/#{hh} на R#{rr}"   # 205/55 на R16
+    when 71..80
       result << "#{ww}/#{hh}R#{rr}"       # 205/55R16
-    when 9
+    when 81..85
       result << "R#{rr} на #{ww} #{hh}"   # R16 на 205/55
+    when 86..90
+      result << "р#{rr} на #{ww} #{hh}"   # р16 на 205/55
+    when 91..95
+      result << "#{ww} #{hh} #{rr}"      # 205 55 16
+    when 96..100
+      result << "#{ww}/#{hh}R#{rr}"       # 205/55R16
     else
-      result << "#{ww}/#{hh} R#{rr}"      # 205 55 R16
+      result << "#{ww} #{hh} R#{rr}"      # 205 55 R16
     end
     result
   end
@@ -219,7 +237,7 @@ class Api::V1::KeysController < ApplicationController
 
     # Сначала сортируем исходный массив по рейтингу
     sorted_arr = arr.sort_by { |item| item[1] }
-    puts "sorted_arr = = = #{sorted_arr}"
+    # puts "sorted_arr = = = #{sorted_arr}"
     # Затем создаем комбинации первых элементов, исключая те, у которых рейтинг больше 4
     (1..sorted_arr.length).each do |n|
       sorted_arr.combination(n).each do |combo|
