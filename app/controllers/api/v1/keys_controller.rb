@@ -106,14 +106,6 @@ class Api::V1::KeysController < ApplicationController
     rez = {}
     result = []
     city_url = ""
-    # random_number = rand(1..100)
-
-    # Проверяем, делится ли случайное число на 2
-    # if random_number % 2 == 0
-    #   url_new = "https://prokoleso.ua/shiny/"
-    # else
-    #   url_new = "https://prokoleso.ua/ua/shiny/"
-    # end
 
 
     url_new = url_new_params(params[:language])
