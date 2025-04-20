@@ -75,7 +75,7 @@ class Api::V1::KeysController < ApplicationController
   def show_models
 
     models = pick_random_copies_sorted(rand(9..15))
-    html = generate_recommendation_links(models)
+    html = "<ul>" + generate_recommendation_links_grouped(models) + "</ul>"
     render html: html.html_safe
 
   end
@@ -92,7 +92,8 @@ class Api::V1::KeysController < ApplicationController
       initial_records.each(&:destroy)
 
       missing_count = limit - available_count
-      new_candidates = TyreModel.order("RANDOM()").limit(missing_count)
+      new_candidates = TyreModel.all
+      # new_candidates = TyreModel.order("RANDOM()").limit(missing_count)
 
       new_candidates.each do |model|
         TyreModelCopy.create(
@@ -115,27 +116,84 @@ class Api::V1::KeysController < ApplicationController
 
     result.sort_by { |item| SEASON_ORDER[item["sezon"].to_s.downcase] || 99 }
   end
-  def generate_recommendation_links(models,language=nil)
+  # def generate_recommendation_links(models, language = nil)
+  #   base_url = "https://prokoleso.ua"
+  #   lang_path = language.to_s == 'ua' ? '/ua' : ''
+  #   url_base = "#{base_url}#{lang_path}/"
+  #
+  #   templates = TyreConstants::TEMPLATES.shuffle.cycle # цикл повторит шаблоны, если моделей больше
+  #   highlights = TyreConstants::HIGHLIGHT_PHRASES.shuffle.cycle
+  #
+  #   models.map do |item|
+  #     season_key = item["sezon"].to_s.downcase
+  #     season_phrase = TyreConstants::SEASON_TEXT_VARIANTS[season_key]&.sample || ""
+  #     highlight = highlights.next
+  #     template = templates.next
+  #
+  #     title = template % {
+  #       highlight: highlight,
+  #       season_phrase: season_phrase,
+  #       brand: item["brand"].capitalize,
+  #       name: item["name"].capitalize
+  #     }
+  #
+  #     "<li><a href='#{url_base}#{item["url"]}' title='#{capitalize_first_letter(title)}'>#{capitalize_first_letter(title)}</a>"
+  #   end.join("</li>")
+  # end
+
+  def generate_recommendation_links_grouped(models, language = nil)
     base_url = "https://prokoleso.ua"
     lang_path = language.to_s == 'ua' ? '/ua' : ''
     url_base = "#{base_url}#{lang_path}/"
 
-    models.map do |item|
-      season_key = item["sezon"].to_s.downcase
-      season_phrase = TyreConstants::SEASON_TEXT_VARIANTS[season_key]&.sample || ""
-      highlight = TyreConstants::HIGHLIGHT_PHRASES.sample
-      template = TyreConstants::TEMPLATES.sample
+    season_variants = TyreConstants.season_variants(language)
+    highlight_phrases = TyreConstants.highlight_phrases(language)
 
-      title = template % {
-        highlight: highlight,
-        season_phrase: season_phrase,
-        brand: item["brand"],
-        name: item["name"]
-      }
+    grouped = models.group_by { |item| item["sezon"].to_s.downcase }
 
-      "<a href='#{url_base}#{item["url"]}' title='#{title}'>#{title}</a>"
-    end.join("<br>")
+    html = "<h2>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</h2>\n"
+
+    grouped.each do |season, items|
+      # season_title = TyreConstants::SEASON_TITLES_RU[language.to_s]&.[](season) || "Другие модели"
+      season_title = TyreConstants.season_titles(language)[season] || "Другие модели"
+      html << "<h3>#{season_title}</h3>\n<ul>\n"
+
+      templates = TyreConstants::TEMPLATES.shuffle
+
+      items.each_with_index do |item, index|
+        template = templates[index % templates.size]
+
+        highlight = highlight_phrases.sample
+        season_phrase = season_variants[season]&.sample || ""
+
+        brand = item["brand"].to_s.titleize
+        name = item["name"].to_s.titleize
+
+        title = template % {
+          highlight: highlight,
+          season_phrase: season_phrase,
+          brand: brand,
+          name: name
+        }
+
+        url = "#{url_base}#{item["url"]}"
+
+        html << "  <li><a href='#{url}' title='#{capitalize_first_letter(title)}'>#{capitalize_first_letter(title)}</a></li>\n"
+      end
+
+      html << "</ul>\n"
+    end
+
+    html.html_safe
   end
+
+
+
+
+  def capitalize_first_letter(text)
+    text[0].upcase + text[1..]
+  end
+
 
 
 
