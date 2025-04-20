@@ -1,9 +1,11 @@
+
+
 class Api::V1::KeysController < ApplicationController
   #   def initialize
   #     @service = ServiceTable.new
   #   end
   include ServiceTable
-
+  include TyreConstants
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -70,7 +72,72 @@ class Api::V1::KeysController < ApplicationController
 
   end
 
+  def show_models
+
+    models = pick_random_copies_sorted(rand(9..15))
+    html = generate_recommendation_links(models)
+    render html: html.html_safe
+
+  end
+
   private
+  def pick_random_copies_sorted(limit = 9)
+    result = []
+
+    available_count = TyreModelCopy.count
+
+    if available_count < limit
+      initial_records = TyreModelCopy.all
+      result += initial_records.map(&:attributes)
+      initial_records.each(&:destroy)
+
+      missing_count = limit - available_count
+      new_candidates = TyreModel.order("RANDOM()").limit(missing_count)
+
+      new_candidates.each do |model|
+        TyreModelCopy.create(
+          name: model.name,
+          url: model.url,
+          language: model.language,
+          element_count: model.element_count,
+          sezon: model.sezon,
+          brand: model.brand
+        )
+      end
+    end
+
+    still_needed = limit - result.size
+    if still_needed > 0
+      extra_records = TyreModelCopy.order("RANDOM()").limit(still_needed)
+      result += extra_records.map(&:attributes)
+      extra_records.each(&:destroy)
+    end
+
+    result.sort_by { |item| SEASON_ORDER[item["sezon"].to_s.downcase] || 99 }
+  end
+  def generate_recommendation_links(models,language=nil)
+    base_url = "https://prokoleso.ua"
+    lang_path = language.to_s == 'ua' ? '/ua' : ''
+    url_base = "#{base_url}#{lang_path}/"
+
+    models.map do |item|
+      season_key = item["sezon"].to_s.downcase
+      season_phrase = TyreConstants::SEASON_TEXT_VARIANTS[season_key]&.sample || ""
+      highlight = TyreConstants::HIGHLIGHT_PHRASES.sample
+      template = TyreConstants::TEMPLATES.sample
+
+      title = template % {
+        highlight: highlight,
+        season_phrase: season_phrase,
+        brand: item["brand"],
+        name: item["name"]
+      }
+
+      "<a href='#{url_base}#{item["url"]}' title='#{title}'>#{title}</a>"
+    end.join("<br>")
+  end
+
+
 
   def normal_str(str)
     keys = ''

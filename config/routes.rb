@@ -4,6 +4,7 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       get '/show', to: 'keys#show'
+      get '/show_models', to: 'keys#show_models'
       get '/generate_completion', to: 'openai#generate_completion'
       get '/generate_completion_season', to: 'openai#generate_completion_season'
       # =========================================
