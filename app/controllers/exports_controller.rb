@@ -377,6 +377,35 @@ class ExportsController < ApplicationController
     render plain: "Обновление таблицы брендов завершено."
   end
 
+  def add_new_model_entries
+    excel_file = "lib/top_models.xlsx"
+    excel = Roo::Excelx.new(excel_file)
+    sheet = excel.sheet(0)
+
+    sheet.each_row_streaming(offset: 1, pad_cells: true) do |row|
+      name = row[0]&.value
+      url = row[1]&.value
+      brand = row[2]&.value
+      sezon = row[3]&.value
+      element_count = row[4]&.value
+      language = row[5]&.value
+
+      if name.present?
+        tyre_model = TyreModel.find_or_create_by(name: name)
+        tyre_model.update(
+          url: url,
+          language: language,
+          element_count: element_count,
+          sezon: sezon,
+          brand: brand
+        )
+      end
+    end
+
+    render plain: "Обновление таблицы брендов завершено."
+  end
+
+
   def control_records_reviews
     table="ready_reviews"
     # table="copy_ready_reviews25"

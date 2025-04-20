@@ -1,0 +1,2 @@
+class TyreModel < ApplicationRecord
+end

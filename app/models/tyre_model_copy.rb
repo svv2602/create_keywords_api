@@ -1,0 +1,2 @@
+class TyreModelCopy < ApplicationRecord
+end
