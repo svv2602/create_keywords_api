@@ -248,6 +248,6 @@ endpoint:
 * залить данные в таблицу с моделями:
   * создать файл lib/top_models.xlsx
   * выполнить заливку: /add_new_model_entries
-* получение данных: 
+* получение данных в json: 
   * для украинской версии - /api/v1/show_models?language=ua
   * для русской - /api/v1/show_models?language=ru или без параметра
