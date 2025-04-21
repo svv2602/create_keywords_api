@@ -202,6 +202,8 @@ module TyreConstants
     "contact" => "контакт",
     "ecocontact" => "экоконтакт",
     "iii" => "III",
+    "winterking" => "винтеркинг",
+    "prtech" => "PRTECH",
     "alpin" => "Альпин"
   }.freeze
 
@@ -342,6 +344,8 @@ module TyreConstants
     "ecocontact" => "экоконтакт",
     "contact" => "контакт",
     "iii" => "III",
+    "winterking" => "вінтеркінг",
+    "prtech" => "PRTECH",
     "alpin" => "Альпін"
   }.freeze
 
