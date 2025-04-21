@@ -76,7 +76,8 @@ class Api::V1::KeysController < ApplicationController
 
     models = pick_random_copies_sorted(rand(9..15))
     html = generate_recommendation_links_grouped(models)
-    render html: html.html_safe
+    # render html: html.html_safe
+    render json: { recommendations_html: html }
 
   end
 
