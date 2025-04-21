@@ -251,3 +251,4 @@ endpoint:
 * получение данных в json: 
   * для украинской версии - /api/v1/show_models?language=ua
   * для русской - /api/v1/show_models?language=ru или без параметра
+* просмотр в html: /api/v1/show_models?html_view=1&language=ua

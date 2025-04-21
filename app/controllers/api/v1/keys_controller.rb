@@ -1,11 +1,10 @@
-
-
 class Api::V1::KeysController < ApplicationController
   #   def initialize
   #     @service = ServiceTable.new
   #   end
   include ServiceTable
   include TyreConstants
+
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -76,12 +75,16 @@ class Api::V1::KeysController < ApplicationController
 
     models = pick_random_copies_sorted(rand(9..15))
     html = generate_recommendation_links_grouped(models)
-    # render html: html.html_safe
-    render json: { recommendations_html: html }
+    if params[:html_view].to_s == "1"
+      render html: html.html_safe
+    else
+      render json: { recommendations_html: html }
+    end
 
   end
 
   private
+
   def pick_random_copies_sorted(limit = 9)
     result = []
 
@@ -117,6 +120,7 @@ class Api::V1::KeysController < ApplicationController
 
     result.sort_by { |item| SEASON_ORDER[item["sezon"].to_s.downcase] || 99 }
   end
+
   # def generate_recommendation_links(models, language = nil)
   #   base_url = "https://prokoleso.ua"
   #   lang_path = language.to_s == 'ua' ? '/ua' : ''
@@ -287,15 +291,9 @@ class Api::V1::KeysController < ApplicationController
     end.join
   end
 
-
-
-
   def capitalize_first_letter(text)
     text[0].upcase + text[1..]
   end
-
-
-
 
   def normal_str(str)
     keys = ''
@@ -332,20 +330,18 @@ class Api::V1::KeysController < ApplicationController
     result = []
     city_url = ""
 
-
     url_new = url_new_params(params[:language])
-
 
     tables.each do |table_name|
       received_record = find_and_destroy_random_record(table_name)
       # record = received_record[:name]
       # puts "received_record === #{received_record}"
 
-       if table_name == "SizeCopy"
-         record = [received_record[:ww], received_record[:hh], received_record[:rr]]
-       else
-         record = params[:language] == "ua" ? received_record[:language] : received_record[:name]
-       end
+      if table_name == "SizeCopy"
+        record = [received_record[:ww], received_record[:hh], received_record[:rr]]
+      else
+        record = params[:language] == "ua" ? received_record[:language] : received_record[:name]
+      end
       record = received_record[:name] if table_name == "DiameterCopy"
 
       # if table_name == "CityCopy"
@@ -359,7 +355,6 @@ class Api::V1::KeysController < ApplicationController
       city_url = partial_url(table_name, received_record[:url]) if table_name == "CityUrlCopy"
 
     end
-
 
     if city_url.present?
       url_new = URI.join(url_new_params(params[:language]), city_url).to_s
@@ -402,43 +397,43 @@ class Api::V1::KeysController < ApplicationController
     result = []
     case rand(1..120)
     when 1..5
-      result << "#{ww} #{hh}R#{rr}"       # 205 55R16
+      result << "#{ww} #{hh}R#{rr}" # 205 55R16
     when 6..10
-      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+      result << "#{ww}/#{hh} R#{rr}" # 205/55 R16
     when 11..15
-      result << "#{ww} #{hh} #{rr}"       # 205 55 16
+      result << "#{ww} #{hh} #{rr}" # 205 55 16
     when 16..20
-      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+      result << "#{ww}/#{hh} R#{rr}" # 205/55 R16
     when 21..25
-      result << "#{ww}/#{hh} #{rr}"       # 205/55 16
+      result << "#{ww}/#{hh} #{rr}" # 205/55 16
     when 26..30
-      result << "#{ww}/#{hh} R#{rr}"      # 205/55 R16
+      result << "#{ww}/#{hh} R#{rr}" # 205/55 R16
     when 31..40
-      result << "#{ww} #{hh} R#{rr}"      # 205 55 R16
+      result << "#{ww} #{hh} R#{rr}" # 205 55 R16
     when 41..45
-      result << "#{ww}х#{hh} #{rr}"       # 205х55 16
+      result << "#{ww}х#{hh} #{rr}" # 205х55 16
     when 46..50
-      result << "#{ww}/#{hh}/#{rr}"       # 205/55/16
+      result << "#{ww}/#{hh}/#{rr}" # 205/55/16
     when 51..55
-      result << "#{ww}х#{hh} Р#{rr}"      # 205х55 Р16 (русская "Р")
+      result << "#{ww}х#{hh} Р#{rr}" # 205х55 Р16 (русская "Р")
     when 56..60
-      result << "#{ww}/#{hh} р#{rr}"      # 205/55 Р16 (русская "Р")
+      result << "#{ww}/#{hh} р#{rr}" # 205/55 Р16 (русская "Р")
     when 61..65
-      result << "#{ww}/#{hh} на #{rr}"    # 205/55 на 16
+      result << "#{ww}/#{hh} на #{rr}" # 205/55 на 16
     when 66..70
-      result << "#{ww}/#{hh} на R#{rr}"   # 205/55 на R16
+      result << "#{ww}/#{hh} на R#{rr}" # 205/55 на R16
     when 71..80
-      result << "#{ww}/#{hh}R#{rr}"       # 205/55R16
+      result << "#{ww}/#{hh}R#{rr}" # 205/55R16
     when 81..85
-      result << "R#{rr} на #{ww} #{hh}"   # R16 на 205/55
+      result << "R#{rr} на #{ww} #{hh}" # R16 на 205/55
     when 86..90
-      result << "р#{rr} на #{ww} #{hh}"   # р16 на 205/55
+      result << "р#{rr} на #{ww} #{hh}" # р16 на 205/55
     when 91..95
-      result << "#{ww} #{hh} #{rr}"      # 205 55 16
+      result << "#{ww} #{hh} #{rr}" # 205 55 16
     when 96..100
-      result << "#{ww}/#{hh}R#{rr}"       # 205/55R16
+      result << "#{ww}/#{hh}R#{rr}" # 205/55R16
     else
-      result << "#{ww} #{hh} R#{rr}"      # 205 55 R16
+      result << "#{ww} #{hh} R#{rr}" # 205 55 R16
     end
     result
   end
@@ -468,13 +463,10 @@ class Api::V1::KeysController < ApplicationController
     combinations
   end
 
-
   def url_new_params(language = nil)
     base_url = "https://prokoleso.ua"
     lang_path = language.to_s == 'ua' ? '/ua' : ''
     "#{base_url}#{lang_path}/shiny/"
   end
-
-
 
 end
