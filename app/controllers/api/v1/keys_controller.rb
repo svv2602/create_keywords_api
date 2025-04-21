@@ -141,7 +141,7 @@ class Api::V1::KeysController < ApplicationController
   #   end.join("</li>")
   # end
 
-  def generate_recommendation_links_grouped(models, language = nil)
+  def generate_recommendation_links_grouped_old(models, language = nil)
     language = params[:language]
 
     base_url = "https://prokoleso.ua"
@@ -158,7 +158,12 @@ class Api::V1::KeysController < ApplicationController
     grouped.each do |season, items|
       # season_title = TyreConstants::SEASON_TITLES_RU[language.to_s]&.[](season) || "Другие модели"
       season_title = TyreConstants.season_titles(language)[season] || "Другие модели"
-      html << "<h3>#{season_title}</h3>\n<ul>\n"
+      # html << "<h3>#{season_title}</h3>\n<ul>\n"
+      season_class = season.to_s.downcase # например: "letnie", "zimnie", "vsesezonie"
+
+      html << "<div class='#{season_class}'>\n"
+      html << "  <h3>#{season_title}</h3>\n"
+      html << "  <ul>\n"
 
       templates = TyreConstants::TEMPLATES.shuffle
 
@@ -169,7 +174,7 @@ class Api::V1::KeysController < ApplicationController
         season_phrase = season_variants[season]&.sample || ""
 
         brand = item["brand"].to_s.titleize
-        name = item["name"].to_s.titleize
+        name = item["name"].to_s
 
         title = template % {
           highlight: highlight,
@@ -184,9 +189,101 @@ class Api::V1::KeysController < ApplicationController
       end
 
       html << "</ul>\n"
+      html << "</div>\n"
     end
 
     html.html_safe
+  end
+
+  def generate_recommendation_links_grouped(models, language = nil)
+    language = params[:language]
+
+    base_url = "https://prokoleso.ua"
+    lang_path = language.to_s == 'ua' ? '/ua' : ''
+    url_base = "#{base_url}#{lang_path}/"
+
+    season_variants = TyreConstants.season_variants(language)
+    highlight_phrases = TyreConstants.highlight_phrases(language)
+
+    grouped = models.group_by { |item| item["sezon"].to_s.downcase }
+
+    html = "<h2>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</h2>\n"
+
+    # Контейнер с флексом для колонок
+    html << "<div class='recommendation-columns' style='display: flex; gap: 20px;'>\n"
+
+    grouped.each do |season, items|
+      season_title = TyreConstants.season_titles(language)[season] || "Другие модели"
+      season_class = season.to_s.downcase
+
+      html << "  <div class='season-column #{season_class}' style='flex: 1;'>\n"
+      html << "    <h3>#{season_title}</h3>\n"
+      html << "    <ul>\n"
+
+      templates = TyreConstants::TEMPLATES.shuffle
+
+      items.each_with_index do |item, index|
+        template = templates[index % templates.size]
+
+        highlight = highlight_phrases.sample
+        season_phrase = season_variants[season]&.sample || ""
+
+        # brand = item["brand"].to_s.titleize
+        brand = item["brand"].to_s
+        brand = rand(1..5) % 4 == 0 ? transliterate_latin_to_cyrillic(brand, language).titleize : brand.titleize
+
+        name = item["name"].to_s
+        name = rand(1..5) % 4 == 0 ? transliterate_latin_to_cyrillic(name, language) : name
+
+        title = template % {
+          highlight: highlight,
+          season_phrase: season_phrase,
+          brand: brand,
+          name: name
+        }
+
+        url = "#{url_base}#{item["url"]}"
+
+        html << "      <li><a href='#{url}' title='#{capitalize_first_letter(title)}' target='_blank'>#{capitalize_first_letter(title)}</a></li>\n"
+      end
+
+      html << "    </ul>\n"
+      html << "  </div>\n"
+    end
+
+    html << "</div>\n" # Закрытие .recommendation-columns
+
+    html.html_safe
+  end
+
+  def transliterate_latin_to_cyrillic(text, lang = 'ru')
+    map = lang.to_s == 'ua' ? TRANSLIT_MAP_UA : TRANSLIT_MAP_RU
+    exceptions = lang.to_s == 'ua' ? TRANSLIT_EXCEPTIONS_UA : TRANSLIT_EXCEPTIONS_RU
+
+    words = text.split(/\b/)
+
+    words.map do |word|
+      downcased = word.downcase
+
+      # Пропустить одиночные символы, цифры или короткие аббревиатуры (1-3 символа или цифры/буквы/знаки)
+      if downcased.length <= 3 && word =~ /\A[\w\-]+\z/
+        word
+
+        # Если слово в исключениях
+      elsif exceptions.key?(downcased)
+        exception = exceptions[downcased]
+        word.match(/\A[A-Z]/) ? exception.capitalize : exception
+
+      else
+        # Посимвольная транслитерация
+        result = word.chars.map.with_index do |char, idx|
+          is_upper = char.match(/[A-Z]/)
+          mapped = map[char.downcase] || char
+          is_upper ? mapped.capitalize : mapped
+        end.join
+        result
+      end
+    end.join
   end
 
 
