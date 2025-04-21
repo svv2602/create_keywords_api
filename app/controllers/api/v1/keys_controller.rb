@@ -75,7 +75,7 @@ class Api::V1::KeysController < ApplicationController
   def show_models
 
     models = pick_random_copies_sorted(rand(9..15))
-    html = "<ul>" + generate_recommendation_links_grouped(models) + "</ul>"
+    html = generate_recommendation_links_grouped(models)
     render html: html.html_safe
 
   end
@@ -142,6 +142,8 @@ class Api::V1::KeysController < ApplicationController
   # end
 
   def generate_recommendation_links_grouped(models, language = nil)
+    language = params[:language]
+
     base_url = "https://prokoleso.ua"
     lang_path = language.to_s == 'ua' ? '/ua' : ''
     url_base = "#{base_url}#{lang_path}/"
