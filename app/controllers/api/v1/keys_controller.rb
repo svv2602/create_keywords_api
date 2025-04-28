@@ -65,9 +65,16 @@ class Api::V1::KeysController < ApplicationController
     puts "===================== #{unique_values.inspect}"
     puts "Количество элементов: #{i}"
 
-    render json: {
-      keyword: h.shuffle
-    }
+    # render json: {
+    #   keyword: h.shuffle
+    # }
+
+    if params[:html_view].to_s == "1"
+      render html: h
+    else
+      render json: {  keyword: h.shuffle }
+    end
+
 
   end
 
@@ -330,7 +337,8 @@ class Api::V1::KeysController < ApplicationController
     result = []
     city_url = ""
 
-    url_new = url_new_params(params[:language])
+    # url_new = url_new_params(params[:language])
+    url_new = "#{url_new_params(params[:language])}/shiny/"
 
     tables.each do |table_name|
       received_record = find_and_destroy_random_record(table_name)
@@ -357,7 +365,8 @@ class Api::V1::KeysController < ApplicationController
     end
 
     if city_url.present?
-      url_new = URI.join(url_new_params(params[:language]), city_url).to_s
+      # url_new = URI.join(url_new_params(params[:language]), city_url).to_s
+      url_new = "#{url_new_params(params[:language])}/#{city_url}/"
     end
 
     # result.shuffle.join(" ")
@@ -466,7 +475,8 @@ class Api::V1::KeysController < ApplicationController
   def url_new_params(language = nil)
     base_url = "https://prokoleso.ua"
     lang_path = language.to_s == 'ua' ? '/ua' : ''
-    "#{base_url}#{lang_path}/shiny/"
+    # "#{base_url}#{lang_path}/shiny/"
+    "#{base_url}#{lang_path}"
   end
 
 end
