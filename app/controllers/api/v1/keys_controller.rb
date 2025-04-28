@@ -366,7 +366,7 @@ class Api::V1::KeysController < ApplicationController
 
     if city_url.present?
       # url_new = URI.join(url_new_params(params[:language]), city_url).to_s
-      url_new = "#{url_new_params(params[:language])}/#{city_url}/"
+      url_new = "#{url_new_params(params[:language])}/#{city_url}"
     end
 
     # result.shuffle.join(" ")
