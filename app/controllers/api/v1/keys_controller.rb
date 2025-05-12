@@ -165,7 +165,7 @@ class Api::V1::KeysController < ApplicationController
 
     grouped = models.group_by { |item| item["sezon"].to_s.downcase }
 
-    html = "<h2>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</h2>\n"
+    html = "<p>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</p>\n"
 
     grouped.each do |season, items|
       # season_title = TyreConstants::SEASON_TITLES_RU[language.to_s]&.[](season) || "Другие модели"
@@ -174,7 +174,7 @@ class Api::V1::KeysController < ApplicationController
       season_class = season.to_s.downcase # например: "letnie", "zimnie", "vsesezonie"
 
       html << "<div class='#{season_class}'>\n"
-      html << "  <h3>#{season_title}</h3>\n"
+      html << "  <p>#{season_title}</p>\n"
       html << "  <ul>\n"
 
       templates = TyreConstants::TEMPLATES.shuffle
@@ -219,7 +219,7 @@ class Api::V1::KeysController < ApplicationController
 
     grouped = models.group_by { |item| item["sezon"].to_s.downcase }
 
-    html = "<h2>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</h2>\n"
+    html = "<p>#{language == 'ua' ? 'Ми рекомендуємо наступні моделі шин:' : 'Мы рекомендуем следующие модели шин:'}</p>\n"
 
     # Контейнер с флексом для колонок
     html << "<div class='recommendation-columns' style='display: flex; gap: 20px;'>\n"
@@ -229,7 +229,7 @@ class Api::V1::KeysController < ApplicationController
       season_class = season.to_s.downcase
 
       html << "  <div class='season-column #{season_class}' style='flex: 1;'>\n"
-      html << "    <h3>#{season_title}</h3>\n"
+      html << "    <p>#{season_title}</p>\n"
       html << "    <ul>\n"
 
       templates = TyreConstants::TEMPLATES.shuffle
