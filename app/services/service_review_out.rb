@@ -68,33 +68,49 @@ module ServiceReviewOut
       array_info[:language] = language
       array_info[:author] = ''
 
-      # вероятность развернутого отзыва
-      n = type_review == -1 ? 2 : 5
-
-      if random_review && rand(1..100) % n == 0
-        # подбор отзыва с учетом параметров
-        # array_info[:type_table] = 1
-
-        array_reviews_id << random_review.id # массив для исключения одинаковых id в дальнейшей обработке
-        gender = Review.find_by(id: random_review[:id_review])[:gender]
-        review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
-
-      elsif rand(1..100) % 4 == 0
-        # подбор отзыва с сезонностью без учета параметров
-        # array_info[:type_table] = 2
-
-        control = control.split('_').take(2).join('_')
-        random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
-        if random_review
-          array_reviews_without_params_id << random_review&.id
-          gender = random_review[:gender]
+      # Новая логика распределения отзывов по типам
+      random_percent = rand(1..100)
+      
+      if type_review == -1
+        # Для негативных отзывов: 50% длинные, 35% средние, 15% короткие
+        if random_percent <= 50 && random_review
+          # 50% - длинные отзывы с параметрами
+          array_reviews_id << random_review.id
+          gender = Review.find_by(id: random_review[:id_review])[:gender]
           review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        elsif random_percent <= 85
+          # 35% - средние отзывы с сезонностью
+          control = control.split('_').take(2).join('_')
+          random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
+          if random_review
+            array_reviews_without_params_id << random_review&.id
+            gender = random_review[:gender]
+            review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+          end
+        else
+          # 15% - короткие статические отзывы
+          review = get_static_review(type_review, language)
         end
-
       else
-        # подбор короткого отзыва без сезонности и параметров
-        # array_info[:type_table] = 3
-        review = get_static_review(type_review, language)
+        # Для положительных/нейтральных отзывов: 30% длинные, 55% средние, 15% короткие
+        if random_percent <= 30 && random_review
+          # 30% - длинные отзывы с параметрами
+          array_reviews_id << random_review.id
+          gender = Review.find_by(id: random_review[:id_review])[:gender]
+          review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+        elsif random_percent <= 85
+          # 55% - средние отзывы с сезонностью
+          control = control.split('_').take(2).join('_')
+          random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
+          if random_review
+            array_reviews_without_params_id << random_review&.id
+            gender = random_review[:gender]
+            review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+          end
+        else
+          # 15% - короткие статические отзывы
+          review = get_static_review(type_review, language)
+        end
       end
 
       review ||= get_static_review(type_review, language) # если review равно nil или false
