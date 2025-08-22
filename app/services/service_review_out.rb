@@ -31,6 +31,15 @@ module ServiceReviewOut
   end
 
   def collect_the_answer(tyres, average = 0)
+    # Используем новый алгоритм если включены feature flags
+    if FeatureFlags.use_new_ai_model? || FeatureFlags.force_ai_processing?
+      collect_the_answer_v2(tyres, average)
+    else
+      collect_the_answer_original(tyres, average)
+    end
+  end
+  
+  def collect_the_answer_original(tyres, average = 0)
     result = []
     array_reviews_id = []
     array_reviews_without_params_id = []
@@ -528,6 +537,300 @@ module ServiceReviewOut
     result += str_nil if season_param == 1
     result
 
+  end
+  
+  # ==================== НОВЫЙ УЛУЧШЕННЫЙ АЛГОРИТМ ====================
+  
+  def collect_the_answer_v2(tyres, average = 0)
+    result = []
+    array_reviews_id = []
+    array_reviews_without_params_id = []
+    
+    tyres.each do |el|
+      array_info = average == 0 ? create_hash_with_params(el) : el
+      record = get_car_by_tire_size(array_info)
+      tyres_size = "#{array_info[:width]}/#{array_info[:height]}R#{array_info[:diameter]}"
+      season = array_info[:season]
+      type_review = array_info[:type_review]
+
+      array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
+      control = value_field_control(season, type_review, array_average)
+      
+      # ЭТАП 1: Получение базового отзыва (как раньше)
+      review = select_review_source_v2(control, type_review, array_reviews_id, array_reviews_without_params_id)
+      
+      language = rand(1..10) % 2 == 0 ? "ru" : "ua"
+      array_info[:language] = language
+      array_info[:author] = ''
+      
+      # ЭТАП 2: Определение стратегии обработки
+      processing_strategy = determine_processing_strategy(review, type_review, array_info)
+      
+      case processing_strategy
+      when :ai_enhanced
+        review = process_with_full_ai_pipeline(review, array_info, record, language)
+      when :hybrid  
+        review = process_with_hybrid_approach(review, array_info, record, language)
+      else
+        review = process_with_classic_method(review, array_info, record, language)
+      end
+      
+      # ЭТАП 3: Финальная сборка результата
+      array_info[:author] = get_author_name(language, get_gender_from_review(review))
+      array_info[:review] = review
+      array_info[:experience] = get_experience(review)
+      array_info[:tyres_size] = tyres_size
+      array_info[:names_auto] = names_auto(record, language)[:auto]
+
+      if rand(1..100) % 10 == 0
+        array_info[:array_average] = []
+        array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
+      else
+        array_info[:array_average] = array_average
+        array_info[:grade] = 0
+      end
+
+      result << array_info
+    end
+    result
+  end
+  
+  private
+  
+  def select_review_source_v2(control, type_review, array_reviews_id, array_reviews_without_params_id)
+    # Логика выбора источника отзыва (из существующего алгоритма)
+    if array_reviews_id.empty?
+      random_review = ReadyReviews.order("RANDOM()").where(control: control).first
+    else
+      random_review = ReadyReviews.order("RANDOM()").where(control: control).where.not(id: array_reviews_id).first
+    end
+
+    # вероятность развернутого отзыва
+    n = type_review == -1 ? 2 : 5
+    language = rand(1..10) % 2 == 0 ? "ru" : "ua"
+
+    if random_review && rand(1..100) % n == 0
+      # подбор отзыва с учетом параметров
+      array_reviews_id << random_review.id
+      review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+
+    elsif rand(1..100) % 4 == 0
+      # подбор отзыва с сезонностью без учета параметров
+      control = control.split('_').take(2).join('_')
+      random_review = ReadyReviewsWithoutParam.order("RANDOM()").where(control: control).where.not(id: array_reviews_without_params_id).first
+      if random_review
+        array_reviews_without_params_id << random_review&.id
+        review = language == "ru" ? random_review[:review_ru] : random_review[:review_ua]
+      end
+
+    else
+      # подбор короткого отзыва без сезонности и параметров
+      review = get_static_review(type_review, language)
+    end
+
+    review || get_static_review(type_review, language)
+  end
+  
+  def determine_processing_strategy(review, type_review, array_info)
+    # Решаем какой метод обработки использовать
+    return :ai_enhanced if FeatureFlags.force_ai_processing?
+    return :classic if review.to_s.length < 30  # короткие отзывы обрабатываем по-старому
+    return :ai_enhanced if type_review == -1 && review.to_s.length > 100  # сложные негативные
+    return :hybrid if FeatureFlags.hybrid_processing_enabled?
+    
+    :classic  # по умолчанию старый алгоритм
+  end
+  
+  def process_with_full_ai_pipeline(review, array_info, record, language)
+    return review if review.blank?
+    
+    # 1. Базовая подстановка (как в оригинале)
+    review = make_changes_to_review_template(review,
+                                           language,
+                                           array_info[:brand],
+                                           array_info[:model],
+                                           array_info[:width],
+                                           array_info[:height],
+                                           array_info[:diameter],
+                                           names_auto(record, language)[:auto_review])
+    
+    # 2. AI-улучшение естественности  
+    if review.length > 20
+      naturalizer = TextNaturalizer.new
+      context = build_full_context(array_info, record, language)
+      review = naturalizer.naturalize_review(review, context)
+    end
+    
+    # 3. Умный контроль длины
+    if FeatureFlags.length_control_enabled? && review.length > 10
+      target_length = TextLengthManager.determine_target_length(array_info[:type_review], review)
+      length_manager = TextLengthManager.new(target_length)
+      context = build_length_context(array_info, record, language)
+      review = length_manager.adjust_text_length(review, context)
+    end
+    
+    # 4. Интеллектуальная обработка регистра
+    review = smart_case_adjustment(review, language) if review
+    
+    # 5. Контекстные эмодзи
+    if FeatureFlags.smart_emoji_enabled?
+      emoji_manager = SmartEmojiManager.new
+      emoji_context = {
+        language: language,
+        season: array_info[:season],
+        type_review: array_info[:type_review]
+      }
+      review = emoji_manager.add_contextual_emoji(review, array_info[:type_review], emoji_context)
+    else
+      review = review ? review + add_emoji(array_info[:type_review]) : add_emoji(array_info[:type_review])
+    end
+    
+    review
+  end
+  
+  def process_with_hybrid_approach(review, array_info, record, language)
+    return review if review.blank?
+    
+    # Старая логика для базовой обработки
+    review = make_changes_to_review_template(review,
+                                           language,
+                                           array_info[:brand],
+                                           array_info[:model],
+                                           array_info[:width],
+                                           array_info[:height],
+                                           array_info[:diameter],
+                                           names_auto(record, language)[:auto_review])
+    
+    review = correct_text(review, language)
+    
+    # Новая логика только для проблемных случаев
+    if needs_ai_improvement?(review)
+      naturalizer = TextNaturalizer.new
+      context = build_basic_context(array_info, record, language)
+      review = naturalizer.improve_problematic_parts(review, context)
+    end
+    
+    # Классическая финализация
+    review = change_chars_register(review) if review
+    
+    # Умные или классические эмодзи
+    if FeatureFlags.smart_emoji_enabled?
+      emoji_manager = SmartEmojiManager.new
+      emoji_context = { language: language, season: array_info[:season] }
+      review = emoji_manager.add_contextual_emoji(review, array_info[:type_review], emoji_context)
+    else
+      review = review ? review + add_emoji(array_info[:type_review]) : add_emoji(array_info[:type_review])
+    end
+    
+    review
+  end
+  
+  def process_with_classic_method(review, array_info, record, language)
+    # Существующий алгоритм без изменений
+    return review if review.blank?
+    
+    review = make_changes_to_review_template(review,
+                                           language,
+                                           array_info[:brand],
+                                           array_info[:model],
+                                           array_info[:width],
+                                           array_info[:height],
+                                           array_info[:diameter],
+                                           names_auto(record, language)[:auto_review])
+
+    review = correct_text(review, language)
+    review = change_chars_register(review) if review
+    review = review ? review + add_emoji(array_info[:type_review]) : add_emoji(array_info[:type_review])
+    
+    review
+  end
+  
+  def build_full_context(array_info, record, language)
+    {
+      brand: array_info[:brand],
+      model: array_info[:model],
+      car: names_auto(record, language)[:auto],
+      type_review: array_info[:type_review],
+      season: array_info[:season],
+      language: language,
+      width: array_info[:width],
+      height: array_info[:height],
+      diameter: array_info[:diameter]
+    }
+  end
+  
+  def build_basic_context(array_info, record, language)
+    {
+      brand: array_info[:brand],
+      model: array_info[:model],
+      type_review: array_info[:type_review],
+      language: language
+    }
+  end
+  
+  def build_length_context(array_info, record, language)
+    {
+      brand: array_info[:brand],
+      model: array_info[:model],
+      car: names_auto(record, language)[:auto],
+      type_review: array_info[:type_review],
+      season: array_info[:season]
+    }
+  end
+  
+  def needs_ai_improvement?(review)
+    return false if review.blank? || review.length < 30
+    
+    # Проверяем наличие проблемных паттернов
+    problematic_patterns = [
+      /данные шины/i,
+      /представленная модель/i,
+      /рассматриваемый продукт/i,
+      /в заключение/i,
+      /подводя итог/i
+    ]
+    
+    problematic_patterns.any? { |pattern| review.match?(pattern) }
+  end
+  
+  def smart_case_adjustment(review, language)
+    return review if review.blank?
+    
+    # Более умная обработка регистра с учетом контекста
+    sentences = review.split(/[.!?]+/).reject(&:empty?)
+    
+    adjusted_sentences = sentences.map.with_index do |sentence, index|
+      sentence = sentence.strip
+      
+      # Первое предложение всегда с заглавной буквы
+      if index == 0
+        sentence.capitalize
+      else
+        # Остальные с вероятностью
+        case rand(10)
+        when 1, 2  # 20% - все строчные
+          sentence.downcase
+        when 9     # 10% - все заглавные (для эмоций)
+          sentence.upcase
+        else       # 70% - нормальный регистр
+          sentence.capitalize
+        end
+      end
+    end
+    
+    result = adjusted_sentences.join('. ').strip
+    result += '.' unless result.end_with?('.', '!', '?')
+    result
+  end
+  
+  def get_gender_from_review(review)
+    # Пытаемся определить пол из отзыва или возвращаем случайный
+    review_text = review.to_s
+    return "женщина" if review_text.match?(/(довольна|рада|счастлива)/i)
+    return "мужчина" if review_text.match?(/(доволен|рад|счастлив)/i)
+    
+    # По умолчанию случайно
+    ["мужчина", "женщина"].sample
   end
 
 end

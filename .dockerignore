@@ -1,31 +1,40 @@
-# See https://docs.docker.com/engine/reference/builder/#dockerignore-file for more about ignoring files.
+# Игнорируем файлы Git
+.git
+.gitignore
 
-# Ignore git directory.
-/.git/
+# Игнорируем логи и временные файлы
+log/*
+tmp/*
+*.log
 
-# Ignore bundler config.
-/.bundle
+# Игнорируем файлы разработки
+.env*
+!.env.example
 
-# Ignore all environment files (except templates).
-/.env*
-!/.env*.erb
+# Игнорируем node_modules если есть
+node_modules
 
-# Ignore all default key files.
-/config/master.key
-/config/credentials/*.key
+# Игнорируем файлы IDE
+.vscode
+.idea
 
-# Ignore all logfiles and tempfiles.
-/log/*
-/tmp/*
-!/log/.keep
-!/tmp/.keep
+# Игнорируем файлы операционной системы
+.DS_Store
+Thumbs.db
 
-# Ignore pidfiles, but keep the directory.
-/tmp/pids/*
-!/tmp/pids/.keep
+# Игнорируем файлы тестов
+test/
+spec/
+coverage/
 
-# Ignore storage (uploaded files in development and any SQLite databases).
-/storage/*
-!/storage/.keep
-/tmp/storage/*
-!/tmp/storage/.keep
+# Игнорируем документацию
+README.md
+*.md
+
+# Игнорируем файлы базы данных разработки
+*.sqlite3
+*.db
+development.sqlite3
+
+# Игнорируем storage
+storage/*

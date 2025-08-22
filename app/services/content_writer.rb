@@ -1,11 +1,21 @@
 # app/services/content_writer.rb
 
 class ContentWriter
-  MODEL = 'gpt-3.5-turbo'
+  # Конфигурация моделей
+  MODELS = {
+    review_generation: 'gpt-4o-mini',    # для массовой генерации отзывов
+    complex_analysis: 'gpt-4o',          # для сложных задач
+    premium_content: 'gpt-4-turbo',      # для премиум контента
+    fallback: 'gpt-3.5-turbo'           # запасная модель
+  }.freeze
+  
+  # Обратная совместимость
+  MODEL = MODELS[:review_generation]
   MAX_ATTEMPTS = 5
 
   def initialize
     @client = OpenAI::Client.new
+    @cost_tracker = AiCostTracker.new
   end
 
   def write_draft_post(prompt, max_tokens)
@@ -72,32 +82,38 @@ class ContentWriter
   # ++++++++++++++++++++++++++++++++++++++++++++
 
   def write_seo_text(prompt, max_tokens)
+    generate_review(prompt, max_tokens, model_type: :review_generation)
+  end
+  
+  def generate_review(prompt, max_tokens, model_type: :review_generation)
+    model = select_model(model_type)
     attempts = 0
 
     begin
-
-    # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-    @client.chat(
-      parameters: {
-        model: MODEL,
-        messages: [
-          { role: "system",
-            content: 'Вы копирайтер мирового уровня.'
-          },
-          { role: "user", content: prompt }
-        ],
-        # temperature: 0.5,
-        max_tokens: max_tokens,
-        top_p: 0.9,
-        frequency_penalty: 0.4,
-        presence_penalty: 0.3
-      }
-    )
+      response = @client.chat(
+        parameters: {
+          model: model,
+          messages: build_review_messages(prompt),
+          temperature: 0.7,        # снижаем для большей стабильности
+          max_tokens: max_tokens,
+          top_p: 0.9,
+          frequency_penalty: 0.3,  # уменьшаем повторения
+          presence_penalty: 0.4    # увеличиваем разнообразие
+        }
+      )
+      
+      # Отслеживаем затраты
+      @cost_tracker.track_request(model, prompt.length, max_tokens) if @cost_tracker
+      
+      response
+      
     rescue OpenAI::Error => e
       attempts += 1
 
       if attempts < MAX_ATTEMPTS
         puts "Произошла ошибка: #{e.message}. Повторная попытка..."
+        # При ошибке пробуем fallback модель
+        model = MODELS[:fallback] if attempts > 2
         retry
       else
         puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
@@ -177,6 +193,49 @@ class ContentWriter
         nil
       end
     end
+  end
+  
+  private
+  
+  def select_model(model_type)
+    # Проверяем лимиты затрат
+    if @cost_tracker&.daily_cost_exceeded?
+      return MODELS[:fallback]
+    end
+    
+    MODELS[model_type] || MODELS[:review_generation]
+  end
+  
+  def build_review_messages(prompt)
+    [
+      { 
+        role: "system", 
+        content: system_prompt_for_reviews 
+      },
+      { 
+        role: "user", 
+        content: prompt 
+      }
+    ]
+  end
+  
+  def system_prompt_for_reviews
+    <<~PROMPT
+      Ты опытный автомобилист, который пишет честные отзывы о шинах на основе реального опыта.
+      
+      Требования к отзыву:
+      - Пиши от первого лица, как реальный пользователь
+      - Используй разговорный стиль, но грамотно
+      - Включай конкретные детали об использовании шин
+      - Избегай рекламных клише и шаблонных фраз
+      - Добавляй личные наблюдения и сравнения
+      - Используй естественные речевые обороты
+      - Не используй слишком технические термины без объяснения
+      
+      Стиль: неформальный, но информативный
+      Длина: соответствует указанной в запросе
+      Язык: русский (если не указано иное)
+    PROMPT
   end
 
 end
