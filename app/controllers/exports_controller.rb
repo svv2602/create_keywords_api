@@ -188,8 +188,46 @@ class ExportsController < ApplicationController
 
   def readme
     readme_file_path = Rails.root.join('README.md')
-    readme_content = File.read(readme_file_path)
-    render plain: readme_content
+    
+    # Проверяем существование файла
+    unless File.exist?(readme_file_path)
+      # Попробуем альтернативные пути
+      alternative_paths = [
+        File.join(Rails.root, 'README.md'),
+        '/app/README.md',
+        './README.md'
+      ]
+      
+      found_path = alternative_paths.find { |path| File.exist?(path) }
+      
+      if found_path
+        readme_file_path = found_path
+      else
+        # Выводим отладочную информацию
+        debug_info = <<~DEBUG
+          Ошибка: файл README.md не найден!
+          
+          Отладочная информация:
+          - Rails.root: #{Rails.root}
+          - Попытка чтения из: #{readme_file_path}
+          - Рабочая директория: #{Dir.pwd}
+          - Содержимое корневой директории: #{Dir.entries(Rails.root).join(', ')}
+          
+          Проверенные пути:
+          #{alternative_paths.map { |path| "- #{path} (#{File.exist?(path) ? 'существует' : 'не существует'})" }.join("\n")}
+        DEBUG
+        
+        render plain: debug_info
+        return
+      end
+    end
+    
+    begin
+      readme_content = File.read(readme_file_path)
+      render plain: readme_content
+    rescue => e
+      render plain: "Ошибка при чтении файла: #{e.message}"
+    end
   end
 
   def control_records
