@@ -192,5 +192,20 @@ namespace :ai_reviews do
       puts
     end
   end
+  
+  desc 'Включить/выключить универсальную постобработку для уникальности всех отзывов'
+  task :toggle_universal_processing, [:enabled] => :environment do |t, args|
+    enabled = args[:enabled]&.downcase == 'true'
+    
+    FeatureFlags.set_setting(:universal_postprocessing_enabled, enabled)
+    
+    status = enabled ? "✅ включена" : "❌ отключена"
+    puts "🔄 Универсальная постобработка #{status}"
+    puts ""
+    puts "📋 Текущие настройки:"
+    puts "   Универсальная постобработка: #{FeatureFlags.universal_postprocessing_enabled? ? 'включена' : 'отключена'}"
+    puts "   AI обработка: #{FeatureFlags.get_setting(:ai_processing_percentage)}%"
+    puts "   Умные эмодзи: #{FeatureFlags.smart_emoji_enabled? ? 'включены' : 'отключены'}"
+  end
 end
 

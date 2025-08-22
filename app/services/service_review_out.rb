@@ -125,8 +125,32 @@ module ServiceReviewOut
                                                names_auto(record, language)[:auto_review])
 
       review = correct_text(review, language)
+      
+      # НОВАЯ УНИВЕРСАЛЬНАЯ ПОСТОБРАБОТКА ДЛЯ УНИКАЛЬНОСТИ
+      if FeatureFlags.universal_postprocessing_enabled? && review && review.length > 5
+        processor = UniversalReviewProcessor.new
+        context = {
+          brand: array_info[:brand],
+          model: array_info[:model],
+          car: names_auto(record, language)[:auto],
+          language: language,
+          type_review: type_review
+        }
+        
+        processed_review = processor.process_for_uniqueness(review, context)
+        review = processed_review if processed_review  # используем обработанный, если успешно
+      end
+      
       review = change_chars_register(review) if review
-      review = review ? review + add_emoji(type_review) : add_emoji(type_review)
+      
+      # Умные или классические эмодзи
+      if FeatureFlags.smart_emoji_enabled?
+        emoji_manager = SmartEmojiManager.new
+        emoji_context = { language: language, season: array_info[:season] }
+        review = emoji_manager.add_contextual_emoji(review, type_review, emoji_context)
+      else
+        review = review ? review + add_emoji(type_review) : add_emoji(type_review)
+      end
 
       array_info[:author] = get_author_name(language, gender)
       array_info[:review] = review

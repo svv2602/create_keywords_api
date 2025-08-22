@@ -8,17 +8,19 @@ class FeatureFlags
     smart_emoji_enabled: 'smart_emoji_enabled',
     length_control_enabled: 'length_control_enabled',
     hybrid_processing_enabled: 'hybrid_processing_enabled',
-    force_ai_processing: 'force_ai_processing'
+    force_ai_processing: 'force_ai_processing',
+    universal_postprocessing_enabled: 'universal_postprocessing_enabled'
   }.freeze
   
   # Значения по умолчанию
   DEFAULTS = {
     ai_processing_percentage: 30,      # 30% отзывов через AI
-    post_processing_percentage: 70,    # 70% AI отзывов с постобработкой
+    post_processing_percentage: 100,    # 70% AI отзывов с постобработкой
     smart_emoji_enabled: true,         # умные эмодзи включены
     length_control_enabled: true,      # контроль длины включен
     hybrid_processing_enabled: true,   # гибридная обработка включена
-    force_ai_processing: false         # принудительная AI обработка выключена
+    force_ai_processing: false,        # принудительная AI обработка выключена
+    universal_postprocessing_enabled: true  # универсальная постобработка для уникальности
   }.freeze
   
   class << self
@@ -55,6 +57,11 @@ class FeatureFlags
     
     def hybrid_processing_enabled?
       get_setting(:hybrid_processing_enabled)
+    end
+    
+    # Проверка включения универсальной постобработки
+    def universal_postprocessing_enabled?
+      get_setting(:universal_postprocessing_enabled)
     end
     
     def force_ai_processing?
@@ -136,7 +143,13 @@ class FeatureFlags
       Rails.logger.warn "AI processing emergency disabled!"
     end
     
-    private
+    def set_setting(key, value)
+      cache_key = CACHE_KEYS[key]
+      Rails.cache.write(cache_key, value, expires_in: 24.hours)
+      
+      Rails.logger.info "FeatureFlag #{key} set to #{value}"
+      value
+    end
     
     def get_setting(key)
       cache_key = CACHE_KEYS[key]
@@ -148,13 +161,7 @@ class FeatureFlags
       end
     end
     
-    def set_setting(key, value)
-      cache_key = CACHE_KEYS[key]
-      Rails.cache.write(cache_key, value, expires_in: 24.hours)
-      
-      Rails.logger.info "FeatureFlag #{key} set to #{value}"
-      value
-    end
+    private
   end
 end
 
