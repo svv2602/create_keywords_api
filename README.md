@@ -46,8 +46,10 @@ endpoint:
    грузовые:
     curl http://localhost:3000/api/v1/seo_text?url=https%3A%2F%2Fprokoleso.ua%2Fgruzovye-shiny%2Fw-385%2Fh-65%2Fr-22.5%2Faxis-pritsepnaya%2Faeolus%2F
 
-  ================================================= 
+================================================= 
 
+
+## 🤖 AI-система генерации отзывов
 
 
 * /api/v1/reviews - генерация отзывов по списку шин:
@@ -334,3 +336,56 @@ DEFAULTS = {
   * для украинской версии - /api/v1/show_models?language=ua
   * для русской - /api/v1/show_models?language=ru или без параметра
 * просмотр в html: /api/v1/show_models?html_view=1&language=ua
+
+### Генерация SEO текстов
+* **POST** `/api/v1/generate_seo_text` - генерация SEO текста для карточки товара
+  * **Параметры:**
+    - `tire_description` (string) - описание модели шин с HTML-разметкой
+    - `brand` (string) - бренд производителя
+    - `season` (string) - сезон шин
+    - `language` (string) - язык текста (ru/ua)
+    - `size` (string) - размер шин
+    - `seo_requirements` (string) - SEO требования
+    - `max_tokens` (integer, optional) - максимальное количество токенов (по умолчанию 2000)
+  * **Пример запроса:**
+    ```json
+    {
+      "tire_description": "<p>Высококачественные летние шины <strong>Michelin Pilot Sport 4</strong> с улучшенными характеристиками сцепления и управляемости.</p>",
+      "brand": "Michelin",
+      "season": "летние",
+      "language": "ru",
+      "size": "225/45 R17",
+      "seo_requirements": "Ключевые слова: Michelin Pilot Sport 4, летние шины 225/45 R17, спортивные шины. Длина: 800-1200 слов.",
+      "max_tokens": 2000
+    }
+    ```
+  * **Ответ:**
+    ```json
+    {
+      "success": true,
+      "seo_text": "<h1>Michelin Pilot Sport 4 - Летние шины 225/45 R17</h1>...",
+      "metadata": {
+        "brand": "Michelin",
+        "season": "летние",
+        "language": "ru",
+        "size": "225/45 R17",
+        "generated_at": "2024-01-15T10:30:00Z"
+      }
+    }
+    ```
+
+пример запроса:
+curl -X POST http://localhost:3000/api/v1/generate_seo_text \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tire_description": "<p>Высококачественные летние шины <strong>Michelin Pilot Sport 4</strong> с улучшенными характеристиками сцепления и управляемости.</p>",
+    "brand": "Michelin",
+    "season": "летние", 
+    "language": "ru",
+    "size": "225/45 R17",
+    "seo_requirements": "Ключевые слова: Michelin Pilot Sport 4, летние шины 225/45 R17, спортивные шины. Длина: 800-1200 слов.",
+    "max_tokens": 2000
+  }'
+
+
+=========================================================

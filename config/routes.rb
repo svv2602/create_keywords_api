@@ -36,6 +36,10 @@ Rails.application.routes.draw do
 
       post '/reviews', to: 'reviews#reviews'
       post '/reviews_for_model', to: 'reviews#reviews_for_model'
+      
+      # ==============Тексты для карточек товаров ===========================
+      post '/generate_seo_text', to: 'seo_generator#generate_seo_text'
+      # =========================================
 
       get '/my_test', to: 'reviews#my_test'
 
