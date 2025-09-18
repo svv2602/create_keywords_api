@@ -17,17 +17,21 @@ class Api::V1::SeoGeneratorController < ApplicationController
         seo_text = SeoTextGenerator.new(generation_params).generate
         
         if seo_text
-          render json: { 
-            success: true,
-            seo_text: seo_text,
-            metadata: {
-              brand: generation_params[:brand],
-              season: generation_params[:season],
-              language: generation_params[:language],
-              size: generation_params[:size],
-              generated_at: Time.current
-            }
-          }, status: :ok
+        render json: { 
+          success: true,
+          seo_text: seo_text,
+          product_id: generation_params[:product_id],
+          metadata: {
+            brand: generation_params[:brand],
+            model: generation_params[:model],
+            season: generation_params[:season],
+            language: generation_params[:language],
+            size: generation_params[:size],
+            load_index: generation_params[:load_index],
+            speed_index: generation_params[:speed_index],
+            generated_at: Time.current
+          }
+        }, status: :ok
         else
           render json: { 
             success: false, 
@@ -46,19 +50,38 @@ class Api::V1::SeoGeneratorController < ApplicationController
     private
   
     def generation_params
-      params.permit(
+      permitted = params.permit(
         :tire_description,
         :brand,
+        :model,
         :season,
         :language,
         :size,
+        :product_id,
+        :load_index,
+        :speed_index,
         :seo_requirements,
         :max_tokens
       )
+      
+      # Обрабатываем links отдельно, чтобы избежать проблем с permit
+      if params[:links].present?
+        links_array = []
+        params[:links].each do |link|
+          if link.is_a?(ActionController::Parameters)
+            links_array << link.permit(:brand, :model, :brand_size, :brand_sezon, :size).to_h
+          elsif link.is_a?(Hash)
+            links_array << link.slice('brand', 'model', 'brand_size', 'brand_sezon', 'size')
+          end
+        end
+        permitted[:links] = links_array
+      end
+      
+      permitted
     end
   
     def valid_params?
-      required_params = [:tire_description, :brand, :season, :language, :size, :seo_requirements]
+      required_params = [:tire_description, :brand, :model, :season, :language, :size, :product_id]
       required_params.all? { |param| params[param].present? }
     end
   end

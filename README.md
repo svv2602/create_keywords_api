@@ -342,20 +342,50 @@ DEFAULTS = {
   * **Параметры:**
     - `tire_description` (string) - описание модели шин с HTML-разметкой
     - `brand` (string) - бренд производителя
+    - `model` (string) - модель шины
     - `season` (string) - сезон шин
     - `language` (string) - язык текста (ru/ua)
     - `size` (string) - размер шин
-    - `seo_requirements` (string) - SEO требования
+    - `product_id` (integer) - ID товара
+    - `load_index` (string) - индекс нагрузки
+    - `speed_index` (string) - индекс скорости
+    - `seo_requirements` (string, optional) - SEO требования
+    - `links` (array, optional) - массив ссылок для органичной вставки в текст
     - `max_tokens` (integer, optional) - максимальное количество токенов (по умолчанию 2000)
+  * **Формат ссылок:**
+    ```json
+    "links": [
+      {
+        "brand": "/shiny/bridgestone/",
+        "model": "/shiny/bridgestone/blizzak-6/",
+        "brand_size": "/shiny/bridgestone/w-165/h-65/r-14/",
+        "brand_sezon": "/shiny/zimnie/bridgestone/",
+        "size": "/shiny//w-165/h-65/r-14/"
+      }
+    ]
+    ```
   * **Пример запроса:**
     ```json
     {
       "tire_description": "<p>Высококачественные летние шины <strong>Michelin Pilot Sport 4</strong> с улучшенными характеристиками сцепления и управляемости.</p>",
       "brand": "Michelin",
+      "model": "Pilot Sport 4",
       "season": "летние",
       "language": "ru",
       "size": "225/45 R17",
+      "product_id": 952,
+      "load_index": "99",
+      "speed_index": "H",
       "seo_requirements": "Ключевые слова: Michelin Pilot Sport 4, летние шины 225/45 R17, спортивные шины. Длина: 800-1200 слов.",
+      "links": [
+        {
+          "brand": "/shiny/bridgestone/",
+          "model": "/shiny/bridgestone/blizzak-6/",
+          "brand_size": "/shiny/bridgestone/w-165/h-65/r-14/",
+          "brand_sezon": "/shiny/zimnie/bridgestone/",
+          "size": "/shiny//w-165/h-65/r-14/"
+        }
+      ],
       "max_tokens": 2000
     }
     ```
@@ -364,28 +394,35 @@ DEFAULTS = {
     {
       "success": true,
       "seo_text": "<h1>Michelin Pilot Sport 4 - Летние шины 225/45 R17</h1>...",
+      "product_id": 952,
       "metadata": {
         "brand": "Michelin",
+        "model": "Pilot Sport 4",
         "season": "летние",
         "language": "ru",
         "size": "225/45 R17",
+        "load_index": "99",
+        "speed_index": "H",
         "generated_at": "2024-01-15T10:30:00Z"
       }
     }
     ```
 
 пример запроса:
-curl -X POST http://localhost:3000/api/v1/generate_seo_text \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tire_description": "<p>Высококачественные летние шины <strong>Michelin Pilot Sport 4</strong> с улучшенными характеристиками сцепления и управляемости.</p>",
-    "brand": "Michelin",
-    "season": "летние", 
-    "language": "ru",
-    "size": "225/45 R17",
-    "seo_requirements": "Ключевые слова: Michelin Pilot Sport 4, летние шины 225/45 R17, спортивные шины. Длина: 800-1200 слов.",
-    "max_tokens": 2000
-  }'
+curl -s -X POST http://localhost:3000/api/v1/generate_seo_text -H "Content-Type: application/json" -d '{
+  "tire_description": "<p>Высококачественные зимние шины bridgestone blizzak-6 размером 225/45 R17.</p>",
+  "brand": "bridgestone",
+  "model": "blizzak-6",
+  "season": "зимние", 
+  "language": "ru",
+  "size": "225/45 R17",
+  "product_id": 952,
+  "load_index": "99",
+  "speed_index": "H",  
+  "seo_requirements": "Ключевые слова: bridgestone blizzak-6, зимние шины 225/45 R17",
+  "links": [{"brand": "/shiny/bridgestone/","model": "/shiny/bridgestone/blizzak-6/", "brand_sezon": "/shiny/zimnie/bridgestone/"}],
+  "max_tokens": 500
+}'
 
 
 =========================================================
