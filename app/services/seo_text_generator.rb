@@ -56,7 +56,7 @@ class SeoTextGenerator
       #{build_links_section}
 
       ТРЕБОВАНИЯ К ТЕКСТУ:
-      1. Создай структурированный HTML-текст с заголовками H1, H2, H3
+      1. Создай структурированный HTML-текст с заголовками H2, H3 , H4
       2. Включи естественное вхождение ключевых слов: "#{@brand} #{@model}", "#{@season} шины", "шины #{@size}", "#{@load_index}#{@speed_index}"
       3. Добавь информативные абзацы о характеристиках, преимуществах и применении шин
       4. Используй списки и выделения для лучшей читаемости
@@ -66,8 +66,8 @@ class SeoTextGenerator
       8. ОБЯЗАТЕЛЬНО органично вставь ВСЕ предоставленные ссылки в текст (каждую ссылку только ОДИН раз)
 
       СТРУКТУРА ТЕКСТА:
-      - H1: основной заголовок с брендом, моделью и размером
-      - H2: 3-4 подзаголовка по темам (характеристики, преимущества, применение, выбор)
+      - H2: основной заголовок с брендом, моделью и размером
+      - H3: 3-4 подзаголовка по темам (характеристики, преимущества, применение, выбор)
       - Абзацы с подробной информацией и органично вставленными ссылками
       - Маркированные списки для ключевых особенностей
       - Заключительный абзац с призывом к действию
@@ -142,23 +142,23 @@ class SeoTextGenerator
       link_parts = []
       
       if link['brand'].present?
-        link_parts << "<a href=\"#{link['brand']}\">#{extract_brand_name(link['brand'])}</a>"
+        link_parts << "<a href=\"#{format_link_with_language(link['brand'])}\">#{extract_brand_name(link['brand'])}</a>"
       end
       
       if link['model'].present?
-        link_parts << "<a href=\"#{link['model']}\">#{extract_model_name(link['model'])}</a>"
+        link_parts << "<a href=\"#{format_link_with_language(link['model'])}\">#{extract_model_name(link['model'])}</a>"
       end
       
       if link['brand_size'].present?
-        link_parts << "<a href=\"#{link['brand_size']}\">#{extract_size_info(link['brand_size'])}</a>"
+        link_parts << "<a href=\"#{format_link_with_language(link['brand_size'])}\">#{extract_size_info(link['brand_size'])}</a>"
       end
       
       if link['brand_sezon'].present?
-        link_parts << "<a href=\"#{link['brand_sezon']}\">#{extract_season_info(link['brand_sezon'])}</a>"
+        link_parts << "<a href=\"#{format_link_with_language(link['brand_sezon'])}\">#{extract_season_info(link['brand_sezon'])}</a>"
       end
       
       if link['size'].present?
-        link_parts << "<a href=\"#{link['size']}\">#{extract_size_info(link['size'])}</a>"
+        link_parts << "<a href=\"#{format_link_with_language(link['size'])}\">#{extract_size_info(link['size'])}</a>"
       end
       
       "#{index + 1}. #{link_parts.join(', ')}"
@@ -218,6 +218,21 @@ class SeoTextGenerator
       'всесезонные'
     else
       'шины'
+    end
+  end
+
+  def format_link_with_language(url)
+    # Форматируем ссылку с учетом языка
+    return url if url.blank?
+    
+    # Если ссылка уже содержит префикс языка, возвращаем как есть
+    return url if url.start_with?('/ua/') || url.start_with?('/ru/')
+    
+    # Добавляем префикс языка в зависимости от настройки
+    if @language == 'ua'
+      url.start_with?('/') ? "/ua#{url}" : "/ua/#{url}"
+    else
+      url
     end
   end
 
