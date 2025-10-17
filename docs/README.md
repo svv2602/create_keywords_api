@@ -24,11 +24,16 @@
    - Мониторинг и статистика
 
 2. **[FORCE_MODEL_USAGE.md](guides/FORCE_MODEL_USAGE.md)**
-   - Прямое указание AI модели через параметр
-   - Примеры использования для Ruby и API
+   - Прямое указание AI модели через параметр (Ruby)
+   - Примеры использования в коде
    - Логика выбора модели с приоритетами
 
-3. **[DOCKER_GUIDE.md](guides/DOCKER_GUIDE.md)**
+3. **[API_MODEL_SELECTION.md](guides/API_MODEL_SELECTION.md)** 🆕
+   - Выбор AI модели через API запросы
+   - Примеры на разных языках (curl, JS, Python, PHP)
+   - Сценарии использования и мониторинг
+
+4. **[DOCKER_GUIDE.md](guides/DOCKER_GUIDE.md)**
    - Запуск приложения через Docker
    - Конфигурация контейнеров
    - Troubleshooting
@@ -80,7 +85,8 @@
 - **Rake задачи:** `rails ai_reviews:status`
 
 ### 🎯 Выбор моделей
-- **Прямое указание:** [guides/FORCE_MODEL_USAGE.md](guides/FORCE_MODEL_USAGE.md)
+- **В коде (Ruby):** [guides/FORCE_MODEL_USAGE.md](guides/FORCE_MODEL_USAGE.md)
+- **Через API:** [guides/API_MODEL_SELECTION.md](guides/API_MODEL_SELECTION.md) 🆕
 - **По умолчанию:** DeepSeek для всех задач
 - **Fallback:** Автоматический переход на OpenAI
 

@@ -29,6 +29,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
             size: generation_params[:size],
             load_index: generation_params[:load_index],
             speed_index: generation_params[:speed_index],
+            ai_model: generation_params[:force_model] || 'deepseek-chat (default)',
             generated_at: Time.current
           }
         }, status: :ok
@@ -61,7 +62,8 @@ class Api::V1::SeoGeneratorController < ApplicationController
         :load_index,
         :speed_index,
         :seo_requirements,
-        :max_tokens
+        :max_tokens,
+        :force_model  # Опциональный параметр для прямого указания AI модели
       )
       
       # Обрабатываем links отдельно, чтобы избежать проблем с permit

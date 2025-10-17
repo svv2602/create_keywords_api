@@ -141,7 +141,8 @@ endpoint:
 
 ### Руководства:
 - 📖 **[docs/guides/AI_REVIEWS_GUIDE.md](docs/guides/AI_REVIEWS_GUIDE.md)** - AI-система генерации отзывов
-- 🎯 **[docs/guides/FORCE_MODEL_USAGE.md](docs/guides/FORCE_MODEL_USAGE.md)** - прямое указание AI модели
+- 🎯 **[docs/guides/FORCE_MODEL_USAGE.md](docs/guides/FORCE_MODEL_USAGE.md)** - прямое указание AI модели (Ruby)
+- 🌐 **[docs/guides/API_MODEL_SELECTION.md](docs/guides/API_MODEL_SELECTION.md)** - выбор модели через API 🆕
 - 🐳 **[docs/guides/DOCKER_GUIDE.md](docs/guides/DOCKER_GUIDE.md)** - запуск через Docker
 
 ### Технические отчеты:
