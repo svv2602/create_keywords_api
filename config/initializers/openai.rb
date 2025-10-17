@@ -1,6 +1,23 @@
+# Конфигурация OpenAI API
 OpenAI.configure do |config|
   config.access_token = ENV.fetch("OPENAI_API_KEY")
   # config.organization_id = ENV.fetch("OPENAI_ORGANIZATION_ID") # Optional.
 end
 
-client = OpenAI::Client.new
+# Основной OpenAI клиент
+OPENAI_CLIENT = OpenAI::Client.new
+
+# DeepSeek API клиент (совместим с OpenAI SDK)
+# DeepSeek использует OpenAI-совместимый интерфейс
+DEEPSEEK_CLIENT = if ENV['DEEPSEEK_API_KEY'].present?
+  OpenAI::Client.new(
+    access_token: ENV['DEEPSEEK_API_KEY'],
+    uri_base: "https://api.deepseek.com",
+    request_timeout: 240  # DeepSeek может быть медленнее
+  )
+else
+  nil
+end
+
+# Для обратной совместимости
+client = OPENAI_CLIENT

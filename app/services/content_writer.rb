@@ -4,9 +4,18 @@ class ContentWriter
   # Конфигурация моделей
   MODELS = {
     review_generation: 'gpt-4o-mini',    # для массовой генерации отзывов
-    complex_analysis: 'gpt-4o',          # для сложных задач
-    premium_content: 'gpt-4-turbo',      # для премиум контента
-    fallback: 'gpt-3.5-turbo'           # запасная модель
+    complex_analysis: 'deepseek-chat',   # DeepSeek для сложных задач (в 10-20х дешевле!)
+    premium_content: 'deepseek-chat',    # DeepSeek для премиум контента (экономия 90%)
+    seo_generation: 'deepseek-chat',     # DeepSeek для SEO-текстов
+    fallback: 'gpt-3.5-turbo'           # запасная модель при ошибках
+  }.freeze
+  
+  # Опциональные DeepSeek модели для льготных часов
+  DEEPSEEK_MODELS = {
+    review_generation: 'deepseek-chat',  # можно использовать в льготные часы
+    complex_analysis: 'deepseek-chat',
+    premium_content: 'deepseek-chat',
+    seo_generation: 'deepseek-chat'
   }.freeze
   
   # Обратная совместимость
@@ -14,13 +23,26 @@ class ContentWriter
   MAX_ATTEMPTS = 5
 
   def initialize
-    @client = OpenAI::Client.new
+    @openai_client = OPENAI_CLIENT
+    @deepseek_client = DEEPSEEK_CLIENT
     @cost_tracker = AiCostTracker.new
+  end
+  
+  # Получить правильный клиент для модели
+  def get_client_for_model(model)
+    if model.start_with?('deepseek') && @deepseek_client
+      @deepseek_client
+    else
+      @openai_client
+    end
   end
 
   def write_draft_post(prompt, max_tokens)
+    model = select_model(:review_generation)
+    client = get_client_for_model(model)
+    
     # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-    @client.chat(
+    client.chat(
       parameters: {
         model: MODEL,
         messages: [
@@ -56,8 +78,11 @@ class ContentWriter
 
   # +++++++++++++++++++++++++++++++++++++++++
   def rewrite_question(prompt, max_tokens)
+    model = select_model(:review_generation)
+    client = get_client_for_model(model)
+    
     # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-    @client.chat(
+    client.chat(
       parameters: {
         model: MODEL,
         messages: [
@@ -82,15 +107,17 @@ class ContentWriter
   # ++++++++++++++++++++++++++++++++++++++++++++
 
   def write_seo_text(prompt, max_tokens)
-    generate_review(prompt, max_tokens, model_type: :review_generation)
+    # SEO-тексты используют DeepSeek для экономии
+    generate_review(prompt, max_tokens, model_type: :seo_generation)
   end
   
   def generate_review(prompt, max_tokens, model_type: :review_generation)
     model = select_model(model_type)
+    client = get_client_for_model(model)
     attempts = 0
 
     begin
-      response = @client.chat(
+      response = client.chat(
         parameters: {
           model: model,
           messages: build_review_messages(prompt),
@@ -126,12 +153,14 @@ class ContentWriter
 
 
   def write_seo_text_ua(prompt, max_tokens)
+    model = select_model(:seo_generation)
+    client = get_client_for_model(model)
     attempts = 0
 
     begin
 
       # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-      @client.chat(
+      client.chat(
         parameters: {
           model: MODEL,
           messages: [
@@ -163,10 +192,12 @@ class ContentWriter
 
 
   def write_seo_city(prompt)
+    model = select_model(:seo_generation)
+    client = get_client_for_model(model)
     attempts = 0
 
     begin
-      @client.chat(
+      client.chat(
         parameters: {
           model: MODEL,
           messages: [
@@ -203,7 +234,33 @@ class ContentWriter
       return MODELS[:fallback]
     end
     
-    MODELS[model_type] || MODELS[:review_generation]
+    # Получаем базовую модель
+    base_model = MODELS[model_type] || MODELS[:review_generation]
+    
+    # Если DeepSeek недоступен, используем OpenAI альтернативу
+    if base_model.start_with?('deepseek') && !@deepseek_client
+      Rails.logger.warn "DeepSeek client not available, falling back to OpenAI"
+      
+      case model_type
+      when :complex_analysis
+        return 'gpt-4o'
+      when :premium_content
+        return 'gpt-4o'
+      when :seo_generation
+        return 'gpt-4o'
+      else
+        return 'gpt-4o-mini'
+      end
+    end
+    
+    # Проверяем Feature Flags для использования DeepSeek в льготные часы
+    if FeatureFlags.use_deepseek_for_reviews? && 
+       model_type == :review_generation && 
+       AiCostTracker.deepseek_discount_time?
+      return 'deepseek-chat'
+    end
+    
+    base_model
   end
   
   def build_review_messages(prompt)

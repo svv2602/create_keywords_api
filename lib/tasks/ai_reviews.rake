@@ -207,5 +207,257 @@ namespace :ai_reviews do
     puts "   AI обработка: #{FeatureFlags.get_setting(:ai_processing_percentage)}%"
     puts "   Умные эмодзи: #{FeatureFlags.smart_emoji_enabled? ? 'включены' : 'отключены'}"
   end
+  
+  # ============ DeepSeek задачи ============
+  
+  desc "Включить DeepSeek для SEO-текстов (экономия 90%)"
+  task enable_deepseek_seo: :environment do
+    if ENV['DEEPSEEK_API_KEY'].blank?
+      puts "❌ ОШИБКА: DeepSeek API ключ не настроен!"
+      puts "   Добавьте DEEPSEEK_API_KEY в .env файл"
+      exit 1
+    end
+    
+    FeatureFlags.enable_deepseek_for_seo!
+    puts "✅ DeepSeek включен для SEO-текстов (экономия ~90%)"
+    puts "   Все SEO-тексты теперь используют DeepSeek-V3"
+  end
+  
+  desc "Отключить DeepSeek для SEO-текстов"
+  task disable_deepseek_seo: :environment do
+    FeatureFlags.disable_deepseek_for_seo!
+    puts "❌ DeepSeek отключен для SEO-текстов"
+    puts "   Используется стандартная модель GPT-4o"
+  end
+  
+  desc "Включить DeepSeek для отзывов в льготные часы (16:30-00:30 UTC)"
+  task enable_deepseek_reviews: :environment do
+    if ENV['DEEPSEEK_API_KEY'].blank?
+      puts "❌ ОШИБКА: DeepSeek API ключ не настроен!"
+      puts "   Добавьте DEEPSEEK_API_KEY в .env файл"
+      exit 1
+    end
+    
+    FeatureFlags.enable_deepseek_for_reviews!
+    puts "✅ DeepSeek включен для отзывов в льготные часы"
+    puts "   Льготные часы UTC: 16:30-00:30 (в 2 раза дешевле)"
+    puts "   Для Киева (UTC+2): 18:30-02:30"
+  end
+  
+  desc "Отключить DeepSeek для отзывов"
+  task disable_deepseek_reviews: :environment do
+    FeatureFlags.disable_deepseek_for_reviews!
+    puts "❌ DeepSeek отключен для отзывов"
+  end
+  
+  desc "Проверить статус DeepSeek"
+  task deepseek_status: :environment do
+    puts "\n=== Статус DeepSeek интеграции ==="
+    puts
+    
+    # Проверяем наличие API ключа
+    if ENV['DEEPSEEK_API_KEY'].present?
+      puts "✅ API ключ DeepSeek настроен"
+    else
+      puts "❌ API ключ DeepSeek НЕ настроен"
+      puts "   Добавьте DEEPSEEK_API_KEY=your_key в .env файл"
+    end
+    
+    # Проверяем текущее время
+    is_discount = AiCostTracker.deepseek_discount_time?
+    current_time = Time.now.utc
+    puts "\n⏰ Текущее время UTC: #{current_time.strftime('%H:%M')}"
+    puts "   Льготный тариф: #{is_discount ? '✅ ДА (в 2 раза дешевле!)' : '❌ НЕТ'}"
+    puts "   Льготные часы UTC: 16:30-00:30"
+    
+    # Показываем настройки
+    puts "\n📋 Настройки DeepSeek:"
+    puts "   SEO-тексты: #{FeatureFlags.use_deepseek_for_seo? ? '✅ включено' : '❌ отключено'}"
+    puts "   Отзывы (льготные часы): #{FeatureFlags.use_deepseek_for_reviews? ? '✅ включено' : '❌ отключено'}"
+    
+    # Показываем цены
+    puts "\n💰 Цены DeepSeek за 1M токенов:"
+    puts "   Стандартные часы:"
+    puts "     Input: $0.27 | Output: $1.10"
+    puts "   Льготные часы (16:30-00:30 UTC):"
+    puts "     Input: $0.135 | Output: $0.55"
+    puts
+    puts "   Для сравнения GPT-4o:"
+    puts "     Input: $2.50 | Output: $10.00"
+    puts
+    puts "   💎 Экономия: DeepSeek в 9-18× дешевле GPT-4o!"
+  end
+  
+  desc "Тестировать DeepSeek (генерация SEO-текста)"
+  task test_deepseek: :environment do
+    if ENV['DEEPSEEK_API_KEY'].blank?
+      puts "❌ ОШИБКА: DeepSeek API ключ не настроен!"
+      puts "   Добавьте DEEPSEEK_API_KEY в .env файл"
+      exit 1
+    end
+    
+    puts "\n=== Тестирование DeepSeek API ==="
+    puts
+    
+    # Временно включаем DeepSeek
+    original_seo_setting = FeatureFlags.use_deepseek_for_seo?
+    FeatureFlags.enable_deepseek_for_seo!
+    
+    begin
+      puts "Генерируем тестовый SEO-текст через DeepSeek..."
+      puts
+      
+      content_writer = ContentWriter.new
+      
+      test_prompt = <<~PROMPT
+        Создай короткий SEO-текст (200-300 слов) для интернет-магазина шин ProKoleso.
+        
+        Параметры:
+        - Бренд: Michelin
+        - Модель: Pilot Sport 4
+        - Сезон: летние
+        - Размер: 225/45 R17
+        
+        Текст должен быть информативным и содержать 2-3 абзаца с описанием преимуществ.
+      PROMPT
+      
+      start_time = Time.now
+      response = content_writer.write_seo_text(test_prompt, 500)
+      end_time = Time.now
+      
+      if response && response['choices'] && response['choices'][0]
+        text = response['choices'][0]['message']['content']
+        
+        puts "✅ Успешно! Текст сгенерирован за #{(end_time - start_time).round(2)} сек"
+        puts
+        puts "--- Сгенерированный текст ---"
+        puts text
+        puts "--- Конец текста ---"
+        puts
+        
+        # Показываем использование токенов
+        if response['usage']
+          input_tokens = response['usage']['prompt_tokens'] || 0
+          output_tokens = response['usage']['completion_tokens'] || 0
+          total_tokens = response['usage']['total_tokens'] || 0
+          
+          puts "📊 Использование токенов:"
+          puts "   Входные: #{input_tokens}"
+          puts "   Выходные: #{output_tokens}"
+          puts "   Всего: #{total_tokens}"
+          
+          # Рассчитываем стоимость
+          cost_tracker = AiCostTracker.new
+          model = 'deepseek-chat'
+          effective_model = AiCostTracker.effective_model_name(model)
+          pricing = AiCostTracker::MODEL_PRICING[effective_model]
+          
+          if pricing
+            cost = (input_tokens / 1_000_000.0) * pricing[:input] + 
+                   (output_tokens / 1_000_000.0) * pricing[:output]
+            puts "   💰 Стоимость: $#{cost.round(6)}"
+            puts
+            puts "   🎯 Льготный тариф: #{effective_model.include?('discount') ? 'ДА' : 'НЕТ'}"
+          end
+        end
+        
+        puts "\n✅ Тест DeepSeek успешно пройден!"
+      else
+        puts "❌ Ошибка: пустой ответ от API"
+      end
+      
+    rescue => e
+      puts "❌ Ошибка при тестировании: #{e.message}"
+      puts e.backtrace.first(5)
+    ensure
+      # Возвращаем исходную настройку
+      if original_seo_setting
+        FeatureFlags.enable_deepseek_for_seo!
+      else
+        FeatureFlags.disable_deepseek_for_seo!
+      end
+    end
+  end
+  
+  desc "Показать экономию от использования DeepSeek"
+  task calculate_savings: :environment do
+    puts "\n=== Калькулятор экономии DeepSeek ==="
+    puts
+    
+    # Примерные объемы
+    seo_texts_per_day = 100
+    reviews_per_day = 1000
+    
+    # Средние токены
+    seo_input_tokens = 2000
+    seo_output_tokens = 3000
+    review_input_tokens = 500
+    review_output_tokens = 400
+    
+    # Цены GPT-4o
+    gpt4o_input = 2.50
+    gpt4o_output = 10.0
+    gpt4o_mini_input = 0.15
+    gpt4o_mini_output = 0.6
+    
+    # Цены DeepSeek (стандартные)
+    deepseek_input = 0.27
+    deepseek_output = 1.10
+    
+    # Цены DeepSeek (льготные)
+    deepseek_discount_input = 0.135
+    deepseek_discount_output = 0.55
+    
+    # Расчет для SEO-текстов
+    seo_gpt_cost = seo_texts_per_day * (
+      (seo_input_tokens / 1_000_000.0) * gpt4o_input +
+      (seo_output_tokens / 1_000_000.0) * gpt4o_output
+    )
+    
+    seo_deepseek_cost = seo_texts_per_day * (
+      (seo_input_tokens / 1_000_000.0) * deepseek_input +
+      (seo_output_tokens / 1_000_000.0) * deepseek_output
+    )
+    
+    seo_savings = seo_gpt_cost - seo_deepseek_cost
+    
+    # Расчет для отзывов (льготные часы)
+    reviews_gpt_cost = reviews_per_day * (
+      (review_input_tokens / 1_000_000.0) * gpt4o_mini_input +
+      (review_output_tokens / 1_000_000.0) * gpt4o_mini_output
+    )
+    
+    reviews_deepseek_cost = reviews_per_day * (
+      (review_input_tokens / 1_000_000.0) * deepseek_discount_input +
+      (review_output_tokens / 1_000_000.0) * deepseek_discount_output
+    )
+    
+    reviews_savings = reviews_gpt_cost - reviews_deepseek_cost
+    
+    puts "📊 При объеме:"
+    puts "   SEO-тексты: #{seo_texts_per_day} в день"
+    puts "   Отзывы: #{reviews_per_day} в день"
+    puts
+    
+    puts "💰 SEO-тексты (GPT-4o → DeepSeek):"
+    puts "   Было: $#{seo_gpt_cost.round(2)}/день"
+    puts "   Стало: $#{seo_deepseek_cost.round(2)}/день"
+    puts "   ✅ Экономия: $#{seo_savings.round(2)}/день ($#{(seo_savings * 30).round(2)}/месяц)"
+    puts
+    
+    puts "💰 Отзывы (gpt-4o-mini → DeepSeek льготные часы):"
+    puts "   Было: $#{reviews_gpt_cost.round(2)}/день"
+    puts "   Стало: $#{reviews_deepseek_cost.round(2)}/день"
+    puts "   ✅ Экономия: $#{reviews_savings.round(2)}/день ($#{(reviews_savings * 30).round(2)}/месяц)"
+    puts
+    
+    total_savings = seo_savings + reviews_savings
+    puts "🎉 ИТОГО ЭКОНОМИЯ:"
+    puts "   День: $#{total_savings.round(2)}"
+    puts "   Месяц: $#{(total_savings * 30).round(2)}"
+    puts "   Год: $#{(total_savings * 365).round(2)}"
+    puts
+    puts "   💎 Снижение затрат на #{((total_savings / (seo_gpt_cost + reviews_gpt_cost)) * 100).round(1)}%!"
+  end
 end
 

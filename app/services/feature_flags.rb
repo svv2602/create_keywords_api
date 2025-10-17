@@ -9,7 +9,9 @@ class FeatureFlags
     length_control_enabled: 'length_control_enabled',
     hybrid_processing_enabled: 'hybrid_processing_enabled',
     force_ai_processing: 'force_ai_processing',
-    universal_postprocessing_enabled: 'universal_postprocessing_enabled'
+    universal_postprocessing_enabled: 'universal_postprocessing_enabled',
+    use_deepseek_for_seo: 'use_deepseek_for_seo',
+    use_deepseek_for_reviews: 'use_deepseek_for_reviews'
   }.freeze
   
   # Значения по умолчанию
@@ -20,7 +22,9 @@ class FeatureFlags
     length_control_enabled: true,      # контроль длины включен
     hybrid_processing_enabled: true,   # гибридная обработка включена
     force_ai_processing: false,        # принудительная AI обработка выключена
-    universal_postprocessing_enabled: true  # универсальная постобработка для уникальности
+    universal_postprocessing_enabled: true,  # универсальная постобработка для уникальности
+    use_deepseek_for_seo: true,        # использовать DeepSeek для SEO-текстов (экономия 90%)
+    use_deepseek_for_reviews: false    # использовать DeepSeek для отзывов в льготные часы
   }.freeze
   
   class << self
@@ -68,6 +72,19 @@ class FeatureFlags
       get_setting(:force_ai_processing)
     end
     
+    # DeepSeek настройки
+    def use_deepseek_for_seo?
+      # Проверяем наличие API ключа
+      return false unless ENV['DEEPSEEK_API_KEY'].present?
+      get_setting(:use_deepseek_for_seo)
+    end
+    
+    def use_deepseek_for_reviews?
+      # Проверяем наличие API ключа
+      return false unless ENV['DEEPSEEK_API_KEY'].present?
+      get_setting(:use_deepseek_for_reviews)
+    end
+    
     # Методы для управления настройками
     def set_ai_processing_percentage(percentage)
       set_setting(:ai_processing_percentage, percentage.to_i.clamp(0, 100))
@@ -107,6 +124,23 @@ class FeatureFlags
     
     def disable_force_ai_processing!
       set_setting(:force_ai_processing, false)
+    end
+    
+    # DeepSeek управление
+    def enable_deepseek_for_seo!
+      set_setting(:use_deepseek_for_seo, true)
+    end
+    
+    def disable_deepseek_for_seo!
+      set_setting(:use_deepseek_for_seo, false)
+    end
+    
+    def enable_deepseek_for_reviews!
+      set_setting(:use_deepseek_for_reviews, true)
+    end
+    
+    def disable_deepseek_for_reviews!
+      set_setting(:use_deepseek_for_reviews, false)
     end
     
     # Получение всех настроек
