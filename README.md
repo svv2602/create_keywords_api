@@ -129,6 +129,27 @@ endpoint:
 - **Контроль длины** отзывов
 - **Гибкие настройки** через Feature Flags
 
+---
+
+## 📚 Документация
+
+Вся документация организована в папке **[`docs/`](docs/)**:
+
+### Быстрый старт:
+- 🚀 **[START_HERE.md](START_HERE.md)** - главная точка входа
+- ⚡ **[docs/quickstart/DEEPSEEK_QUICKSTART.md](docs/quickstart/DEEPSEEK_QUICKSTART.md)** - полный гайд по DeepSeek
+
+### Руководства:
+- 📖 **[docs/guides/AI_REVIEWS_GUIDE.md](docs/guides/AI_REVIEWS_GUIDE.md)** - AI-система генерации отзывов
+- 🎯 **[docs/guides/FORCE_MODEL_USAGE.md](docs/guides/FORCE_MODEL_USAGE.md)** - прямое указание AI модели
+- 🐳 **[docs/guides/DOCKER_GUIDE.md](docs/guides/DOCKER_GUIDE.md)** - запуск через Docker
+
+### Технические отчеты:
+- 📊 **[docs/reports/DEEPSEEK_INTEGRATION_REPORT.md](docs/reports/DEEPSEEK_INTEGRATION_REPORT.md)** - технический отчет о внедрении
+- 🔄 **[docs/reports/DEEPSEEK_DEFAULT_CHANGES.md](docs/reports/DEEPSEEK_DEFAULT_CHANGES.md)** - изменения в версии 2.0
+
+---
+
 ### Управление системой (create_keywords_api/app/services/feature_flags.rb)
 
 #### Основные команды:
@@ -214,7 +235,7 @@ curl -X POST http://localhost:3000/api/v1/generate_seo_text \
   -d '{"brand": "Michelin", "force_model": "gpt-4o"}'
 ```
 
-📚 **Подробнее:** `FORCE_MODEL_USAGE.md`
+📚 **Подробнее:** [`docs/guides/FORCE_MODEL_USAGE.md`](docs/guides/FORCE_MODEL_USAGE.md)
 
 #### Льготные часы (в 2 раза дешевле!):
 - **UTC:** 16:30-00:30
