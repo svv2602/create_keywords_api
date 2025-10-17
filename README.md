@@ -159,56 +159,78 @@ rails ai_reviews:emergency_disable
 rails ai_reviews:reset
 ```
 
-### 💎 DeepSeek интеграция (экономия до 90%!)
+### 💎 DeepSeek интеграция (ПО УМОЛЧАНИЮ ДЛЯ ВСЕХ ЗАДАЧ!)
 
-#### Настройка DeepSeek:
+#### ⚡ DeepSeek используется автоматически:
+- ✅ **По умолчанию для ВСЕХ задач** (SEO-тексты, отзывы, премиум контент)
+- ✅ **Автоматический fallback на OpenAI** при недоступности
+- ✅ **Экономия до 90%** на всех операциях
+- ✅ **Качество на уровне GPT-4** (90.8% MMLU)
+
+#### Быстрый старт:
 1. Добавьте в `.env`:
 ```bash
 DEEPSEEK_API_KEY=your_deepseek_api_key
 ```
 
-2. Проверьте статус интеграции:
+2. Проверьте статус:
 ```bash
 rails ai_reviews:deepseek_status
 ```
 
-#### Команды управления DeepSeek:
+3. **Готово!** DeepSeek работает автоматически везде.
+
+#### Команды мониторинга:
 ```bash
-# Включить DeepSeek для SEO-текстов (экономия 90%)
-rails ai_reviews:enable_deepseek_seo
+# Проверить статус DeepSeek
+rails ai_reviews:deepseek_status
 
-# Отключить DeepSeek для SEO-текстов
-rails ai_reviews:disable_deepseek_seo
-
-# Включить DeepSeek для отзывов в льготные часы
-rails ai_reviews:enable_deepseek_reviews
-
-# Отключить DeepSeek для отзывов
-rails ai_reviews:disable_deepseek_reviews
-
-# Тестировать DeepSeek API
+# Протестировать API
 rails ai_reviews:test_deepseek
 
 # Показать экономию
 rails ai_reviews:calculate_savings
+
+# Общий статус AI
+rails ai_reviews:status
 ```
 
-#### Льготные часы DeepSeek (в 2 раза дешевле):
+#### 🎯 Прямое указание модели (опционально):
+
+**Ruby:**
+```ruby
+# DeepSeek по умолчанию
+writer = ContentWriter.new
+text = writer.write_seo_text(prompt, 1000)
+
+# Принудительно GPT-4o
+writer = ContentWriter.new(force_model: 'gpt-4o')
+text = writer.write_seo_text(prompt, 1000)
+```
+
+**API:**
+```bash
+curl -X POST http://localhost:3000/api/v1/generate_seo_text \
+  -d '{"brand": "Michelin", "force_model": "gpt-4o"}'
+```
+
+📚 **Подробнее:** `FORCE_MODEL_USAGE.md`
+
+#### Льготные часы (в 2 раза дешевле!):
 - **UTC:** 16:30-00:30
 - **Киев (UTC+2):** 18:30-02:30
-- **Москва (UTC+3):** 19:30-03:30
 
 #### Сравнение цен (за 1M токенов):
-| Модель | Input | Output | Экономия |
-|--------|-------|--------|----------|
-| GPT-4o | $2.50 | $10.00 | - |
-| DeepSeek стандарт | $0.27 | $1.10 | 88% |
-| DeepSeek льготные часы | $0.135 | $0.55 | 94% |
+| Модель | Input | Output | Статус |
+|--------|-------|--------|--------|
+| **DeepSeek** | **$0.27** | **$1.10** | **По умолчанию** ✅ |
+| DeepSeek (льготные) | $0.135 | $0.55 | **Скидка 50%** 🔥 |
+| GPT-4o | $2.50 | $10.00 | Fallback |
 
-#### Рекомендации по внедрению:
-1. **SEO-тексты:** Используйте DeepSeek постоянно (экономия $20-50/день)
-2. **Отзывы:** Используйте DeepSeek в льготные часы для batch-обработки
-3. **Премиум контент:** DeepSeek показывает качество на уровне GPT-4
+#### Автоматические fallback'и:
+- DeepSeek недоступен → OpenAI
+- Лимиты превышены → gpt-4o-mini
+- Ошибка → повтор с fallback
 
 #### Настройки по умолчанию:
 - **AI обработка**: 30% отзывов
@@ -216,8 +238,8 @@ rails ai_reviews:calculate_savings
 - **Универсальная постобработка**: включена (все отзывы проходят обработку для уникальности)
 - **Умные эмодзи**: включены
 - **Контроль длины**: включен
-- **DeepSeek для SEO**: включен (экономия 90%)
-- **DeepSeek для отзывов**: выключен (можно включить для льготных часов)
+- **DeepSeek**: используется ПО УМОЛЧАНИЮ для ВСЕХ задач (экономия до 90%) ✅
+- **OpenAI**: используется ТОЛЬКО как fallback при недоступности DeepSeek
 
 #### Изменение настроек по умолчанию:
 Файл: `app/services/feature_flags.rb`

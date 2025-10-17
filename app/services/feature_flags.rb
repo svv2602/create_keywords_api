@@ -23,8 +23,9 @@ class FeatureFlags
     hybrid_processing_enabled: true,   # гибридная обработка включена
     force_ai_processing: false,        # принудительная AI обработка выключена
     universal_postprocessing_enabled: true,  # универсальная постобработка для уникальности
-    use_deepseek_for_seo: true,        # использовать DeepSeek для SEO-текстов (экономия 90%)
-    use_deepseek_for_reviews: false    # использовать DeepSeek для отзывов в льготные часы
+    use_deepseek_by_default: true,     # DeepSeek используется по умолчанию везде (экономия до 90%)
+    use_deepseek_for_seo: true,        # DEPRECATED: теперь всегда используется DeepSeek
+    use_deepseek_for_reviews: true     # DEPRECATED: теперь всегда используется DeepSeek
   }.freeze
   
   class << self
@@ -73,16 +74,20 @@ class FeatureFlags
     end
     
     # DeepSeek настройки
-    def use_deepseek_for_seo?
+    def use_deepseek_by_default?
       # Проверяем наличие API ключа
       return false unless ENV['DEEPSEEK_API_KEY'].present?
-      get_setting(:use_deepseek_for_seo)
+      get_setting(:use_deepseek_by_default)
     end
     
+    # DEPRECATED: для обратной совместимости
+    def use_deepseek_for_seo?
+      use_deepseek_by_default?
+    end
+    
+    # DEPRECATED: для обратной совместимости
     def use_deepseek_for_reviews?
-      # Проверяем наличие API ключа
-      return false unless ENV['DEEPSEEK_API_KEY'].present?
-      get_setting(:use_deepseek_for_reviews)
+      use_deepseek_by_default?
     end
     
     # Методы для управления настройками

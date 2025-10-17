@@ -17,7 +17,8 @@ class SeoTextGenerator
     @seo_requirements = params[:seo_requirements] || ''
     @links = parse_links(params[:links])
     @max_tokens = params[:max_tokens] || 2000
-    @content_writer = ContentWriter.new
+    @force_model = params[:force_model]  # Опциональный параметр для выбора модели
+    @content_writer = ContentWriter.new(force_model: @force_model)
   end
   
     def generate

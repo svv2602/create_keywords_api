@@ -1,31 +1,32 @@
 # app/services/content_writer.rb
 
 class ContentWriter
-  # Конфигурация моделей
+  # Конфигурация моделей (DeepSeek по умолчанию для всех задач)
   MODELS = {
-    review_generation: 'gpt-4o-mini',    # для массовой генерации отзывов
-    complex_analysis: 'deepseek-chat',   # DeepSeek для сложных задач (в 10-20х дешевле!)
+    review_generation: 'deepseek-chat',  # DeepSeek для массовой генерации отзывов (экономия 25%)
+    complex_analysis: 'deepseek-chat',   # DeepSeek для сложных задач (экономия 90%)
     premium_content: 'deepseek-chat',    # DeepSeek для премиум контента (экономия 90%)
-    seo_generation: 'deepseek-chat',     # DeepSeek для SEO-текстов
-    fallback: 'gpt-3.5-turbo'           # запасная модель при ошибках
+    seo_generation: 'deepseek-chat',     # DeepSeek для SEO-текстов (экономия 90%)
+    fallback: 'gpt-4o-mini'              # OpenAI fallback при недоступности DeepSeek
   }.freeze
   
-  # Опциональные DeepSeek модели для льготных часов
-  DEEPSEEK_MODELS = {
-    review_generation: 'deepseek-chat',  # можно использовать в льготные часы
-    complex_analysis: 'deepseek-chat',
-    premium_content: 'deepseek-chat',
-    seo_generation: 'deepseek-chat'
+  # OpenAI модели (используются только при недоступности DeepSeek)
+  OPENAI_FALLBACK_MODELS = {
+    review_generation: 'gpt-4o-mini',    # быстрая модель для отзывов
+    complex_analysis: 'gpt-4o',          # мощная модель для сложных задач
+    premium_content: 'gpt-4o',           # премиум модель
+    seo_generation: 'gpt-4o'             # для SEO-текстов
   }.freeze
   
   # Обратная совместимость
   MODEL = MODELS[:review_generation]
   MAX_ATTEMPTS = 5
 
-  def initialize
+  def initialize(force_model: nil)
     @openai_client = OPENAI_CLIENT
     @deepseek_client = DEEPSEEK_CLIENT
     @cost_tracker = AiCostTracker.new
+    @force_model = force_model  # Принудительный выбор модели через параметр
   end
   
   # Получить правильный клиент для модели
@@ -229,37 +230,31 @@ class ContentWriter
   private
   
   def select_model(model_type)
-    # Проверяем лимиты затрат
+    # 1. Если явно указана модель через параметр - используем её
+    if @force_model.present?
+      Rails.logger.info "Using forced model: #{@force_model}"
+      return @force_model
+    end
+    
+    # 2. Проверяем лимиты затрат - переключаемся на fallback
     if @cost_tracker&.daily_cost_exceeded?
+      Rails.logger.warn "Daily cost limit exceeded, using fallback model"
       return MODELS[:fallback]
     end
     
-    # Получаем базовую модель
+    # 3. Получаем базовую модель (DeepSeek по умолчанию)
     base_model = MODELS[model_type] || MODELS[:review_generation]
     
-    # Если DeepSeek недоступен, используем OpenAI альтернативу
+    # 4. Если DeepSeek недоступен, используем OpenAI альтернативу
     if base_model.start_with?('deepseek') && !@deepseek_client
       Rails.logger.warn "DeepSeek client not available, falling back to OpenAI"
-      
-      case model_type
-      when :complex_analysis
-        return 'gpt-4o'
-      when :premium_content
-        return 'gpt-4o'
-      when :seo_generation
-        return 'gpt-4o'
-      else
-        return 'gpt-4o-mini'
-      end
+      fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4o-mini'
+      Rails.logger.info "Using OpenAI fallback: #{fallback_model}"
+      return fallback_model
     end
     
-    # Проверяем Feature Flags для использования DeepSeek в льготные часы
-    if FeatureFlags.use_deepseek_for_reviews? && 
-       model_type == :review_generation && 
-       AiCostTracker.deepseek_discount_time?
-      return 'deepseek-chat'
-    end
-    
+    # 5. Используем DeepSeek (модель по умолчанию)
+    Rails.logger.info "Using default DeepSeek model: #{base_model}"
     base_model
   end
   
