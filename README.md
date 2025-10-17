@@ -9,16 +9,40 @@
     * Пример запуска с параметрами: 
   /article_to_index_google?article="https://prokoleso.ua/ua/info/vse-o-shinah/laufenn-firestone-roadstone-starmaxx-taurus-ta-premiorri-shyny-dlya-zymy-2024-2025/"
 
-Для сборки использовать:
-* sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
+## 🐳 Docker запуск
 
- 
-где your_openai_api_key - реальный ключ,  сразу после равно, без пробелов и кавычек
+### Вариант 1: С DeepSeek (рекомендуется, экономия 90%)
+```bash
+sudo docker build \
+  --build-arg OPENAI_API_KEY=your_openai_api_key \
+  --build-arg DEEPSEEK_API_KEY=your_deepseek_api_key \
+  -t my-rails-app .
+```
+
+### Вариант 2: Только OpenAI (без DeepSeek)
+```bash
+sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
+```
+**⚠️ Внимание:** Без DeepSeek затраты будут на 90% выше!
+
+### Запуск контейнера:
+```bash
+sudo docker run --rm -p 3000:3000 my-rails-app
+```
+
+📚 **Подробнее:** [`docs/guides/DOCKER_GUIDE.md`](docs/guides/DOCKER_GUIDE.md)
 
 ===================================
 
-Запуск:
-* sudo docker run --rm -p 3000:3000 my-rails-app
+### Docker Compose (рекомендуется):
+```bash
+# 1. Создайте .env файл
+cp .env.example .env
+# Добавьте OPENAI_API_KEY и DEEPSEEK_API_KEY
+
+# 2. Запустите
+docker-compose up
+```
 
 ====================================
 * http://192.168.3.145:3003
