@@ -51,6 +51,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
     private
   
     def generation_params
+      # Разрешаем все необходимые параметры включая links и format
       permitted = params.permit(
         :tire_description,
         :brand,
@@ -63,20 +64,29 @@ class Api::V1::SeoGeneratorController < ApplicationController
         :speed_index,
         :seo_requirements,
         :max_tokens,
-        :force_model  # Опциональный параметр для прямого указания AI модели
+        :force_model,  # Опциональный параметр для прямого указания AI модели
+        :format,       # Разрешаем параметр format
+        links: [:brand, :model, :brand_size, :brand_sezon, :size]  # Разрешаем массив links
       )
       
-      # Обрабатываем links отдельно, чтобы избежать проблем с permit
-      if params[:links].present?
-        links_array = []
-        params[:links].each do |link|
-          if link.is_a?(ActionController::Parameters)
-            links_array << link.permit(:brand, :model, :brand_size, :brand_sezon, :size).to_h
-          elsif link.is_a?(Hash)
-            links_array << link.slice('brand', 'model', 'brand_size', 'brand_sezon', 'size')
-          end
-        end
-        permitted[:links] = links_array
+      # Обрабатываем вложенную структуру seo_generator если она есть
+      if params[:seo_generator].present?
+        seo_generator_params = params[:seo_generator].permit(
+          :tire_description,
+          :brand,
+          :model,
+          :season,
+          :language,
+          :size,
+          :product_id,
+          :load_index,
+          :speed_index,
+          :seo_requirements,
+          :max_tokens,
+          :force_model,
+          links: [:brand, :model, :brand_size, :brand_sezon, :size]
+        )
+        permitted.merge!(seo_generator_params)
       end
       
       permitted
