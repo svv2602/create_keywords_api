@@ -58,9 +58,24 @@ class Api::V1::SeoGeneratorController < ApplicationController
   
     private
   
-    def generation_params
-      # Разрешаем все необходимые параметры включая links, format и seo_generator
-      permitted = params.permit(
+  def generation_params
+    # Разрешаем все необходимые параметры включая links и format
+    permitted = params.permit(
+      :tire_description,
+      :brand,
+      :model,
+      :season,
+      :language,
+      :size,
+      :product_id,
+      :load_index,
+      :speed_index,
+      :seo_requirements,
+      :max_tokens,
+      :force_model,  # Опциональный параметр для прямого указания AI модели
+      :format,       # Разрешаем параметр format
+      links: [:brand, :model, :brand_size, :brand_sezon, :size],  # Разрешаем массив links
+      seo_generator: [  # Разрешаем вложенный хеш seo_generator
         :tire_description,
         :brand,
         :model,
@@ -72,34 +87,33 @@ class Api::V1::SeoGeneratorController < ApplicationController
         :speed_index,
         :seo_requirements,
         :max_tokens,
-        :force_model,  # Опциональный параметр для прямого указания AI модели
-        :format,       # Разрешаем параметр format
-        :seo_generator, # Разрешаем параметр seo_generator
-        links: [:brand, :model, :brand_size, :brand_sezon, :size]  # Разрешаем массив links
+        :force_model,
+        { links: [:brand, :model, :brand_size, :brand_sezon, :size] }
+      ]
+    )
+    
+    # Обрабатываем вложенную структуру seo_generator если она есть
+    if params[:seo_generator].present?
+      seo_generator_params = params[:seo_generator].permit(
+        :tire_description,
+        :brand,
+        :model,
+        :season,
+        :language,
+        :size,
+        :product_id,
+        :load_index,
+        :speed_index,
+        :seo_requirements,
+        :max_tokens,
+        :force_model,
+        links: [:brand, :model, :brand_size, :brand_sezon, :size]
       )
-      
-      # Обрабатываем вложенную структуру seo_generator если она есть
-      if params[:seo_generator].present?
-        seo_generator_params = params[:seo_generator].permit(
-          :tire_description,
-          :brand,
-          :model,
-          :season,
-          :language,
-          :size,
-          :product_id,
-          :load_index,
-          :speed_index,
-          :seo_requirements,
-          :max_tokens,
-          :force_model,
-          links: [:brand, :model, :brand_size, :brand_sezon, :size]
-        )
-        permitted.merge!(seo_generator_params)
-      end
-      
-      permitted
+      permitted.merge!(seo_generator_params)
     end
+    
+    permitted
+  end
   
     def valid_params?
       required_params = [:tire_description, :brand, :model, :season, :language, :size, :product_id]
