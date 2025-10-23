@@ -59,7 +59,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
     private
   
     def generation_params
-      # Разрешаем все необходимые параметры включая links и format
+      # Разрешаем все необходимые параметры включая links, format и seo_generator
       permitted = params.permit(
         :tire_description,
         :brand,
@@ -74,6 +74,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
         :max_tokens,
         :force_model,  # Опциональный параметр для прямого указания AI модели
         :format,       # Разрешаем параметр format
+        :seo_generator, # Разрешаем параметр seo_generator
         links: [:brand, :model, :brand_size, :brand_sezon, :size]  # Разрешаем массив links
       )
       
