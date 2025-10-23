@@ -13,8 +13,15 @@ class Api::V1::SeoGeneratorController < ApplicationController
       end
   
       begin
+        # Логируем входящие параметры для отладки
+        Rails.logger.info "SEO Generator Request - Params: #{generation_params.inspect}"
+        
         # Генерация SEO текста
         seo_text = SeoTextGenerator.new(generation_params).generate
+        
+        # Логируем результат генерации
+        Rails.logger.info "SEO Generator Response - Generated text length: #{seo_text&.length || 0} characters"
+        Rails.logger.info "SEO Generator Response - Text preview: #{seo_text&.truncate(200) || 'nil'}"
         
         if seo_text
         render json: { 
@@ -41,6 +48,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
         end
       rescue => e
         Rails.logger.error "SEO Text Generation Error: #{e.message}"
+        Rails.logger.error "SEO Text Generation Backtrace: #{e.backtrace.first(5).join('\n')}"
         render json: { 
           success: false, 
           error: 'Внутренняя ошибка сервера' 
