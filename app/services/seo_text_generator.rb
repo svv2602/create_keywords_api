@@ -21,9 +21,12 @@ class SeoTextGenerator
     @content_writer = ContentWriter.new(force_model: @force_model)
   end
   
-    def generate
-      prompt = build_generation_prompt
-      response = @content_writer.write_seo_text(prompt, @max_tokens)
+  def generate
+    prompt = build_generation_prompt
+    Rails.logger.info "SEO Generator Prompt - Language: #{@language}"
+    Rails.logger.info "SEO Generator Prompt - Language check: #{@language == 'ua' ? 'Ukrainian' : 'Russian'}"
+    Rails.logger.info "SEO Generator Prompt preview: #{prompt.truncate(500)}"
+    response = @content_writer.write_seo_text(prompt, @max_tokens)
       
       if response && response['choices'] && response['choices'][0]
         generated_text = response['choices'][0]['message']['content'].strip
@@ -36,7 +39,13 @@ class SeoTextGenerator
     private
   
   def build_generation_prompt
+    language_instruction = @language == 'ua' ? 
+      'КРИТИЧЕСКИ ВАЖНО: Генерируй текст ТОЛЬКО на украинском языке! Используй украинские слова: "зимові шини", "комерційний транспорт", "характеристики", "переваги" и т.д.' :
+      'КРИТИЧЕСКИ ВАЖНО: Генерируй текст ТОЛЬКО на русском языке!'
+    
     <<~PROMPT
+      #{language_instruction}
+      
       Создай SEO-оптимизированный текст для страницы шинного интернет-магазина ProKoleso.
 
       ОПИСАНИЕ МОДЕЛИ ШИН:
@@ -58,7 +67,7 @@ class SeoTextGenerator
 
       ТРЕБОВАНИЯ К ТЕКСТУ:
       1. Создай структурированный HTML-текст с заголовками H2, H3 , H4
-      2. Включи естественное вхождение ключевых слов: "#{@brand} #{@model}", "#{@season} шины", "шины #{@size}", "#{@load_index}#{@speed_index}"
+      2. Включи естественное вхождение ключевых слов: "#{@brand} #{@model}", "#{@language == 'ua' ? 'зимові шини' : @season} #{@language == 'ua' ? 'шини' : 'шины'}", "#{@language == 'ua' ? 'шини' : 'шины'} #{@size}", "#{@load_index}#{@speed_index}"
       3. Добавь информативные абзацы о характеристиках, преимуществах и применении шин
       4. Используй списки и выделения для лучшей читаемости
       5. Включи призыв к действию для покупки
@@ -76,9 +85,15 @@ class SeoTextGenerator
       - Заключительный абзац с призывом к действию
 
       СТИЛЬ ИЗЛОЖЕНИЯ:
-      - Используй безличные конструкции: "Шины характеризуются...", "Модель отличается...", "Особенностью является..."
+      #{@language == 'ua' ? 
+        '- Используй безличные конструкции: "Шини характеризуються...", "Модель відрізняється...", "Особливістю є...", "Зимові шини забезпечують...", "Модель демонструє..."' :
+        '- Используй безличные конструкции: "Шины характеризуются...", "Модель отличается...", "Особенностью является..."'
+      }
       - Избегай: "Я эксплуатировал", "Мне понравилось", "Хочу отметить", "Лично тестировал"
-      - Вместо этого используй: "Шины обеспечивают", "Модель демонстрирует", "Особенностью является", "Характеризуется"
+      #{@language == 'ua' ? 
+        '- Вместо этого используй: "Шини забезпечують", "Модель демонструє", "Особливістю є", "Характеризується"' :
+        '- Вместо этого используй: "Шины обеспечивают", "Модель демонстрирует", "Особенностью является", "Характеризуется"'
+      }
 
       ЯЗЫК: #{@language == 'ua' ? 'Украинский' : 'Русский'}
 
