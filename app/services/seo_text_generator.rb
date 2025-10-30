@@ -209,13 +209,13 @@ class SeoTextGenerator
   def extract_brand_name(url)
     # Извлекаем название бренда из URL
     brand = url.split('/').find { |part| part.present? && part != 'shiny' }
-    brand&.capitalize || 'бренд'
+    brand&.capitalize || (@language == 'ua' ? 'бренд' : 'бренд')
   end
 
   def extract_model_name(url)
     # Извлекаем название модели из URL
     model = url.split('/').last&.gsub('-', ' ')
-    model&.titleize || 'модель'
+    model&.titleize || (@language == 'ua' ? 'модель' : 'модель')
   end
 
   def extract_size_info(url)
@@ -228,22 +228,22 @@ class SeoTextGenerator
       
       size_str = [width, height].compact.join('/')
       size_str += " R#{radius}" if radius
-      size_str.present? ? size_str : 'размер'
+      size_str.present? ? size_str : (@language == 'ua' ? 'розмір' : 'размер')
     else
-      'размер'
+      @language == 'ua' ? 'розмір' : 'размер'
     end
   end
 
   def extract_season_info(url)
-    # Извлекаем информацию о сезоне из URL
+    # Извлекаем информацию о сезоне из URL с учетом языка
     if url.include?('letnie')
-      'летние'
+      @language == 'ua' ? 'літні' : 'летние'
     elsif url.include?('zimnie')
-      'зимние'
+      @language == 'ua' ? 'зимові' : 'зимние'
     elsif url.include?('vsesezone')
-      'всесезонные'
+      @language == 'ua' ? 'всесезонні' : 'всесезонные'
     else
-      'шины'
+      @language == 'ua' ? 'шини' : 'шины'
     end
   end
 
