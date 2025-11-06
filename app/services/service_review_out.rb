@@ -305,10 +305,28 @@ module ServiceReviewOut
     word
   end
 
+  def convert_season_to_number(season)
+    # Конвертация строкового значения сезона в числовое
+    case season.to_s.downcase
+    when 'summer', 'летние', '1'
+      1
+    when 'winter', 'зимние', '2'
+      2
+    when 'all_season', 'всесезонные', '3'
+      3
+    else
+      season.to_i
+    end
+  end
+
   def create_hash_with_params(hash_params)
     array_info = {}
     array_sym = [:brand, :model, :width, :height, :diameter, :season, :type_review, :id]
     array_sym.each { |sym| array_info[sym] = hash_params[sym] }
+
+    # Конвертируем сезон из строки в число, если нужно
+    array_info[:season] = convert_season_to_number(array_info[:season]) if array_info[:season]
+
     array_info
   end
 
