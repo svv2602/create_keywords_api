@@ -31,8 +31,18 @@ class CarSeoTextGenerator
         ['оформите заказ онлайн', 'оформіть замовлення онлайн'] :
         ['оформіть замовлення онлайн', 'оформите заказ онлайн']
 
+      # Логируем для отладки
+      Rails.logger.info "Generated text length: #{text.length} characters"
+      Rails.logger.info "Text ends with: #{text[-100..-1]}" if text.length > 100
+      Rails.logger.info "Checking for CTA phrases: #{cta_phrases.inspect}"
+      cta_phrases.each do |phrase|
+        Rails.logger.info "  '#{phrase}' present: #{text.include?(phrase)}"
+      end
+
       unless text_complete?(text, required_phrases: cta_phrases)
         log_incomplete_text_warning("#{@brand} #{@model} (#{@language})")
+        Rails.logger.error "Text completeness check failed!"
+        Rails.logger.error "Text preview (last 200 chars): #{text[-200..-1]}" if text.length > 200
         return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
       end
 
@@ -63,9 +73,15 @@ class CarSeoTextGenerator
     # Удаляем лишние пробелы и переносы строк, но сохраняем структуру HTML
     # Также удаляем возможные div, классы и стили
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')  # Удаляем markdown code blocks
+    text = text.gsub(/<\/?html[^>]*>/, '')                   # Удаляем <html> и </html>
+    text = text.gsub(/<\/?body[^>]*>/, '')                   # Удаляем <body> и </body>
+    text = text.gsub(/<\/?head[^>]*>/, '')                   # Удаляем <head> и </head>
+    text = text.gsub(/<meta[^>]*>/, '')                      # Удаляем meta теги
+    text = text.gsub(/<title[^>]*>.*?<\/title>/m, '')        # Удаляем title
     text = text.gsub(/<div[^>]*>/, '').gsub(/<\/div>/, '')   # Удаляем div
     text = text.gsub(/<style[^>]*>.*?<\/style>/m, '')        # Удаляем style теги
     text = text.gsub(/class="[^"]*"/, '')                     # Удаляем классы
+    text = text.gsub(/style="[^"]*"/, '')                     # Удаляем inline стили
     text = text.gsub(/\s+/, ' ')                              # Множественные пробелы в один
     text = text.gsub(/>\s+</, '><')                           # Удаляем пробелы между тегами
     text.strip
@@ -205,6 +221,7 @@ class CarSeoTextGenerator
       - ПРАВИЛЬНО: /shiny/w-215/h-55/r-17/
 
       ВАЖНО: Верни ТОЛЬКО чистый HTML-код БЕЗ <div>, БЕЗ классов, БЕЗ <style>, БЕЗ markdown блоков. Начни сразу с <h2>.
+      НЕ ДОБАВЛЯЙ теги <!DOCTYPE>, <html>, <head>, <body> - ТОЛЬКО содержимое начиная с <h2> и заканчивая </p>.
     PROMPT
 
     prompt
@@ -309,6 +326,7 @@ class CarSeoTextGenerator
       - ПРАВИЛЬНО: /shiny/w-215/h-55/r-17/
 
       ВАЖЛИВО: Поверни ТІЛЬКИ чистий HTML-код БЕЗ <div>, БЕЗ класів, БЕЗ <style>, БЕЗ markdown блоків. Почни одразу з <h2>.
+      НЕ ДОДАВАЙ теги <!DOCTYPE>, <html>, <head>, <body> - ТІЛЬКИ вміст починаючи з <h2> і закінчуючи </p>.
     PROMPT
 
     prompt
