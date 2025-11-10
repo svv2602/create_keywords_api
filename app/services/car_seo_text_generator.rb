@@ -20,7 +20,8 @@ class CarSeoTextGenerator
     prompt = build_prompt
 
     # Генерация текста через AI (увеличиваем max_tokens для более длинного текста)
-    response = ContentWriter.new.write_seo_text(prompt, 6000)
+    # 8000 токенов = примерно 6000 слов = 24000-32000 символов (с запасом для украинского)
+    response = ContentWriter.new.write_seo_text(prompt, 8000)
 
     if response
       text = response['choices'][0]['message']['content'].strip
@@ -86,8 +87,11 @@ class CarSeoTextGenerator
     text = text.gsub(/<\/?div[^>]*>/i, '')                   # Удаляем div
     text = text.gsub(/<style[^>]*>.*?<\/style>/im, '')       # Удаляем style теги
 
-    # Удаляем обрезанные теги в конце (например "</html" без закрывающей скобки)
-    text = text.gsub(/<\/?(html|body|head|div|style)[^>]*$/i, '')
+    # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
+    text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
+
+    # Если текст не заканчивается на </p>, добавляем его
+    text += '</p>' unless text.strip.end_with?('</p>')
 
     # Удаляем атрибуты
     text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
