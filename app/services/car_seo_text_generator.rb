@@ -19,11 +19,18 @@ class CarSeoTextGenerator
     prompt = build_prompt
 
     # Генерация текста через AI (увеличиваем max_tokens для более длинного текста)
-    response = ContentWriter.new.write_seo_text(prompt, 4500)
+    response = ContentWriter.new.write_seo_text(prompt, 6000)
 
     if response
       text = response['choices'][0]['message']['content'].strip
       text = clean_html_text(text)
+
+      # Проверка на обрезанный текст
+      unless text_complete?(text)
+        Rails.logger.warn("Generated text appears to be truncated for #{@brand} #{@model}")
+        return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
+      end
+
       {
         text: text,
         brand: @brand,
@@ -45,6 +52,33 @@ class CarSeoTextGenerator
     raise ArgumentError, 'Model is required' if @model.blank?
     raise ArgumentError, 'Language must be ru or ua' unless %w[ru ua].include?(@language)
     raise ArgumentError, 'Typical sizes are required' if @typical_sizes.blank?
+  end
+
+  def text_complete?(text)
+    # Проверяем, что текст завершен корректно
+    # 1. Текст должен заканчиваться закрывающим тегом </p>
+    # 2. Текст должен содержать заключительную фразу CTA
+    # 3. HTML-теги должны быть сбалансированы (открывающие и закрывающие теги)
+
+    return false unless text.strip.end_with?('</p>')
+
+    # Проверяем наличие заключительной фразы в зависимости от языка
+    cta_present = if @language == 'ru'
+      text.include?('оформите заказ онлайн') || text.include?('оформіть замовлення онлайн')
+    else
+      text.include?('оформіть замовлення онлайн') || text.include?('оформите заказ онлайн')
+    end
+
+    return false unless cta_present
+
+    # Проверяем сбалансированность основных HTML-тегов
+    ['h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'a'].each do |tag|
+      opening = text.scan(/<#{tag}(?:\s[^>]*)?>/).count
+      closing = text.scan(/<\/#{tag}>/).count
+      return false if opening != closing
+    end
+
+    true
   end
 
   def clean_html_text(text)
