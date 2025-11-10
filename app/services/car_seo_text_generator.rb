@@ -27,13 +27,15 @@ class CarSeoTextGenerator
       text = response['choices'][0]['message']['content'].strip
       text = clean_html_text(text)
 
+      # Нормализуем украинский текст (заменяем латиницу на кириллицу)
+      text = normalize_ukrainian_text(text) if @language == 'ua'
+
       # Проверка на обрезанный текст
       cta_phrases = @language == 'ru' ?
         ['оформите заказ онлайн', 'оформіть замовлення онлайн'] :
         ['оформіть замовлення онлайн', 'оформите заказ онлайн']
 
-      # Проверка целостности текста (более мягкая для украинского языка)
-      # Украинский текст может содержать латиницу из-за особенностей AI кодирования
+      # Проверка целостности текста
       unless text_complete?(text, required_phrases: cta_phrases)
         log_incomplete_text_warning("#{@brand} #{@model} (#{@language})")
         return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
@@ -60,6 +62,55 @@ class CarSeoTextGenerator
     raise ArgumentError, 'Model is required' if @model.blank?
     raise ArgumentError, 'Language must be ru or ua' unless %w[ru ua].include?(@language)
     raise ArgumentError, 'Typical sizes are required' if @typical_sizes.blank?
+  end
+
+  def normalize_ukrainian_text(text)
+    # Карта замены латинских букв на украинские кириллические
+    # AI иногда генерирует украинский текст с латинскими символами, похожими на кириллицу
+    latin_to_cyrillic = {
+      'a' => 'а', 'A' => 'А',
+      'e' => 'е', 'E' => 'Е',
+      'i' => 'і', 'I' => 'І',
+      'o' => 'о', 'O' => 'О',
+      'p' => 'р', 'P' => 'Р',
+      'c' => 'с', 'C' => 'С',
+      'y' => 'у', 'Y' => 'У',
+      'x' => 'х', 'X' => 'Х',
+      'k' => 'к', 'K' => 'К',
+      'M' => 'М', 'm' => 'м',
+      'T' => 'Т', 't' => 'т',
+      'H' => 'Н', 'h' => 'н',
+      'B' => 'В', 'b' => 'в'
+    }
+
+    # Заменяем только в словах (не в HTML-тегах и атрибутах)
+    # Разбиваем на теги и текст
+    parts = text.split(/(<[^>]+>)/)
+
+    parts.map do |part|
+      # Если это не HTML-тег, нормализуем
+      if !part.start_with?('<')
+        # Заменяем латинские буквы на кириллические, но только если они окружены кириллицей
+        normalized = part.dup
+        latin_to_cyrillic.each do |latin, cyrillic|
+          # Заменяем латинскую букву, если рядом есть кириллица
+          normalized.gsub!(/([а-яіїєґА-ЯІЇЄҐ])#{Regexp.escape(latin)}([а-яіїєґА-ЯІЇЄҐ])/) do
+            "#{$1}#{cyrillic}#{$2}"
+          end
+          # Заменяем в начале слова если после идет кириллица
+          normalized.gsub!(/\b#{Regexp.escape(latin)}([а-яіїєґА-ЯІЇЄҐ])/) do
+            "#{cyrillic}#{$1}"
+          end
+          # Заменяем в конце слова если перед идет кириллица
+          normalized.gsub!(/([а-яіїєґА-ЯІЇЄҐ])#{Regexp.escape(latin)}\b/) do
+            "#{$1}#{cyrillic}"
+          end
+        end
+        normalized
+      else
+        part
+      end
+    end.join
   end
 
   def clean_html_text(text)
