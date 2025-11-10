@@ -3,6 +3,7 @@
 class SeoTextGenerator
     include StringProcessing
     include TextOptimization
+    include TextCompletenessValidation
   
   def initialize(params)
     @tire_description = params[:tire_description]
@@ -27,9 +28,17 @@ class SeoTextGenerator
     Rails.logger.info "SEO Generator Prompt - Language check: #{@language == 'ua' ? 'Ukrainian' : 'Russian'}"
     Rails.logger.info "SEO Generator Prompt preview: #{prompt.truncate(500)}"
     response = @content_writer.write_seo_text(prompt, @max_tokens)
-      
+
       if response && response['choices'] && response['choices'][0]
         generated_text = response['choices'][0]['message']['content'].strip
+
+        # Проверка целостности сгенерированного текста
+        unless text_complete?(generated_text)
+          log_incomplete_text_warning("#{@brand} #{@model} #{@size} (#{@language})")
+          Rails.logger.error "Generated text validation failed - returning nil"
+          return nil
+        end
+
         format_generated_text(generated_text)
       else
         nil

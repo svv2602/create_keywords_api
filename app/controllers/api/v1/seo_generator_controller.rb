@@ -24,7 +24,7 @@ class Api::V1::SeoGeneratorController < ApplicationController
         Rails.logger.info "SEO Generator Response - Text preview: #{seo_text&.truncate(200) || 'nil'}"
         
         if seo_text
-        render json: { 
+        render json: {
           success: true,
           seo_text: seo_text,
           product_id: generation_params[:product_id],
@@ -41,10 +41,10 @@ class Api::V1::SeoGeneratorController < ApplicationController
           }
         }, status: :ok
         else
-          render json: { 
-            success: false, 
-            error: 'Ошибка генерации текста' 
-          }, status: :internal_server_error
+          render json: {
+            success: false,
+            error: 'Generated text is incomplete or validation failed. Please try again or reduce text length requirements.'
+          }, status: :unprocessable_entity
         end
       rescue => e
         Rails.logger.error "SEO Text Generation Error: #{e.message}"
