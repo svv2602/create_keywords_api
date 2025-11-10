@@ -41,6 +41,10 @@ Rails.application.routes.draw do
       post '/generate_seo_text', to: 'seo_generator#generate_seo_text'
       # =========================================
 
+      # ==============Тексты для страниц автомобилей ========================
+      get '/car_seo_text', to: 'car_seo_texts#generate'
+      # =========================================
+
       get '/my_test', to: 'reviews#my_test'
 
     end
