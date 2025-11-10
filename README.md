@@ -631,22 +631,30 @@ API автоматически генерирует правильные ссы�
 
 ### Примеры запросов
 
-**Русский текст для Toyota Camry:**
+**Локальный сервер (localhost):**
 
 ```bash
+# Русский текст для Toyota Camry
 curl "http://localhost:3000/api/v1/car_seo_text?brand=toyota&model=camry&language=ru&typical_sizes=215/55R17,215/60R16,225/45R18"
-```
 
-**Украинский текст для BMW X5:**
-
-```bash
+# Украинский текст для BMW X5
 curl "http://localhost:3000/api/v1/car_seo_text?brand=bmw&model=x5&language=ua&typical_sizes=255/55R18,275/40R20&body_type=кроссовер&car_class=преміум"
+
+# С одним размером
+curl "http://localhost:3000/api/v1/car_seo_text?brand=mercedes&model=e-class&language=ru&typical_sizes=225/50R17"
 ```
 
-**С одним размером:**
+**Production сервер:**
 
 ```bash
-curl "http://localhost:3000/api/v1/car_seo_text?brand=mercedes&model=e-class&language=ru&typical_sizes=225/50R17"
+# Установите переменную окружения с адресом сервера
+export API_HOST="http://your-server.com:3003"
+
+# Украинский текст для Toyota Camry с двумя размерами
+curl "${API_HOST}/api/v1/car_seo_text?brand=toyota&model=camry&language=ua&typical_sizes=215/55R17,215/60R16"
+
+# Или напрямую (замените your-server.com на ваш адрес)
+curl "http://your-server.com:3003/api/v1/car_seo_text?brand=toyota&model=camry&language=ua&typical_sizes=215/55R17,215/60R16"
 ```
 
 ### Пример сгенерированного текста (фрагмент)
