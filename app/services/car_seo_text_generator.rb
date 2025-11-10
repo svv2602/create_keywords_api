@@ -72,18 +72,31 @@ class CarSeoTextGenerator
   def clean_html_text(text)
     # Удаляем лишние пробелы и переносы строк, но сохраняем структуру HTML
     # Также удаляем возможные div, классы и стили
-    text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')  # Удаляем markdown code blocks
-    text = text.gsub(/<\/?html[^>]*>/, '')                   # Удаляем <html> и </html>
-    text = text.gsub(/<\/?body[^>]*>/, '')                   # Удаляем <body> и </body>
-    text = text.gsub(/<\/?head[^>]*>/, '')                   # Удаляем <head> и </head>
-    text = text.gsub(/<meta[^>]*>/, '')                      # Удаляем meta теги
-    text = text.gsub(/<title[^>]*>.*?<\/title>/m, '')        # Удаляем title
-    text = text.gsub(/<div[^>]*>/, '').gsub(/<\/div>/, '')   # Удаляем div
-    text = text.gsub(/<style[^>]*>.*?<\/style>/m, '')        # Удаляем style теги
-    text = text.gsub(/class="[^"]*"/, '')                     # Удаляем классы
-    text = text.gsub(/style="[^"]*"/, '')                     # Удаляем inline стили
+
+    # Сначала удаляем markdown блоки
+    text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
+
+    # Удаляем все нежелательные теги (даже если они обрезаны или без закрывающих скобок)
+    text = text.gsub(/<!DOCTYPE[^>]*>/i, '')                 # Удаляем DOCTYPE
+    text = text.gsub(/<\/?html[^>]*>/i, '')                  # Удаляем <html> и </html>
+    text = text.gsub(/<\/?body[^>]*>/i, '')                  # Удаляем <body> и </body>
+    text = text.gsub(/<\/?head[^>]*>/i, '')                  # Удаляем <head> и </head>
+    text = text.gsub(/<meta[^>]*>/i, '')                     # Удаляем meta теги
+    text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')       # Удаляем title
+    text = text.gsub(/<\/?div[^>]*>/i, '')                   # Удаляем div
+    text = text.gsub(/<style[^>]*>.*?<\/style>/im, '')       # Удаляем style теги
+
+    # Удаляем обрезанные теги в конце (например "</html" без закрывающей скобки)
+    text = text.gsub(/<\/?(html|body|head|div|style)[^>]*$/i, '')
+
+    # Удаляем атрибуты
+    text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
+    text = text.gsub(/\s*style="[^"]*"/, '')                  # Удаляем inline стили
+
+    # Очищаем пробелы
     text = text.gsub(/\s+/, ' ')                              # Множественные пробелы в один
     text = text.gsub(/>\s+</, '><')                           # Удаляем пробелы между тегами
+
     text.strip
   end
 
