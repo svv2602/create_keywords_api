@@ -80,32 +80,62 @@ class CarSeoTextGenerator
       'M' => 'М', 'm' => 'м',
       'T' => 'Т', 't' => 'т',
       'H' => 'Н', 'h' => 'н',
-      'B' => 'В', 'b' => 'в'
+      'B' => 'В', 'b' => 'в',
+      'r' => 'г', 'R' => 'Г'  # r часто используется вместо г
     }
 
-    # Заменяем только в словах (не в HTML-тегах и атрибутах)
+    # Загружаем список брендов шин из базы данных (только латинские названия)
+    # Кешируем в переменной экземпляра для производительности
+    @tire_brands ||= Brand.pluck(:name).compact.uniq.select { |b| b.match?(/^[A-Za-z\s']+$/) }
+
+    # Добавляем бренд и модель автомобиля в список защищаемых слов
+    protected_words = @tire_brands.dup
+    protected_words << @brand if @brand.present? && @brand.match?(/^[A-Za-z\s']+$/)
+    protected_words << @model if @model.present? && @model.match?(/^[A-Za-z\s']+$/)
+    protected_words << @brand.capitalize if @brand.present?
+    protected_words << @model.capitalize if @model.present?
+    protected_words.uniq!
+
     # Разбиваем на теги и текст
     parts = text.split(/(<[^>]+>)/)
 
     parts.map do |part|
       # Если это не HTML-тег, нормализуем
       if !part.start_with?('<')
-        # Заменяем латинские буквы на кириллические, но только если они окружены кириллицей
+        # Сначала защищаем названия (заменяем на плейсхолдеры)
+        word_placeholders = {}
         normalized = part.dup
-        latin_to_cyrillic.each do |latin, cyrillic|
-          # Заменяем латинскую букву, если рядом есть кириллица
-          normalized.gsub!(/([а-яіїєґА-ЯІЇЄҐ])#{Regexp.escape(latin)}([а-яіїєґА-ЯІЇЄҐ])/) do
-            "#{$1}#{cyrillic}#{$2}"
-          end
-          # Заменяем в начале слова если после идет кириллица
-          normalized.gsub!(/\b#{Regexp.escape(latin)}([а-яіїєґА-ЯІЇЄҐ])/) do
-            "#{cyrillic}#{$1}"
-          end
-          # Заменяем в конце слова если перед идет кириллица
-          normalized.gsub!(/([а-яіїєґА-ЯІЇЄҐ])#{Regexp.escape(latin)}\b/) do
-            "#{$1}#{cyrillic}"
+
+        protected_words.each_with_index do |word, index|
+          if normalized.include?(word)
+            placeholder = "___PROTECTED_#{index}___"
+            normalized.gsub!(word, placeholder)
+            word_placeholders[placeholder] = word
           end
         end
+
+        # Проходим несколько раз для замены всех вхождений латиницы на кириллицу
+        3.times do
+          latin_to_cyrillic.each do |latin, cyrillic|
+            # Агрессивная замена: заменяем все латинские буквы на кириллические
+            # если хотя бы одна кириллическая буква есть в соседних 5 символах
+            normalized.gsub!(/(.{0,5})#{Regexp.escape(latin)}(.{0,5})/) do
+              before, after = $1, $2
+              # Если рядом есть кириллица - заменяем
+              if before =~ /[а-яіїєґА-ЯІЇЄҐ]/ || after =~ /[а-яіїєґА-ЯІЇЄҐ]/
+                "#{before}#{cyrillic}#{after}"
+              else
+                "#{before}#{latin}#{after}"
+              end
+            end
+          end
+        end
+
+        # Восстанавливаем защищенные слова
+        word_placeholders.each do |placeholder, word|
+          normalized.gsub!(placeholder, word)
+        end
+
         normalized
       else
         part
