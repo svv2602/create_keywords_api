@@ -122,7 +122,8 @@ class CarSeoTextGenerator
 
         protected_words.each_with_index do |word, index|
           if normalized.include?(word)
-            placeholder = "___PROTECTED_#{index}___"
+            # Используем плейсхолдер с цифрами и подчеркиваниями, без латинских букв
+            placeholder = "___#{index}___"
             normalized.gsub!(word, placeholder)
             word_placeholders[placeholder] = word
           end
