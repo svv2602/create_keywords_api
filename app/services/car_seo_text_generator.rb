@@ -32,18 +32,10 @@ class CarSeoTextGenerator
         ['оформите заказ онлайн', 'оформіть замовлення онлайн'] :
         ['оформіть замовлення онлайн', 'оформите заказ онлайн']
 
-      # Логируем для отладки
-      Rails.logger.info "Generated text length: #{text.length} characters"
-      Rails.logger.info "Text ends with: #{text[-100..-1]}" if text.length > 100
-      Rails.logger.info "Checking for CTA phrases: #{cta_phrases.inspect}"
-      cta_phrases.each do |phrase|
-        Rails.logger.info "  '#{phrase}' present: #{text.include?(phrase)}"
-      end
-
+      # Проверка целостности текста (более мягкая для украинского языка)
+      # Украинский текст может содержать латиницу из-за особенностей AI кодирования
       unless text_complete?(text, required_phrases: cta_phrases)
         log_incomplete_text_warning("#{@brand} #{@model} (#{@language})")
-        Rails.logger.error "Text completeness check failed!"
-        Rails.logger.error "Text preview (last 200 chars): #{text[-200..-1]}" if text.length > 200
         return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
       end
 
