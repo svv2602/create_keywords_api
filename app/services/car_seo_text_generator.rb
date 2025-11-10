@@ -19,16 +19,28 @@ class CarSeoTextGenerator
 
     prompt = build_prompt
 
-    # Генерация текста через AI (увеличиваем max_tokens для более длинного текста)
-    # 8000 токенов = примерно 6000 слов = 24000-32000 символов (с запасом для украинского)
-    response = ContentWriter.new.write_seo_text(prompt, 8000)
+    # Генерация текста через AI
+    # 3000 токенов = примерно 2000-2500 слов = 8000-12000 символов
+    # Уменьшенное значение для уменьшения вероятности обрезания текста
+    response = ContentWriter.new.write_seo_text(prompt, 3000)
 
     if response
       text = response['choices'][0]['message']['content'].strip
+
+      Rails.logger.info "Raw AI response length: #{text.length} characters"
+      Rails.logger.info "Raw text encoding: #{text.encoding}"
+      Rails.logger.info "Raw text sample (first 200 chars): #{text[0..200]}"
+
       text = clean_html_text(text)
 
+      Rails.logger.info "After clean_html_text length: #{text.length}"
+      Rails.logger.info "Before normalization sample (last 200 chars): #{text[-200..-1]}" if @language == 'ua'
+
       # Нормализуем украинский текст (заменяем латиницу на кириллицу)
-      text = normalize_ukrainian_text(text) if @language == 'ua'
+      if @language == 'ua'
+        text = normalize_ukrainian_text(text)
+        Rails.logger.info "After normalization sample (last 200 chars): #{text[-200..-1]}"
+      end
 
       # Проверка на обрезанный текст
       cta_phrases = @language == 'ru' ?
@@ -38,6 +50,8 @@ class CarSeoTextGenerator
       # Проверка целостности текста
       unless text_complete?(text, required_phrases: cta_phrases)
         log_incomplete_text_warning("#{@brand} #{@model} (#{@language})")
+        Rails.logger.error "Text completeness check failed!"
+        Rails.logger.error "Text preview (last 200 chars): #{text[-200..-1]}"
         return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
       end
 
@@ -245,7 +259,7 @@ class CarSeoTextGenerator
       1. НЕ используй <div>, классы, ID или <style> - только чистый HTML с заголовками, параграфами и списками
       2. Начни СРАЗУ с заголовка <h2>Шины для #{@brand.capitalize} #{@model.capitalize}</h2>
       3. Используй списки (<ul> или <ol>) для перечислений
-      4. Длина текста: 2500-3500 знаков (для популярных моделей до 4000)
+      4. Длина текста: 1500-2500 знаков (компактный формат)
       5. ОБЯЗАТЕЛЬНО органично вставь ВСЕ предоставленные ссылки в текст (каждую ссылку только ОДИН раз)
       6. Используй только объективный, технический стиль изложения. НЕ используй личные местоимения (я, мне, мой и т.д.)
 
@@ -350,7 +364,7 @@ class CarSeoTextGenerator
       1. НЕ використовуй <div>, класи, ID або <style> - тільки чистий HTML із заголовками, параграфами та списками
       2. Почни ОДРАЗУ з заголовка <h2>Шини для #{@brand.capitalize} #{@model.capitalize}</h2>
       3. Використовуй списки (<ul> або <ol>) для переліків
-      4. Довжина тексту: 2500-3500 знаків (для популярних моделей до 4000)
+      4. Довжина тексту: 1500-2500 знаків (компактний формат)
       5. ОБОВ'ЯЗКОВО органічно встав ВСІ надані посилання в текст (кожне посилання тільки ОДИН раз)
       6. Використовуй тільки об'єктивний, технічний стиль викладу. НЕ використовуй особові займенники (я, мені, мій тощо)
 

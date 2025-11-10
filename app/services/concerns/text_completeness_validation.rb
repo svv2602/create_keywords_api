@@ -11,12 +11,25 @@ module TextCompletenessValidation
     tags_to_check = options[:tags_to_check] || ['h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'a']
 
     # 1. Проверяем, что текст заканчивается корректно
-    return false unless text.strip.end_with?(required_ending_tag)
+    Rails.logger.info "Generated text length: #{text.length} characters"
+    Rails.logger.info "Text ends with: #{text[-100..-1]}" if text.length > 100
+    unless text.strip.end_with?(required_ending_tag)
+      Rails.logger.warn "text_complete?: Text doesn't end with required tag '#{required_ending_tag}'"
+      return false
+    end
 
     # 2. Проверяем наличие обязательных фраз (если указаны)
     if required_phrases.any?
+      Rails.logger.info "Checking for CTA phrases: #{required_phrases.inspect}"
+      required_phrases.each do |phrase|
+        present = text.include?(phrase)
+        Rails.logger.info "  '#{phrase}' present: #{present}"
+      end
       phrases_present = required_phrases.any? { |phrase| text.include?(phrase) }
-      return false unless phrases_present
+      unless phrases_present
+        Rails.logger.warn "text_complete?: None of required phrases found: #{required_phrases.inspect}"
+        return false
+      end
     end
 
     # 3. Проверяем сбалансированность HTML-тегов
@@ -31,8 +44,12 @@ module TextCompletenessValidation
     # 4. Проверяем, что текст не заканчивается незавершенным тегом или словом
     # Если последние 50 символов содержат открывающий тег без закрывающего - текст обрезан
     last_chars = text[-50..-1] || text
-    return false if last_chars.match?(/<[^>]*$/)
+    if last_chars.match?(/<[^>]*$/)
+      Rails.logger.warn "text_complete?: Text ends with incomplete tag"
+      return false
+    end
 
+    Rails.logger.info "text_complete?: All checks passed ✓"
     true
   end
 
