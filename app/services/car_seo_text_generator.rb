@@ -3,6 +3,13 @@ class CarSeoTextGenerator
   include StringProcessing
   include TextCompletenessValidation
 
+  # Классификация брендов шин по сегментам
+  TIRE_BRANDS_BY_SEGMENT = {
+    premium: %w[Michelin Bridgestone Continental Pirelli Goodyear Dunlop Yokohama Hankook Nokian],
+    mid: %w[Toyo Kumho Maxxis Falken BFGoodrich Cooper Nexen Nankang Firestone Uniroyal GT-Radial],
+    budget: %w[Matador Debica Barum Sava Triangle Headway Kenda Infinity Linglong Sailun Roadstone Cordiant]
+  }.freeze
+
   def initialize(params)
     @brand = params[:brand]
     @model = params[:model]
@@ -226,6 +233,48 @@ class CarSeoTextGenerator
     links.join("\n")
   end
 
+  def select_random_tire_brands
+    # Выбираем по одному случайному бренду из каждого сегмента
+    selected_brands = []
+
+    TIRE_BRANDS_BY_SEGMENT.each do |segment, brands|
+      # Фильтруем бренды, которые есть в базе данных для данного языка
+      available_brands = brands.select do |brand_name|
+        Brand.exists?(name: brand_name, language: @language)
+      end
+
+      # Если нет брендов в базе - используем любой из списка
+      brand_to_use = available_brands.any? ? available_brands.sample : brands.sample
+      selected_brands << brand_to_use
+    end
+
+    selected_brands
+  end
+
+  def build_tire_brand_links
+    # Генерируем ссылки на выбранные бренды шин
+    selected_brands = select_random_tire_brands
+
+    links = selected_brands.map do |brand_name|
+      # Ищем URL бренда в базе данных
+      brand_record = Brand.find_by(name: brand_name, language: @language)
+
+      if brand_record && brand_record.url.present?
+        url = brand_record.url
+        # Добавляем префикс для украинского языка если нужно
+        url = "/ua#{url}" if @language == 'ua' && !url.start_with?('/ua')
+        "- <a href=\"#{url}\">#{brand_name}</a>"
+      else
+        # Fallback: генерируем URL из названия бренда
+        slug = brand_name.downcase.gsub(/\s+/, '-')
+        url = @language == 'ua' ? "/ua/shiny/#{slug}/" : "/shiny/#{slug}/"
+        "- <a href=\"#{url}\">#{brand_name}</a>"
+      end
+    end
+
+    { brands: selected_brands, links: links.join("\n") }
+  end
+
   def build_russian_prompt
     wikipedia_section = if @wikipedia_info.present?
       <<~WIKI
@@ -238,6 +287,11 @@ class CarSeoTextGenerator
     else
       ""
     end
+
+    # Получаем динамически выбранные бренды и их ссылки
+    tire_brands_data = build_tire_brand_links
+    selected_brands = tire_brands_data[:brands]
+    tire_brand_links = tire_brands_data[:links]
 
     prompt = <<~PROMPT
       КРИТИЧЕСКИ ВАЖНО: Генерируй текст ТОЛЬКО на русском языке!
@@ -259,6 +313,9 @@ class CarSeoTextGenerator
       #{build_brand_links}
 
       #{build_size_links}
+
+      ССЫЛКИ НА БРЕНДЫ ШИН (ОБЯЗАТЕЛЬНО ИСПОЛЬЗУЙ ВСЕ ТРИ):
+      #{tire_brand_links}
 
       ИНСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ ССЫЛОК:
       - Каждую ссылку используй ТОЧНО ОДИН РАЗ в тексте
@@ -288,7 +345,8 @@ class CarSeoTextGenerator
          <ul> со списком всех предоставленных размеров с их особенностями (используй все ссылки на размеры)
 
       4. <h3>Популярные бренды и их особенности</h3>
-         <p>Информация о рекомендуемых производителях шин для этой модели (Bridgestone, Michelin, Continental, Nokian и др.) - кратко, 2-3 предложения с упоминанием сезонности и типов шин</p>
+         <p>Информация о рекомендуемых производителях шин для этой модели - кратко, 2-3 предложения с упоминанием сезонности и типов шин.
+         ОБЯЗАТЕЛЬНО упомяни следующие бренды и ИСПОЛЬЗУЙ предоставленные ссылки на них: #{selected_brands.join(', ')}</p>
 
       5. <h3>Рекомендации по подбору шин</h3>
          <ul> или <ol> с 4-5 пунктами:
@@ -341,6 +399,11 @@ class CarSeoTextGenerator
       ""
     end
 
+    # Получаем динамически выбранные бренды и их ссылки
+    tire_brands_data = build_tire_brand_links
+    selected_brands = tire_brands_data[:brands]
+    tire_brand_links = tire_brands_data[:links]
+
     prompt = <<~PROMPT
       КРИТИЧНО ВАЖЛИВО: Генеруй текст ТІЛЬКИ українською мовою!
 
@@ -361,6 +424,9 @@ class CarSeoTextGenerator
       #{build_brand_links}
 
       #{build_size_links}
+
+      ПОСИЛАННЯ НА БРЕНДИ ШИН (ОБОВ'ЯЗКОВО ВИКОРИСТАЙ УСІ ТРИ):
+      #{tire_brand_links}
 
       ІНСТРУКЦІЯ З ВИКОРИСТАННЯ ПОСИЛАНЬ:
       - Кожне посилання використовуй ТОЧНО ОДИН РАЗ в тексті
@@ -390,7 +456,8 @@ class CarSeoTextGenerator
          <ul> зі списком усіх наданих розмірів та їхніх особливостей (використовуй усі посилання на розміри)
 
       4. <h3>Популярні бренди та їхні особливості</h3>
-         <p>Інформація про рекомендовані виробники шин для цієї моделі (Bridgestone, Michelin, Continental, Nokian тощо) - коротко, 2-3 речення з згадкою сезонності та типів шин</p>
+         <p>Інформація про рекомендовані виробники шин для цієї моделі - коротко, 2-3 речення з згадкою сезонності та типів шин.
+         ОБОВ'ЯЗКОВО згадай наступні бренди та ВИКОРИСТАЙ надані посилання на них: #{selected_brands.join(', ')}</p>
 
       5. <h3>Рекомендації щодо підбору шин</h3>
          <ul> або <ol> з 4-5 пунктами:
