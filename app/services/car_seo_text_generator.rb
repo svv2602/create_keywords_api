@@ -5,10 +5,12 @@ class CarSeoTextGenerator
 
   # Классификация брендов шин по сегментам
   TIRE_BRANDS_BY_SEGMENT = {
-    premium: %w[Michelin Bridgestone Continental Pirelli Goodyear Dunlop Yokohama Hankook Nokian],
-    mid: %w[Toyo Kumho Maxxis Falken BFGoodrich Cooper Nexen Nankang Firestone Uniroyal GT-Radial],
-    budget: %w[Matador Debica Barum Sava Triangle Headway Kenda Infinity Linglong Sailun Roadstone Cordiant]
+    premium: %w[Michelin Bridgestone Continental Pirelli Goodyear Yokohama Hankook Nokian],
+    mid: %w[Toyo Kumho BFGoodrich Nexen Firestone Kleber Uniroyal LASSA Laufenn],
+    budget: %w[Matador Debica Barum Sava Taurus ORIUM Sailun Roadstone Doublestar HABILEAD Grenlander Firemax Premiorri Rydanz]
   }.freeze
+
+
 
   def initialize(params)
     @brand = params[:brand]
