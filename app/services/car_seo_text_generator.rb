@@ -61,9 +61,18 @@ class CarSeoTextGenerator
       # Проверка целостности текста
       unless text_complete?(text, required_phrases: cta_phrases)
         log_incomplete_text_warning("#{@brand} #{@model} (#{@language})")
-        Rails.logger.error "Text completeness check failed!"
-        Rails.logger.error "Text preview (last 200 chars): #{text[-200..-1]}"
-        return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
+        Rails.logger.warn "Text appears incomplete, attempting to complete it..."
+
+        # Пытаемся автоматически завершить обрезанный текст
+        completed_text = complete_truncated_text(text, max_tokens)
+
+        if completed_text && text_complete?(completed_text, required_phrases: cta_phrases)
+          Rails.logger.info "Text successfully completed!"
+          text = completed_text
+        else
+          Rails.logger.error "Failed to complete text"
+          return { error: 'Generated text is incomplete. Please try again or reduce text length requirements.' }
+        end
       end
 
       {
@@ -508,5 +517,146 @@ class CarSeoTextGenerator
       'пикап' => 'пікап'
     }
     translations[body_type.downcase] || body_type
+  end
+
+  # Автоматически завершает обрезанный текст
+  def complete_truncated_text(truncated_text, original_max_tokens)
+    Rails.logger.info "Attempting to complete truncated car SEO text..."
+
+    # Определяем, что именно отсутствует в тексте
+    missing_elements = analyze_missing_elements(truncated_text)
+
+    completion_prompt = build_completion_prompt(truncated_text, missing_elements)
+
+    # Используем меньше токенов для дописывания (500-800 достаточно для завершения)
+    response = ContentWriter.new.write_seo_text(completion_prompt, 800)
+
+    if response && response['choices'] && response['choices'][0]
+      completion = response['choices'][0]['message']['content'].strip
+
+      # Объединяем исходный текст с дописанным
+      merge_texts(truncated_text, completion)
+    else
+      nil
+    end
+  rescue => e
+    Rails.logger.error "Error completing car SEO text: #{e.message}"
+    nil
+  end
+
+  # Анализирует, каких элементов не хватает в тексте
+  def analyze_missing_elements(text)
+    missing = []
+
+    # Проверяем наличие CTA фраз
+    cta_phrases = @language == 'ua' ?
+      ['оформіть замовлення онлайн', 'замовити онлайн'] :
+      ['оформите заказ онлайн', 'заказать онлайн']
+
+    has_cta = cta_phrases.any? { |phrase| text.include?(phrase) }
+    missing << :cta unless has_cta
+
+    # Проверяем наличие закрывающего </p>
+    missing << :closing_tag unless text.strip.end_with?('</p>')
+
+    # Проверяем наличие последнего параграфа с призывом к действию
+    last_p_match = text.match(/<p>([^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*)<\/p>\s*$/i)
+    if last_p_match
+      last_paragraph = last_p_match[1]
+      buy_phrases = @language == 'ua' ?
+        ['купити шини', 'купити резину'] :
+        ['купить шины', 'купить резину']
+      has_buy_phrase = buy_phrases.any? { |phrase| last_paragraph.downcase.include?(phrase) }
+      missing << :buy_phrase unless has_buy_phrase
+    else
+      missing << :final_paragraph
+    end
+
+    missing
+  end
+
+  # Строит промпт для завершения текста
+  def build_completion_prompt(truncated_text, missing_elements)
+    language_instruction = @language == 'ua' ?
+      'КРИТИЧНО ВАЖЛИВО: Пиши ТІЛЬКИ українською мовою!' :
+      'КРИТИЧЕСКИ ВАЖНО: Пиши ТОЛЬКО на русском языке!'
+
+    task_description = if @language == 'ua'
+      "Тобі надано незавершений SEO-текст про шини для #{@brand.capitalize} #{@model.capitalize}."
+    else
+      "Тебе предоставлен незавершенный SEO-текст о шинах для #{@brand.capitalize} #{@model.capitalize}."
+    end
+
+    requirements = []
+    if missing_elements.include?(:cta) || missing_elements.include?(:buy_phrase) || missing_elements.include?(:final_paragraph)
+      requirements << if @language == 'ua'
+        "Додай заключний параграф <p> з фразами 'Купити шини на #{@brand.capitalize} #{@model.capitalize}' та 'оформіть замовлення онлайн'"
+      else
+        "Добавь заключительный параграф <p> с фразами 'Купить шины на #{@brand.capitalize} #{@model.capitalize}' и 'оформите заказ онлайн'"
+      end
+    end
+
+    if missing_elements.include?(:closing_tag)
+      requirements << (@language == 'ua' ?
+        "Закрий всі незакриті HTML-теги" :
+        "Закрой все незакрытые HTML-теги")
+    end
+
+    <<~PROMPT
+      #{language_instruction}
+
+      #{task_description}
+
+      НЕЗАВЕРШЕННЫЙ ТЕКСТ:
+      #{truncated_text}
+
+      ЗАДАНИЕ:
+      #{requirements.join("\n")}
+
+      ВАЖНО:
+      - #{@language == 'ua' ? 'Поверни ТІЛЬКИ текст для доповнення (продовження останнього речення + заключний параграф)' : 'Верни ТОЛЬКО текст для дополнения (продолжение последнего предложения + заключительный параграф)'}
+      - #{@language == 'ua' ? 'НЕ дублюй існуючий текст' : 'НЕ дублируй существующий текст'}
+      - #{@language == 'ua' ? 'Використовуй тільки чистий HTML без <div>, класів, стилів' : 'Используй только чистый HTML без <div>, классов, стилей'}
+      - #{@language == 'ua' ? 'Текст має логічно продовжувати попередній' : 'Текст должен логично продолжать предыдущий'}
+      - #{@language == 'ua' ? 'Обсяг: 100-200 слів' : 'Объем: 100-200 слов'}
+    PROMPT
+  end
+
+  # Объединяет исходный текст с дописанным
+  def merge_texts(original, completion)
+    # Очищаем completion от возможных markdown блоков
+    completion = completion.gsub(/```html\s*/, '').gsub(/```\s*$/, '').strip
+
+    # Удаляем из completion возможные начальные теги документа
+    completion = completion.gsub(/^<!DOCTYPE[^>]*>/i, '')
+                          .gsub(/^<html[^>]*>/i, '')
+                          .gsub(/^<body[^>]*>/i, '')
+                          .strip
+
+    # Проверяем, заканчивается ли оригинальный текст незакрытым тегом
+    original_cleaned = original.dup
+
+    # Если текст обрезан посреди слова или тега - находим последний полный тег
+    if original_cleaned =~ /<[^>]*$/
+      # Удаляем незакрытый тег в конце
+      original_cleaned = original_cleaned.sub(/<[^>]*$/, '')
+    end
+
+    # Находим последний закрывающий тег
+    last_closing_tag = original_cleaned.rindex(/<\/[^>]+>/)
+
+    if last_closing_tag
+      # Берем текст до последнего закрывающего тега + сам тег
+      tag_end = original_cleaned.index('>', last_closing_tag) + 1
+      original_cleaned = original_cleaned[0...tag_end]
+    end
+
+    # Объединяем тексты
+    merged = original_cleaned.strip
+    merged += ' ' unless merged.end_with?(' ', '>')
+    merged += completion
+
+    # Финальная очистка
+    clean_html_text(merged)
   end
 end
