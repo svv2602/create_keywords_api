@@ -17,12 +17,20 @@ class CarSeoTextGenerator
   def generate
     validate_params!
 
+    # Пытаемся получить информацию из Wikipedia
+    @wikipedia_info = fetch_wikipedia_info
+
     prompt = build_prompt
 
     # Генерация текста через AI
-    # 3000 токенов = примерно 2000-2500 слов = 8000-12000 символов
-    # Уменьшенное значение для уменьшения вероятности обрезания текста
-    response = ContentWriter.new.write_seo_text(prompt, 3000)
+    # Если есть Wikipedia - увеличиваем токены до 4500 для более детального текста
+    # Иначе используем 3000 токенов как раньше
+    max_tokens = @wikipedia_info.present? ? 4500 : 3000
+
+    Rails.logger.info "Wikipedia info present: #{@wikipedia_info.present?}"
+    Rails.logger.info "Using max_tokens: #{max_tokens}"
+
+    response = ContentWriter.new.write_seo_text(prompt, max_tokens)
 
     if response
       text = response['choices'][0]['message']['content'].strip
@@ -72,6 +80,79 @@ class CarSeoTextGenerator
     raise ArgumentError, 'Typical sizes are required' if @typical_sizes.blank?
   end
 
+  def fetch_wikipedia_info
+    return nil if @brand.blank? || @model.blank?
+
+    require 'net/http'
+    require 'json'
+
+    wiki_lang = @language == 'ua' ? 'uk' : 'ru'
+
+    # Формируем название страницы (заменяем пробелы на подчеркивания)
+    page_title = "#{@brand}_#{@model}".gsub(' ', '_')
+
+    Rails.logger.info "Fetching Wikipedia info for: #{page_title} (#{wiki_lang})"
+
+    # Пробуем прямой запрос к Wikipedia REST API
+    url = URI("https://#{wiki_lang}.wikipedia.org/api/rest_v1/page/summary/#{URI.encode_www_form_component(page_title)}")
+
+    begin
+      response = Net::HTTP.start(url.host, url.port, use_ssl: true, open_timeout: 5, read_timeout: 5) do |http|
+        request = Net::HTTP::Get.new(url)
+        request['User-Agent'] = 'ProKoleso SEO Bot/1.0'
+        http.request(request)
+      end
+
+      if response.code == '200'
+        data = JSON.parse(response.body)
+        if data['extract'].present?
+          Rails.logger.info "Wikipedia: Found article directly - #{page_title}"
+          return data['extract']
+        end
+      end
+    rescue => e
+      Rails.logger.warn "Wikipedia direct request failed: #{e.message}"
+    end
+
+    # Если прямой запрос не сработал - используем поиск
+    begin
+      search_url = URI("https://#{wiki_lang}.wikipedia.org/w/rest.php/v1/search/page?q=#{URI.encode_www_form_component("#{@brand} #{@model}")}&limit=1")
+      search_response = Net::HTTP.start(search_url.host, search_url.port, use_ssl: true, open_timeout: 5, read_timeout: 5) do |http|
+        request = Net::HTTP::Get.new(search_url)
+        request['User-Agent'] = 'ProKoleso SEO Bot/1.0'
+        http.request(request)
+      end
+
+      if search_response.code == '200'
+        search_data = JSON.parse(search_response.body)
+        if search_data['pages']&.any?
+          page_key = search_data['pages'][0]['key']
+          Rails.logger.info "Wikipedia: Found via search - #{page_key}"
+
+          # Получаем саммари найденной страницы
+          summary_url = URI("https://#{wiki_lang}.wikipedia.org/api/rest_v1/page/summary/#{URI.encode_www_form_component(page_key)}")
+          summary_response = Net::HTTP.start(summary_url.host, summary_url.port, use_ssl: true, open_timeout: 5, read_timeout: 5) do |http|
+            request = Net::HTTP::Get.new(summary_url)
+            request['User-Agent'] = 'ProKoleso SEO Bot/1.0'
+            http.request(request)
+          end
+
+          if summary_response.code == '200'
+            summary_data = JSON.parse(summary_response.body)
+            return summary_data['extract'] if summary_data['extract'].present?
+          end
+        end
+      end
+    rescue => e
+      Rails.logger.warn "Wikipedia search failed: #{e.message}"
+    end
+
+    Rails.logger.info "Wikipedia: No article found for #{@brand} #{@model}"
+    nil
+  rescue => e
+    Rails.logger.error "Wikipedia fetch error: #{e.message}"
+    nil
+  end
 
   def clean_html_text(text)
     # Удаляем лишние пробелы и переносы строк, но сохраняем структуру HTML
@@ -146,6 +227,18 @@ class CarSeoTextGenerator
   end
 
   def build_russian_prompt
+    wikipedia_section = if @wikipedia_info.present?
+      <<~WIKI
+        ИНФОРМАЦИЯ ИЗ WIKIPEDIA:
+        #{@wikipedia_info}
+
+        ИНСТРУКЦИЯ: Используй эту информацию для более точного и детального описания автомобиля в разделе "О модели" и при упоминании характеристик. Указывай годы выпуска, класс автомобиля, особенности из Wikipedia.
+
+      WIKI
+    else
+      ""
+    end
+
     prompt = <<~PROMPT
       КРИТИЧЕСКИ ВАЖНО: Генерируй текст ТОЛЬКО на русском языке!
 
@@ -159,6 +252,8 @@ class CarSeoTextGenerator
       #{@body_type.present? ? "- Тип кузова: #{@body_type}" : ""}
       #{@car_class.present? ? "- Класс автомобиля: #{@car_class}" : ""}
       - Типичные размеры шин: #{@typical_sizes.join(', ')}
+
+      #{wikipedia_section}
 
       ССЫЛКИ ДЛЯ ОРГАНИЧНОЙ ВСТАВКИ В ТЕКСТ:
       #{build_brand_links}
@@ -234,6 +329,18 @@ class CarSeoTextGenerator
     # Перевод значений для украинского языка
     body_type_ua = translate_body_type(@body_type) if @body_type.present?
 
+    wikipedia_section = if @wikipedia_info.present?
+      <<~WIKI
+        ІНФОРМАЦІЯ З WIKIPEDIA:
+        #{@wikipedia_info}
+
+        ІНСТРУКЦІЯ: Використовуй цю інформацію для більш точного та детального опису автомобіля в розділі "Про модель" та при згадці характеристик. Вказуй роки випуску, клас автомобіля, особливості з Wikipedia.
+
+      WIKI
+    else
+      ""
+    end
+
     prompt = <<~PROMPT
       КРИТИЧНО ВАЖЛИВО: Генеруй текст ТІЛЬКИ українською мовою!
 
@@ -247,6 +354,8 @@ class CarSeoTextGenerator
       #{body_type_ua.present? ? "- Тип кузова: #{body_type_ua}" : ""}
       #{@car_class.present? ? "- Клас автомобіля: #{@car_class}" : ""}
       - Типові розміри шин: #{@typical_sizes.join(', ')}
+
+      #{wikipedia_section}
 
       ПОСИЛАННЯ ДЛЯ ОРГАНІЧНОЇ ВСТАВКИ В ТЕКСТ:
       #{build_brand_links}
