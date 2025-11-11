@@ -431,6 +431,9 @@ class SeoTextGenerator
       original_cleaned = original_cleaned[0...tag_end]
     end
 
+    # Удаляем дублирование: проверяем, не начинается ли completion с конца original
+    completion = remove_duplicate_text(original_cleaned, completion)
+
     # Объединяем тексты
     merged = original_cleaned.strip
     merged += ' ' unless merged.end_with?(' ', '>')
@@ -438,6 +441,47 @@ class SeoTextGenerator
 
     # Финальная очистка
     clean_html_text(merged)
+  end
+
+  # Удаляет дублирующийся текст из начала completion
+  def remove_duplicate_text(original, completion)
+    # Извлекаем текст без HTML тегов для сравнения
+    original_text = original.gsub(/<[^>]+>/, ' ').gsub(/\s+/, ' ').strip
+    completion_text = completion.gsub(/<[^>]+>/, ' ').gsub(/\s+/, ' ').strip
+
+    return completion if original_text.empty? || completion_text.empty?
+
+    # Берем последние N слов из оригинала (где N от 3 до 15)
+    original_words = original_text.split(/\s+/)
+    completion_words = completion_text.split(/\s+/)
+
+    # Проверяем совпадение последних слов оригинала с первыми словами дополнения
+    max_check = [original_words.length, 15].min
+
+    (3..max_check).reverse_each do |n|
+      last_n_words = original_words.last(n).join(' ')
+
+      # Проверяем, начинается ли completion с этих слов
+      if completion_text.start_with?(last_n_words)
+        # Находим позицию после дублирующейся части
+        duplicate_end = completion_text.index(last_n_words) + last_n_words.length
+
+        # Удаляем дублирующуюся часть из completion
+        cleaned_completion = completion_text[duplicate_end..-1].strip
+
+        Rails.logger.info "Removed duplicate text: '#{last_n_words}'"
+
+        # Восстанавливаем HTML структуру если она была
+        # Если completion начинался с <p>, сохраняем это
+        if completion.strip.start_with?('<p>')
+          return "<p>#{cleaned_completion}"
+        else
+          return cleaned_completion
+        end
+      end
+    end
+
+    completion
   end
 
   private
