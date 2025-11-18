@@ -32,9 +32,9 @@ class CarSeoTextGenerator
     prompt = build_prompt
 
     # Генерация текста через AI
-    # Если есть Wikipedia - увеличиваем токены до 4500 для более детального текста
-    # Иначе используем 3000 токенов как раньше
-    max_tokens = @wikipedia_info.present? ? 4500 : 3000
+    # Используем фиксированный большой лимит токенов для предотвращения обрезания
+    # 5000 токенов (~3750 слов) достаточно для полного текста с CTA
+    max_tokens = 5000
 
     Rails.logger.info "Wikipedia info present: #{@wikipedia_info.present?}"
     Rails.logger.info "Using max_tokens: #{max_tokens}"
@@ -694,7 +694,39 @@ class CarSeoTextGenerator
       ['підібрати шини', 'вибрати та купити', 'підберіть шини', 'купити шини'] :
       ['подобрать шины', 'выбрать и купить', 'подберите шины', 'купить шины']
 
-    # Ищем последний параграф
+    cta_complete_phrases = @language == 'ua' ?
+      ['оформіть замовлення онлайн', 'замовити онлайн'] :
+      ['оформите заказ онлайн', 'заказать онлайн']
+
+    # Находим ВСЕ параграфы
+    paragraphs = text.scan(/<p>([^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*)<\/p>/i)
+
+    return text if paragraphs.empty?
+
+    # Проверяем последние 2-3 параграфа на наличие CTA
+    cta_paragraphs_count = 0
+    paragraphs.reverse.take(3).each do |para|
+      para_text = para[0].downcase
+      has_cta = cta_patterns.any? { |pattern| para_text.include?(pattern) }
+      break unless has_cta
+      cta_paragraphs_count += 1
+    end
+
+    # Если найдено 2 или более CTA параграфов подряд - удаляем ВСЕ кроме одного
+    if cta_paragraphs_count >= 2
+      Rails.logger.warn "Found #{cta_paragraphs_count} consecutive CTA paragraphs - removing extras"
+
+      # Удаляем последние (cta_paragraphs_count - 1) параграфов
+      text_cleaned = text.dup
+      (cta_paragraphs_count - 1).times do
+        text_cleaned = text_cleaned.sub(/<p>[^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*<\/p>\s*$/i, '')
+      end
+
+      Rails.logger.info "Removed #{cta_paragraphs_count - 1} duplicate CTA paragraphs"
+      return text_cleaned.strip
+    end
+
+    # Проверяем последний параграф на неполный CTA
     last_p_match = text.match(/<p>([^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*)<\/p>\s*$/i)
 
     if last_p_match
@@ -702,11 +734,6 @@ class CarSeoTextGenerator
 
       # Если последний параграф содержит начало CTA, но не содержит полную CTA фразу
       has_cta_start = cta_patterns.any? { |pattern| last_paragraph.include?(pattern) }
-
-      cta_complete_phrases = @language == 'ua' ?
-        ['оформіть замовлення онлайн', 'замовити онлайн'] :
-        ['оформите заказ онлайн', 'заказать онлайн']
-
       has_cta_complete = cta_complete_phrases.any? { |phrase| last_paragraph.include?(phrase) }
 
       # Если есть начало CTA, но нет завершения - удаляем весь параграф
