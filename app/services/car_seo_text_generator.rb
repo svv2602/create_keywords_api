@@ -663,6 +663,9 @@ class CarSeoTextGenerator
       original_cleaned = original_cleaned.sub(/<[^>]*$/, '')
     end
 
+    # Удаляем неполный CTA параграф из оригинала (если есть)
+    original_cleaned = remove_incomplete_cta(original_cleaned)
+
     # Находим последний закрывающий тег
     last_closing_tag = original_cleaned.rindex(/<\/[^>]+>/)
 
@@ -682,6 +685,39 @@ class CarSeoTextGenerator
 
     # Финальная очистка
     clean_html_text(merged)
+  end
+
+  # Удаляет неполный CTA параграф из конца текста
+  def remove_incomplete_cta(text)
+    # Паттерны для поиска начала CTA фраз
+    cta_patterns = @language == 'ua' ?
+      ['підібрати шини', 'вибрати та купити', 'підберіть шини', 'купити шини'] :
+      ['подобрать шины', 'выбрать и купить', 'подберите шины', 'купить шины']
+
+    # Ищем последний параграф
+    last_p_match = text.match(/<p>([^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*)<\/p>\s*$/i)
+
+    if last_p_match
+      last_paragraph = last_p_match[1].downcase
+
+      # Если последний параграф содержит начало CTA, но не содержит полную CTA фразу
+      has_cta_start = cta_patterns.any? { |pattern| last_paragraph.include?(pattern) }
+
+      cta_complete_phrases = @language == 'ua' ?
+        ['оформіть замовлення онлайн', 'замовити онлайн'] :
+        ['оформите заказ онлайн', 'заказать онлайн']
+
+      has_cta_complete = cta_complete_phrases.any? { |phrase| last_paragraph.include?(phrase) }
+
+      # Если есть начало CTA, но нет завершения - удаляем весь параграф
+      if has_cta_start && !has_cta_complete
+        text_without_last_p = text.sub(/<p>[^<]*(?:<[^\/][^>]*>[^<]*<\/[^>]+>)*[^<]*<\/p>\s*$/i, '')
+        Rails.logger.info "Removed incomplete CTA paragraph from original car SEO text"
+        return text_without_last_p.strip
+      end
+    end
+
+    text
   end
 
   # Удаляет дублирующийся текст из начала completion
