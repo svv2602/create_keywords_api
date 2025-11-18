@@ -17,9 +17,10 @@ class SeoTextGenerator
     @speed_index = params[:speed_index]
     @seo_requirements = params[:seo_requirements] || ''
     @links = parse_links(params[:links])
-    # Увеличен дефолтный лимит до 3000 для предотвращения обрезания
-    # 3000 токенов (~2250 слов) достаточно для SEO-текста о модели шин
-    @max_tokens = params[:max_tokens] || 3000
+    # Фиксированный лимит токенов для предотвращения обрезания
+    # 4000 токенов (~3000 слов) достаточно для полного SEO-текста о модели шин
+    # Параметр max_tokens от клиента игнорируется для стабильности генерации
+    @max_tokens = 4000
     @force_model = params[:force_model]  # Опциональный параметр для выбора модели
     @content_writer = ContentWriter.new(force_model: @force_model)
   end
