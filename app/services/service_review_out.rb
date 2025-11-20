@@ -603,7 +603,7 @@ module ServiceReviewOut
     result = []
     array_reviews_id = []
     array_reviews_without_params_id = []
-    
+
     tyres.each do |el|
       array_info = average == 0 ? create_hash_with_params(el) : el
       record = get_car_by_tire_size(array_info)
@@ -611,42 +611,49 @@ module ServiceReviewOut
       season = array_info[:season]
       type_review = array_info[:type_review]
 
+      # НОВАЯ ЛОГИКА: Генерируем оценки и метаданные ДО обработки AI
       array_average = average == 0 ? random_array_with_average(type_review, season) : random_array_with_average(type_review, season, array_info[:grade])
       control = value_field_control(season, type_review, array_average)
-      
-      # ЭТАП 1: Получение базового отзыва (как раньше)
-      review = select_review_source_v2(control, type_review, array_reviews_id, array_reviews_without_params_id)
-      
+
+      # Определяем язык
       language = rand(1..10) % 2 == 0 ? "ru" : "ua"
       array_info[:language] = language
-      array_info[:author] = ''
-      
-      # ЭТАП 2: Определение стратегии обработки
-      processing_strategy = determine_processing_strategy(review, type_review, array_info)
-      
-      case processing_strategy
-      when :ai_enhanced
-        review = process_with_full_ai_pipeline(review, array_info, record, language)
-      when :hybrid  
-        review = process_with_hybrid_approach(review, array_info, record, language)
-      else
-        review = process_with_classic_method(review, array_info, record, language)
-      end
-      
-      # ЭТАП 3: Финальная сборка результата
-      array_info[:author] = get_author_name(language, get_gender_from_review(review))
-      array_info[:review] = review
-      array_info[:experience] = get_experience(review)
-      array_info[:tyres_size] = tyres_size
-      array_info[:names_auto] = names_auto(record, language)[:auto]
 
+      # ВАЖНО: Генерируем пол и имя ДО AI-обработки
+      gender = ["мужчина", "женщина"].sample
+      array_info[:gender] = gender
+      array_info[:author] = get_author_name(language, gender)
+
+      # ВАЖНО: Вычисляем итоговую оценку ДО AI-обработки
       if rand(1..100) % 10 == 0
         array_info[:array_average] = []
         array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
       else
         array_info[:array_average] = array_average
-        array_info[:grade] = 0
+        array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
       end
+
+      # ЭТАП 1: Получение базового отзыва (как раньше)
+      review = select_review_source_v2(control, type_review, array_reviews_id, array_reviews_without_params_id)
+
+      # ЭТАП 2: Определение стратегии обработки
+      processing_strategy = determine_processing_strategy(review, type_review, array_info)
+
+      # ЭТАП 3: Обработка отзыва с учетом пола и оценок
+      case processing_strategy
+      when :ai_enhanced
+        review = process_with_full_ai_pipeline(review, array_info, record, language)
+      when :hybrid
+        review = process_with_hybrid_approach(review, array_info, record, language)
+      else
+        review = process_with_classic_method(review, array_info, record, language)
+      end
+
+      # ЭТАП 4: Финальная сборка результата
+      array_info[:review] = review
+      array_info[:experience] = get_experience(review)
+      array_info[:tyres_size] = tyres_size
+      array_info[:names_auto] = names_auto(record, language)[:auto]
 
       result << array_info
     end
@@ -813,7 +820,11 @@ module ServiceReviewOut
       language: language,
       width: array_info[:width],
       height: array_info[:height],
-      diameter: array_info[:diameter]
+      diameter: array_info[:diameter],
+      # НОВЫЕ ПАРАМЕТРЫ: пол и оценки
+      gender: array_info[:gender],  # "мужчина" или "женщина"
+      grade: array_info[:grade],  # Итоговая оценка (1-5)
+      array_average: array_info[:array_average]  # Массив оценок по характеристикам
     }
   end
   
