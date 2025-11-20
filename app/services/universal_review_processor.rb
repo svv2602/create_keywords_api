@@ -129,6 +129,11 @@ class UniversalReviewProcessor
       instructions += build_grade_instructions(context[:grade], context[:array_average])
     end
 
+    # НОВОЕ: Инструкции по датам и времени покупки
+    if context[:time_description]
+      instructions += build_date_instructions(context)
+    end
+
     instructions
   end
   
@@ -323,6 +328,59 @@ class UniversalReviewProcessor
     instructions += "- ЗАПРЕЩЕНО: Писать восторженный текст при низкой оценке или критический текст при высокой оценке!\n"
 
     instructions
+  end
+
+  def build_date_instructions(context)
+    instructions = ""
+
+    return instructions unless context[:time_description]
+
+    # Текущая дата отзыва
+    review_date = Date.parse(context[:review_date]) rescue Date.today
+    current_month = review_date.month
+    current_season = get_season_by_month(current_month)
+
+    # Сезон шин
+    tire_season = context[:season]
+    tire_season_name = case tire_season
+    when 1 then "летние"
+    when 2 then "зимние"
+    when 3 then "всесезонные"
+    else "шины"
+    end
+
+    # Основная инструкция по времени
+    instructions += "- ВАЖНО: Шины были куплены #{context[:time_description]}\n"
+    instructions += "- Используй естественные формулировки времени: \"недавно\", \"пару месяцев назад\", \"прошлой зимой\" и т.д.\n"
+    instructions += "- НЕ указывай точные даты покупки или отзыва\n"
+
+    # Проверка на сезонное несоответствие
+    if tire_season == 2  # зимние
+      if [6, 7, 8].include?(current_month)  # лето
+        instructions += "- ВНИМАНИЕ: Сейчас лето, но отзыв о зимних шинах - не пиши \"купил вчера\" или \"на днях купил зимние шины летом\"\n"
+        instructions += "- Уместно упомянуть покупку осенью/зимой прошлого сезона\n"
+      end
+    elsif tire_season == 1  # летние
+      if [12, 1, 2].include?(current_month)  # зима
+        instructions += "- ВНИМАНИЕ: Сейчас зима, но отзыв о летних шинах - не пиши о недавней покупке летних шин зимой\n"
+        instructions += "- Уместно упомянуть покупку весной/летом прошлого сезона\n"
+      end
+    end
+
+    instructions
+  end
+
+  def get_season_by_month(month)
+    case month
+    when 12, 1, 2
+      :winter
+    when 3, 4, 5
+      :spring
+    when 6, 7, 8
+      :summer
+    when 9, 10, 11
+      :autumn
+    end
   end
 
   def check_and_shorten_if_needed(review, context, max_length = 1000, tolerance = 0.10)

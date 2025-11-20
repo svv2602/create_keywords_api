@@ -633,6 +633,12 @@ module ServiceReviewOut
         array_info[:grade] = (array_average.sum.to_f / array_average.size * 2).round / 2.0
       end
 
+      # ВАЖНО: Генерируем даты отзыва и покупки ДО AI-обработки
+      date_info = generate_review_dates(season)
+      array_info[:review_date] = date_info[:review_date]
+      array_info[:purchase_date] = date_info[:purchase_date]
+      array_info[:time_description] = date_info[:time_description]
+
       # ЭТАП 1: Получение базового отзыва (как раньше)
       review = select_review_source_v2(control, type_review, array_reviews_id, array_reviews_without_params_id)
 
@@ -824,7 +830,11 @@ module ServiceReviewOut
       # НОВЫЕ ПАРАМЕТРЫ: пол и оценки
       gender: array_info[:gender],  # "мужчина" или "женщина"
       grade: array_info[:grade],  # Итоговая оценка (1-5)
-      array_average: array_info[:array_average]  # Массив оценок по характеристикам
+      array_average: array_info[:array_average],  # Массив оценок по характеристикам
+      # НОВЫЕ ПАРАМЕТРЫ: даты
+      review_date: array_info[:review_date],  # Дата отзыва (ISO формат)
+      purchase_date: array_info[:purchase_date],  # Дата покупки (ISO формат)
+      time_description: array_info[:time_description]  # Естественное описание времени
     }
   end
   
@@ -897,9 +907,114 @@ module ServiceReviewOut
     review_text = review.to_s
     return "женщина" if review_text.match?(/(довольна|рада|счастлива)/i)
     return "мужчина" if review_text.match?(/(доволен|рад|счастлив)/i)
-    
+
     # По умолчанию случайно
     ["мужчина", "женщина"].sample
+  end
+
+  # ==================== РАБОТА С ДАТАМИ ОТЗЫВОВ ====================
+
+  def generate_review_dates(tire_season)
+    # Генерируем дату отзыва (последние 3 месяца)
+    review_date = Date.today - rand(0..90).days
+
+    # Находим подходящую дату покупки
+    purchase_date = find_suitable_purchase_date(review_date, tire_season)
+
+    {
+      review_date: review_date.strftime('%Y-%m-%d'),  # ISO формат
+      purchase_date: purchase_date ? purchase_date.strftime('%Y-%m-%d') : nil,
+      time_description: purchase_date ? format_time_period(review_date, purchase_date) : nil
+    }
+  end
+
+  def find_suitable_purchase_date(review_date, tire_season)
+    # Определяем допустимые месяцы покупки в зависимости от сезона шин
+    purchase_months = case tire_season
+    when 2 # зимние
+      [9, 10, 11, 12, 1]  # сентябрь-январь
+    when 1 # летние
+      [3, 4, 5, 6, 7, 8]  # март-август
+    else # всесезонные (3) или неизвестно
+      (1..12).to_a  # круглый год
+    end
+
+    # Ищем подходящую дату покупки в пределах года назад
+    max_age_days = 365
+
+    # Пробуем найти дату в текущем году
+    (0..max_age_days).each do |days_ago|
+      candidate_date = review_date - days_ago.days
+
+      # Проверяем, подходит ли месяц
+      if purchase_months.include?(candidate_date.month)
+        # Добавляем случайность - берем одну из первых подходящих дат
+        return candidate_date if rand(1..10) <= 3  # 30% шанс выбрать эту дату
+      end
+    end
+
+    # Если не нашли подходящую дату (краевой случай), возвращаем nil
+    # В этом случае в отзыве не будет упоминания времени покупки
+    nil
+  end
+
+  def format_time_period(review_date, purchase_date)
+    return nil unless purchase_date
+
+    days_diff = (review_date - purchase_date).to_i
+    months_diff = (days_diff / 30.0).round
+    purchase_month = purchase_date.month
+
+    # Определяем сезон покупки
+    purchase_season = case purchase_month
+    when 12, 1, 2
+      "зимой"
+    when 3, 4, 5
+      "весной"
+    when 6, 7, 8
+      "летом"
+    when 9, 10, 11
+      "осенью"
+    end
+
+    # Определяем период для более точного описания
+    purchase_period = case purchase_month
+    when 1 then "в январе"
+    when 2 then "в феврале"
+    when 3 then "в марте"
+    when 4 then "в апреле"
+    when 5 then "в мае"
+    when 6 then "в июне"
+    when 7 then "в июле"
+    when 8 then "в августе"
+    when 9 then "в сентябре"
+    when 10 then "в октябре"
+    when 11 then "в ноябре"
+    when 12 then "в декабре"
+    end
+
+    # Варианты формулировок в зависимости от времени
+    variants = case months_diff
+    when 0
+      ["недавно", "на днях", "только что"]
+    when 1
+      ["месяц назад", "около месяца назад", purchase_period]
+    when 2
+      ["пару месяцев назад", "два месяца назад", purchase_period]
+    when 3
+      ["три месяца назад", "несколько месяцев назад", purchase_period, "#{purchase_season}"]
+    when 4..5
+      ["несколько месяцев назад", purchase_period, "#{purchase_season}"]
+    when 6..8
+      ["полгода назад", "#{purchase_season}", purchase_period]
+    when 9..11
+      ["почти год назад", "прошлым #{purchase_season.gsub('ой', 'ым').gsub('ю', 'ом')}", purchase_period]
+    else
+      ["давно", "#{purchase_season}"]
+    end
+
+    # Возвращаем случайный вариант
+    variants.sample
   end
 
 end
