@@ -134,6 +134,9 @@ class UniversalReviewProcessor
       instructions += build_date_instructions(context)
     end
 
+    # ВАЖНО: Запрет российских топонимов (prokoleso.ua - украинский интернет-магазин)
+    instructions += build_geographic_restrictions
+
     instructions
   end
   
@@ -381,6 +384,18 @@ class UniversalReviewProcessor
     when 9, 10, 11
       :autumn
     end
+  end
+
+  def build_geographic_restrictions
+    instructions = ""
+
+    # Запрет российских топонимов
+    instructions += "- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать любые российские города, регионы или топонимы\n"
+    instructions += "- ЗАПРЕЩЕНО: Москва, Санкт-Петербург, Россия, российский и любые другие российские географические названия\n"
+    instructions += "- РАЗРЕШЕНО: только украинские города (Киев, Харьков, Одесса, Львов, Днепр и т.д.)\n"
+    instructions += "- При упоминании географии используй только Украину и украинские топонимы\n"
+
+    instructions
   end
 
   def check_and_shorten_if_needed(review, context, max_length = 1000, tolerance = 0.10)
