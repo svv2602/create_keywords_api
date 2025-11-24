@@ -240,49 +240,65 @@ class SeoTextGenerator
       ]
     end
 
-    # Разбиваем текст на параграфы
-    paragraphs = text.scan(/<p>.*?<\/p>/m)
+    # Разбиваем текст на HTML-элементы (заголовки, параграфы, списки)
+    # Паттерн ловит: <h2>...</h2>, <h3>...</h3>, <h4>...</h4>, <p>...</p>, <ul>...</ul>, <ol>...</ol>
+    elements = text.scan(/<(?:h[234]|p|ul|ol)>.*?<\/(?:h[234]|p|ul|ol)>/m)
 
     # Оставляем только последний параграф с CTA (если он правильный)
     cta_phrases = @language == 'ua' ?
       ['оформіть замовлення онлайн', 'оформити замовлення онлайн'] :
       ['оформите заказ онлайн', 'оформить заказ онлайн']
 
-    # Фильтруем параграфы
-    cleaned_paragraphs = []
-    paragraphs.each do |para|
-      para_text = para.downcase
+    # Фильтруем элементы
+    cleaned_elements = []
+    elements.each do |element|
+      element_text = element.downcase
 
-      # Проверяем, это последний CTA параграф?
-      is_cta = cta_phrases.any? { |phrase| para_text.include?(phrase) }
+      # Заголовки всегда оставляем (они не содержат коммерческой инфы)
+      if element.match?(/^<h[234]>/i)
+        cleaned_elements << element
+        next
+      end
 
-      if is_cta
-        # Проверяем, что CTA параграф не содержит запрещённых слов
-        has_forbidden = forbidden_patterns.any? { |pattern| para_text.match?(pattern) }
+      # Списки всегда оставляем (обычно это технические характеристики)
+      if element.match?(/^<(?:ul|ol)>/i)
+        cleaned_elements << element
+        next
+      end
 
-        if !has_forbidden
-          # Это правильный CTA - оставляем
-          cleaned_paragraphs << para
+      # Проверяем параграфы на запрещённый контент
+      if element.match?(/^<p>/i)
+        # Проверяем, это CTA параграф?
+        is_cta = cta_phrases.any? { |phrase| element_text.include?(phrase) }
+
+        if is_cta
+          # Проверяем, что CTA параграф не содержит запрещённых слов
+          has_forbidden = forbidden_patterns.any? { |pattern| element_text.match?(pattern) }
+
+          if !has_forbidden
+            # Это правильный CTA - оставляем
+            cleaned_elements << element
+          else
+            # CTA с запрещёнными словами - пропускаем и добавим стандартный позже
+            Rails.logger.warn "Removed CTA paragraph with forbidden words: #{element.truncate(100)}"
+          end
         else
-          # CTA с запрещёнными словами - пропускаем и добавим стандартный позже
-          Rails.logger.warn "Removed CTA paragraph with forbidden words: #{para.truncate(100)}"
-        end
-      else
-        # Обычный параграф - проверяем на запрещённые слова
-        has_forbidden = forbidden_patterns.any? { |pattern| para_text.match?(pattern) }
+          # Обычный параграф - проверяем на запрещённые слова
+          has_forbidden = forbidden_patterns.any? { |pattern| element_text.match?(pattern) }
 
-        if !has_forbidden
-          cleaned_paragraphs << para
-        else
-          Rails.logger.warn "Removed paragraph with forbidden words: #{para.truncate(100)}"
+          if !has_forbidden
+            cleaned_elements << element
+          else
+            Rails.logger.warn "Removed paragraph with forbidden words: #{element.truncate(100)}"
+          end
         end
       end
     end
 
-    # Проверяем, есть ли CTA в оставшихся параграфах
-    has_valid_cta = cleaned_paragraphs.any? do |para|
-      para_text = para.downcase
-      cta_phrases.any? { |phrase| para_text.include?(phrase) }
+    # Проверяем, есть ли CTA в оставшихся элементах
+    has_valid_cta = cleaned_elements.any? do |element|
+      element_text = element.downcase
+      cta_phrases.any? { |phrase| element_text.include?(phrase) }
     end
 
     # Если CTA нет - добавляем стандартный
@@ -292,18 +308,12 @@ class SeoTextGenerator
       else
         "<p>Подберите шины #{@brand} #{@model} #{@size} в каталоге ProKoleso и оформите заказ онлайн.</p>"
       end
-      cleaned_paragraphs << standard_cta
+      cleaned_elements << standard_cta
       Rails.logger.info "Added standard CTA paragraph"
     end
 
-    # Собираем обратно весь HTML
-    # Сначала берём всё до первого <p>
-    before_paragraphs = text.split('<p>').first
-
-    # Объединяем очищенные параграфы
-    result = before_paragraphs + cleaned_paragraphs.join
-
-    result
+    # Объединяем очищенные элементы
+    cleaned_elements.join
   end
   
     def clean_html_text(text)
