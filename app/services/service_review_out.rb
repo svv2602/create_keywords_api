@@ -398,24 +398,19 @@ module ServiceReviewOut
     hash_patronymics = gender == "мужчина" ? MALE_PATRNYMICS : FEMALE_PATRNYMICS
     array_patronymics = hash_patronymics["patronymics_#{language}".to_sym]
 
+    # Используем только кириллические имена (латиница запрещена на сайте)
     array1 = hash_names["names_#{language}".to_sym]
     array2 = hash_names["diminutive_names_#{language}".to_sym]
-    array3 = hash_names[:names_en]
-    array4 = hash_names[:diminutive_names_en]
 
-    array_names = array1 + array2 + array3 + array4
+    array_names = array1 + array2
     author = array_names.shuffle.first
 
     if array1.include?(author)
+      # Полное имя - может быть с отчеством
       author += " " + array_patronymics.shuffle.first if rand(1..5) % 4 == 0
     elsif array2.include?(author)
+      # Уменьшительное имя - может быть с датой рождения
       author += date_birthday if rand(1..10) % 5 == 0
-      author.downcase! if rand(1..2) % 2 == 0
-    elsif array3.include?(author)
-      author += date_birthday if rand(1..10) % 4 == 0
-      author.downcase! if rand(1..2) % 2 == 0
-    elsif array4.include?(author)
-      author += date_birthday if rand(1..10) % 3 == 0
       author.downcase! if rand(1..2) % 2 == 0
     end
 
