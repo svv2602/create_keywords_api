@@ -22,11 +22,13 @@ class ContentWriter
   MODEL = MODELS[:review_generation]
   MAX_ATTEMPTS = 5
 
-  def initialize(force_model: nil)
+  def initialize(force_model: nil, skip_rate_limit: false)
     @openai_client = OPENAI_CLIENT
     @deepseek_client = DEEPSEEK_CLIENT
     @cost_tracker = AiCostTracker.new
+    @rate_limiter = AiRateLimiter.new
     @force_model = force_model  # Принудительный выбор модели через параметр
+    @skip_rate_limit = skip_rate_limit  # Пропустить rate limiting (для внутренних вызовов)
   end
   
   # Получить правильный клиент для модели
@@ -117,34 +119,42 @@ class ContentWriter
     client = get_client_for_model(model)
     attempts = 0
 
-    begin
-      response = client.chat(
-        parameters: {
-          model: model,
-          messages: build_review_messages(prompt),
-          temperature: 0.7,        # снижаем для большей стабильности
-          max_tokens: max_tokens,
-          top_p: 0.9,
-          frequency_penalty: 0.3,  # уменьшаем повторения
-          presence_penalty: 0.4    # увеличиваем разнообразие
-        }
-      )
-      
-      # Отслеживаем затраты
-      @cost_tracker.track_request(model, prompt.length, max_tokens) if @cost_tracker
-      
-      response
-      
-    rescue OpenAI::Error => e
-      attempts += 1
+    # Выполняем запрос с rate limiting
+    execute_with_rate_limit(model) do
+      begin
+        response = client.chat(
+          parameters: {
+            model: model,
+            messages: build_review_messages(prompt),
+            temperature: 0.7,        # снижаем для большей стабильности
+            max_tokens: max_tokens,
+            top_p: 0.9,
+            frequency_penalty: 0.3,  # уменьшаем повторения
+            presence_penalty: 0.4    # увеличиваем разнообразие
+          }
+        )
 
-      if attempts < MAX_ATTEMPTS
-        puts "Произошла ошибка: #{e.message}. Повторная попытка..."
-        # При ошибке пробуем fallback модель
-        model = MODELS[:fallback] if attempts > 2
-        retry
-      else
-        puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
+        # Отслеживаем затраты
+        @cost_tracker.track_request(model, prompt.length, max_tokens) if @cost_tracker
+
+        response
+
+      rescue OpenAI::Error => e
+        attempts += 1
+
+        if attempts < MAX_ATTEMPTS
+          puts "Произошла ошибка: #{e.message}. Повторная попытка..."
+          # При ошибке пробуем fallback модель
+          model = MODELS[:fallback] if attempts > 2
+          retry
+        else
+          puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
+          nil
+        end
+      rescue AiRateLimiter::RateLimitExceeded => e
+        Rails.logger.warn "AI Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
+        sleep(e.retry_after)
+        retry if (attempts += 1) < MAX_ATTEMPTS
         nil
       end
     end
@@ -274,7 +284,7 @@ class ContentWriter
   def system_prompt_for_reviews
     <<~PROMPT
       Ты опытный автомобилист, который пишет честные отзывы о шинах на основе реального опыта.
-      
+
       Требования к отзыву:
       - Пиши от первого лица, как реальный пользователь
       - Используй разговорный стиль, но грамотно
@@ -283,11 +293,20 @@ class ContentWriter
       - Добавляй личные наблюдения и сравнения
       - Используй естественные речевые обороты
       - Не используй слишком технические термины без объяснения
-      
+
       Стиль: неформальный, но информативный
       Длина: соответствует указанной в запросе
       Язык: русский (если не указано иное)
     PROMPT
+  end
+
+  # Выполнить блок с rate limiting (или без него если skip_rate_limit)
+  def execute_with_rate_limit(model, &block)
+    if @skip_rate_limit
+      yield
+    else
+      @rate_limiter.with_limit(model, max_wait: 60, &block)
+    end
   end
 
 end

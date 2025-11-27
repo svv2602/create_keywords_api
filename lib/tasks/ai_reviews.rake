@@ -459,5 +459,44 @@ namespace :ai_reviews do
     puts
     puts "   💎 Снижение затрат на #{((total_savings / (seo_gpt_cost + reviews_gpt_cost)) * 100).round(1)}%!"
   end
+
+  # ============ Rate Limiting задачи ============
+
+  desc "Показать статистику rate limiting"
+  task rate_limit_stats: :environment do
+    puts "\n=== Rate Limiting Statistics ==="
+    puts
+
+    rate_limiter = AiRateLimiter.new
+    stats = rate_limiter.stats
+
+    puts "Модель                  | RPM (тек/лим) | Concurrent (тек/лим) | Доступно"
+    puts "-" * 75
+
+    stats.each do |stat|
+      rpm_status = "#{stat[:current_rpm]}/#{stat[:rpm_limit]}"
+      concurrent_status = "#{stat[:current_concurrent]}/#{stat[:concurrent_limit]}"
+      available = stat[:available_capacity]
+
+      puts "%-22s | %-13s | %-20s | %d" % [
+        stat[:model],
+        rpm_status,
+        concurrent_status,
+        available
+      ]
+    end
+
+    puts
+    puts "RPM = Requests Per Minute"
+    puts "Concurrent = Параллельные запросы в данный момент"
+    puts "Доступно = Сколько ещё запросов можно отправить"
+  end
+
+  desc "Показать полный статус системы (включая rate limits)"
+  task full_status: :environment do
+    Rake::Task["ai_reviews:status"].invoke
+    puts
+    Rake::Task["ai_reviews:rate_limit_stats"].invoke
+  end
 end
 
