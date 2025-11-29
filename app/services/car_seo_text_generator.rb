@@ -176,6 +176,9 @@ class CarSeoTextGenerator
     # Удаляем лишние пробелы и переносы строк, но сохраняем структуру HTML
     # Также удаляем возможные div, классы и стили
 
+    # Удаляем иероглифы и символы восточноазиатских языков
+    text = remove_asian_characters(text)
+
     # Сначала удаляем markdown блоки
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
 
@@ -348,6 +351,7 @@ class CarSeoTextGenerator
       - НЕ используй вложенные теги <strong><strong></strong></strong>
       - НЕ выделяй жирным текст внутри ссылок <a>
       - НЕ дублируй информацию - каждый факт упоминай только один раз
+      - ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!
 
       СТРУКТУРА ТЕКСТА (строго следуй этому порядку):
 
@@ -468,6 +472,7 @@ class CarSeoTextGenerator
       - НЕ використовуй вкладені теги <strong><strong></strong></strong>
       - НЕ виділяй жирним текст всередині посилань <a>
       - НЕ дублюй інформацію - кожен факт згадуй тільки один раз
+      - ЗАБОРОНЕНО використовувати ієрогліфи, символи китайської, японської, корейської та інших східноазіатських мов. Використовуй ТІЛЬКИ кирилицю та латиницю!
 
       СТРУКТУРА ТЕКСТУ (строго дотримуйся цього порядку):
 
@@ -790,6 +795,27 @@ class CarSeoTextGenerator
     end
 
     completion
+  end
+
+  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
+  def remove_asian_characters(text)
+    # Паттерн для китайских, японских и корейских символов:
+    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
+    # \p{Hiragana} - японская хирагана
+    # \p{Katakana} - японская катакана
+    # \p{Hangul} - корейские символы
+    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
+
+    if text.match?(asian_pattern)
+      Rails.logger.warn "Found Asian characters in generated car SEO text, removing them..."
+      # Удаляем иероглифы
+      text = text.gsub(asian_pattern, '')
+      # Убираем двойные пробелы, которые могли образоваться
+      text = text.gsub(/\s{2,}/, ' ')
+      Rails.logger.info "Asian characters removed successfully"
+    end
+
+    text
   end
 
   def build_geographic_restrictions

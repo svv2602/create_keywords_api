@@ -129,6 +129,7 @@ class SeoTextGenerator
       - #{@language == 'ua' ? 'НЕ використовуй вкладені теги <strong><strong></strong></strong>' : 'НЕ используй вложенные теги <strong><strong></strong></strong>'}
       - #{@language == 'ua' ? 'НЕ виділяй жирним текст всередині посилань <a>' : 'НЕ выделяй жирным текст внутри ссылок <a>'}
       - #{@language == 'ua' ? 'НЕ дублюй інформацію - кожен факт згадуй тільки один раз' : 'НЕ дублируй информацию - каждый факт упоминай только один раз'}
+      - #{@language == 'ua' ? 'ЗАБОРОНЕНО використовувати ієрогліфи, символи китайської, японської, корейської та інших східноазіатських мов. Використовуй ТІЛЬКИ кирилицю та латиницю!' : 'ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!'}
 
       #{@language == 'ua' ? 'СТРУКТУРА ТЕКСТУ:' : 'СТРУКТУРА ТЕКСТА:'}
       - H2: #{@language == 'ua' ? 'основний заголовок з брендом, моделлю та розміром' : 'основной заголовок с брендом, моделью и размером'}
@@ -202,9 +203,32 @@ class SeoTextGenerator
   def format_generated_text(text)
     # Очистка и форматирование сгенерированного текста
     text = clean_html_text(text)
+    # Удаляем иероглифы и символы восточноазиатских языков
+    text = remove_asian_characters(text)
     # Удаляем параграфы с запрещёнными словами
     text = remove_forbidden_content(text)
     # optimize_keywords удален - AI сам добавит выделения согласно промпту
+    text
+  end
+
+  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
+  def remove_asian_characters(text)
+    # Паттерн для китайских, японских и корейских символов:
+    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
+    # \p{Hiragana} - японская хирагана
+    # \p{Katakana} - японская катакана
+    # \p{Hangul} - корейские символы
+    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
+
+    if text.match?(asian_pattern)
+      Rails.logger.warn "Found Asian characters in generated text, removing them..."
+      # Удаляем иероглифы
+      text = text.gsub(asian_pattern, '')
+      # Убираем двойные пробелы, которые могли образоваться
+      text = text.gsub(/\s{2,}/, ' ')
+      Rails.logger.info "Asian characters removed successfully"
+    end
+
     text
   end
 
