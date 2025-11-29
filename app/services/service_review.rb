@@ -280,6 +280,8 @@ module ServiceReview
     topics += "\n"
     topics += "или вот такого: \"Шины SIZE - надежный выбор для летнего сезона!\" "
     topics += "\n"
+    topics += "- ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!"
+    topics += "\n"
 
     attempts = 0
     new_text = nil
@@ -303,7 +305,10 @@ module ServiceReview
   end
 
   def first_text_clearing(txt)
-    txt = txt.gsub(/["'“”]/, '')
+    # Удаляем иероглифы и символы восточноазиатских языков
+    txt = remove_asian_characters(txt)
+
+    txt = txt.gsub(/["'""]/, '')
     txt = txt.gsub('*', '')
 
     # замена фраз
@@ -349,6 +354,27 @@ module ServiceReview
     # которая ищет начало строки или конец предыдущего предложения.
     # [^\.!?]*#{word}[^\.!?]*[\.!?] матчит любое предложение которое содержит указанное слово.
     txt.gsub(/(?<=^|\.|\?|\!)\s*([^\.!?]*#{word}[^\.!?]*[\.!?])/i, '')
+  end
+
+  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
+  def remove_asian_characters(text)
+    # Паттерн для китайских, японских и корейских символов:
+    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
+    # \p{Hiragana} - японская хирагана
+    # \p{Katakana} - японская катакана
+    # \p{Hangul} - корейские символы
+    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
+
+    if text.match?(asian_pattern)
+      Rails.logger.warn "Found Asian characters in generated review, removing them..."
+      # Удаляем иероглифы
+      text = text.gsub(asian_pattern, '')
+      # Убираем двойные пробелы, которые могли образоваться
+      text = text.gsub(/\s{2,}/, ' ')
+      Rails.logger.info "Asian characters removed successfully"
+    end
+
+    text
   end
 
 end

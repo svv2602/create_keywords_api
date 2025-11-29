@@ -209,6 +209,7 @@ class UniversalReviewProcessor
     instructions += "- Избегай рекламных клише и шаблонных фраз\n"
     instructions += "- Результат должен звучать естественно и по-человечески\n"
     instructions += "- КРИТИЧЕСКИ ВАЖНО: Максимальная длина отзыва - 1000 символов! Не превышай этот лимит!\n"
+    instructions += "- ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!\n"
     instructions += "\nВерни ТОЛЬКО переписанный отзыв без дополнительных комментариев."
 
     instructions
@@ -243,19 +244,22 @@ class UniversalReviewProcessor
   
   def clean_ai_response(text)
     return nil if text.blank?
-    
+
+    # Удаляем иероглифы и символы восточноазиатских языков
+    text = remove_asian_characters(text)
+
     # Убираем лишние кавычки и обрамления
     text = text.gsub(/^["«]|["»]$/, '')
-    
+
     # Убираем префиксы типа "Отзыв:", "Переписанный отзыв:" и т.д.
     text = text.gsub(/^(отзыв|переписанный отзыв|результат):\s*/i, '')
-    
+
     # Убираем эмодзи (они добавятся отдельно)
     text = text.gsub(/[😀-🙏🚀-🛿]/u, '')
-    
+
     # Очищаем лишние пробелы
     text = text.gsub(/\s+/, ' ').strip
-    
+
     return nil if text.blank?
     text
   end
@@ -509,5 +513,28 @@ class UniversalReviewProcessor
     end
 
     result.strip
+  end
+
+  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
+  def remove_asian_characters(text)
+    return text if text.blank?
+
+    # Паттерн для китайских, японских и корейских символов:
+    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
+    # \p{Hiragana} - японская хирагана
+    # \p{Katakana} - японская катакана
+    # \p{Hangul} - корейские символы
+    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
+
+    if text.match?(asian_pattern)
+      Rails.logger.warn "Found Asian characters in generated review, removing them..."
+      # Удаляем иероглифы
+      text = text.gsub(asian_pattern, '')
+      # Убираем двойные пробелы, которые могли образоваться
+      text = text.gsub(/\s{2,}/, ' ')
+      Rails.logger.info "Asian characters removed successfully"
+    end
+
+    text
   end
 end
