@@ -120,8 +120,40 @@ module ServiceReview
       param_key = "param#{i + 1}".to_sym
       params[param_key] = ratings_array[i]
     end
+
+    # Добавляем акцент на основе самой выраженной оценки
+    accent = select_accent_from_ratings(ratings_array)
+    if accent
+      str += "\nГЛАВНЫЙ АКЦЕНТ ОТЗЫВА (обязательно использовать эту фразу или её вариацию): \"#{accent}\"\n"
+    end
+
     params[:additional_string] = str
     params
+  end
+
+  # Выбирает акцент на основе массива оценок
+  # Приоритет: самая выраженная оценка (1 или -1)
+  def select_accent_from_ratings(ratings_array)
+    return nil unless defined?(REVIEW_ACCENTS)
+
+    # Собираем все ненулевые оценки с их индексами
+    rated_properties = []
+    ratings_array.each_with_index do |rating, index|
+      next if rating == 0
+      rated_properties << { index: index, rating: rating }
+    end
+
+    return nil if rated_properties.empty?
+
+    # Выбираем случайную оценку из имеющихся (для разнообразия)
+    selected = rated_properties.sample
+
+    # Получаем акценты для данного свойства и оценки
+    property_accents = REVIEW_ACCENTS.dig(selected[:index], selected[:rating])
+    return nil unless property_accents&.any?
+
+    # Возвращаем случайный акцент
+    property_accents.sample
   end
 
   def generating_records_and_writing_to_table_review
@@ -266,7 +298,25 @@ module ServiceReview
     topics += "\n"
     topics += "в результат выведи только сгенерированный отзыв на русском языке"
     topics += "\n"
-    topics += "Хочу также обратить внимание на то, что:"
+    topics += "ВАЖНЫЕ ТРЕБОВАНИЯ К ОТЗЫВУ:"
+    topics += "\n"
+    topics += "1. ФОКУС НА ОДНОЙ ХАРАКТЕРИСТИКЕ: Если указан ГЛАВНЫЙ АКЦЕНТ ОТЗЫВА - сделай его центральной темой. Остальные характеристики можно упомянуть кратко или не упоминать вовсе."
+    topics += "\n"
+    topics += "2. ОБЯЗАТЕЛЬНО УПОМЯНИ: либо на каком автомобиле стоят шины (если указан), либо сколько сезонов/километров на них проехал (например: 'второй сезон катаюсь', 'уже 15 тысяч накатал', 'с прошлой зимы использую')."
+    topics += "\n"
+    topics += "3. КОНКРЕТИКА ВМЕСТО ОБЩИХ ФРАЗ: Вместо 'шины плохие' пиши конкретную проблему. Вместо 'шины отличные' - конкретное преимущество."
+    topics += "\n"
+    topics += "4. Если тип отзыва негативный - укажи конкретную проблему, которая возникла при эксплуатации (грыжа, быстрый износ, шум, плохая балансировка и т.д.), а не просто 'шины ужасные'."
+    topics += "\n"
+    # Случайно выбираем формат названия модели (для разнообразия)
+    if rand(100) < 40
+      topics += "5. НАЗВАНИЕ МОДЕЛИ: Используй транслитерацию на русском языке (например: Pilot Sport → Пайлот Спорт, ContiPremiumContact → КонтиПремиумКонтакт, Hakkapeliitta → Хаккапелита)."
+      topics += "\n"
+    else
+      topics += "5. НАЗВАНИЕ МОДЕЛИ: Используй оригинальное латинское название модели шин."
+      topics += "\n"
+    end
+    topics += "\nДополнительные правила:"
     topics += "\n"
     topics += "- если в параметрах есть слова '195/65R15','GreenTire', 'SuperDefender', то именно они и должны использоваться в отзыве для  размера, бренда или модели шины."
     topics += "\n"
@@ -307,6 +357,9 @@ module ServiceReview
   def first_text_clearing(txt)
     # Удаляем иероглифы и символы восточноазиатских языков
     txt = remove_asian_characters(txt)
+
+    # Заменяем стоп-слова на нормальные фразы
+    txt = replace_stop_words(txt)
 
     txt = txt.gsub(/["'""]/, '')
     txt = txt.gsub('*', '')
@@ -373,6 +426,21 @@ module ServiceReview
       text = text.gsub(/\s{2,}/, ' ')
       Rails.logger.info "Asian characters removed successfully"
     end
+
+    text
+  end
+
+  # Заменяет стоп-слова (неестественные/рекламные фразы) на нормальные
+  def replace_stop_words(text)
+    return text if text.blank?
+    return text unless defined?(REVIEW_STOP_WORDS_REPLACEMENTS)
+
+    REVIEW_STOP_WORDS_REPLACEMENTS.each do |rule|
+      text = text.gsub(rule[:pattern], rule[:replacement])
+    end
+
+    # Убираем двойные пробелы после замен
+    text = text.gsub(/\s{2,}/, ' ').strip
 
     text
   end

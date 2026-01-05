@@ -108,11 +108,19 @@ class UniversalReviewProcessor
     end
 
     if context[:model]
-      instructions += "- Обязательно упомяни модель #{context[:model]} в отзыве\n"
+      # Случайно выбираем формат названия модели (для разнообразия)
+      if rand(100) < 40
+        instructions += "- Обязательно упомяни модель #{context[:model]} в отзыве, используя ТРАНСЛИТЕРАЦИЮ на русском/украинском (например: Pilot Sport → Пайлот Спорт)\n"
+      else
+        instructions += "- Обязательно упомяни модель #{context[:model]} в отзыве (оригинальное латинское название)\n"
+      end
     end
 
     if context[:car]
-      instructions += "- Можешь упомянуть автомобиль #{context[:car]} если уместно\n"
+      instructions += "- ОБЯЗАТЕЛЬНО упомяни автомобиль #{context[:car]} в отзыве\n"
+    else
+      # Если авто не указан - требуем упомянуть опыт эксплуатации
+      instructions += "- ОБЯЗАТЕЛЬНО упомяни сколько сезонов/километров на этих шинах (например: 'второй сезон', 'уже 15 тысяч накатал')\n"
     end
 
     # НОВОЕ: Инструкции по полу автора
@@ -129,6 +137,20 @@ class UniversalReviewProcessor
       instructions += build_grade_instructions(context[:grade], context[:array_average])
     end
 
+    # Добавляем акцент на основе оценок свойств
+    if context[:ratings_array]
+      accent = select_accent_from_ratings(context[:ratings_array], context[:grade])
+      if accent
+        instructions += "- ГЛАВНЫЙ АКЦЕНТ ОТЗЫВА (сфокусируйся на этом): \"#{accent}\"\n"
+        instructions += "- Не пытайся упомянуть все характеристики - сконцентрируйся на главном акценте\n"
+      end
+    end
+
+    # Для негативных отзывов - требуем конкретику
+    if context[:grade] && context[:grade] < 3.0
+      instructions += "- Укажи КОНКРЕТНУЮ проблему (грыжа, быстрый износ, шум, плохая балансировка), а не просто 'плохие шины'\n"
+    end
+
     # НОВОЕ: Инструкции по датам и времени покупки
     if context[:time_description]
       instructions += build_date_instructions(context)
@@ -138,6 +160,45 @@ class UniversalReviewProcessor
     instructions += build_geographic_restrictions
 
     instructions
+  end
+
+  # Выбирает акцент на основе массива оценок для переписывания отзывов
+  def select_accent_from_ratings(ratings_array, grade = nil)
+    return nil unless defined?(REVIEW_ACCENTS) && ratings_array.is_a?(Array)
+
+    # Определяем тип отзыва по итоговой оценке
+    is_negative = grade && grade < 3.0
+
+    # Собираем подходящие оценки (позитивные для хороших отзывов, негативные для плохих)
+    suitable_properties = []
+    ratings_array.each_with_index do |rating, index|
+      next if rating == 0
+      next if index >= REVIEW_ACCENTS.keys.max + 1 # Защита от выхода за границы
+
+      # Для негативного отзыва берем негативные оценки, для позитивного - позитивные
+      if is_negative
+        suitable_properties << { index: index, rating: rating } if rating == -1
+      else
+        suitable_properties << { index: index, rating: rating } if rating == 1
+      end
+    end
+
+    # Если нет подходящих, берем любую ненулевую
+    if suitable_properties.empty?
+      ratings_array.each_with_index do |rating, index|
+        next if rating == 0
+        suitable_properties << { index: index, rating: rating }
+      end
+    end
+
+    return nil if suitable_properties.empty?
+
+    # Выбираем случайную
+    selected = suitable_properties.sample
+    property_accents = REVIEW_ACCENTS.dig(selected[:index], selected[:rating])
+    return nil unless property_accents&.any?
+
+    property_accents.sample
   end
   
   def build_style_preservation_instructions(analysis)
@@ -247,6 +308,9 @@ class UniversalReviewProcessor
 
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
+
+    # Заменяем стоп-слова на нормальные фразы
+    text = replace_stop_words(text)
 
     # Убираем лишние кавычки и обрамления
     text = text.gsub(/^["«]|["»]$/, '')
@@ -534,6 +598,21 @@ class UniversalReviewProcessor
       text = text.gsub(/\s{2,}/, ' ')
       Rails.logger.info "Asian characters removed successfully"
     end
+
+    text
+  end
+
+  # Заменяет стоп-слова (неестественные/рекламные фразы) на нормальные
+  def replace_stop_words(text)
+    return text if text.blank?
+    return text unless defined?(REVIEW_STOP_WORDS_REPLACEMENTS)
+
+    REVIEW_STOP_WORDS_REPLACEMENTS.each do |rule|
+      text = text.gsub(rule[:pattern], rule[:replacement])
+    end
+
+    # Убираем двойные пробелы после замен
+    text = text.gsub(/\s{2,}/, ' ').strip
 
     text
   end
