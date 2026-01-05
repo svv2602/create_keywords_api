@@ -179,6 +179,9 @@ class CarSeoTextGenerator
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
 
+    # Исправляем или удаляем некорректные ссылки на типоразмеры
+    text = fix_tire_size_links(text)
+
     # Сначала удаляем markdown блоки
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
 
@@ -816,6 +819,93 @@ class CarSeoTextGenerator
     end
 
     text
+  end
+
+  # Исправляет или удаляет некорректные ссылки на типоразмеры шин
+  # Правильный формат: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
+  # Неправильный формат: /shiny/215/55/r-17/ (без w- и h-)
+  def fix_tire_size_links(text)
+    return text if text.blank?
+
+    # Паттерн для поиска всех ссылок на типоразмеры (правильных и неправильных)
+    # Ищем href="...shiny..." содержащие числа размеров
+    link_pattern = /<a\s+href="([^"]*\/shiny\/[^"]*)"[^>]*>([^<]*)<\/a>/i
+
+    text.gsub(link_pattern) do |match|
+      href = $1
+      link_text = $2
+
+      # Проверяем, соответствует ли ссылка правильному формату
+      if valid_tire_size_link?(href)
+        # Ссылка корректна - оставляем как есть
+        match
+      elsif fixable_tire_size_link?(href)
+        # Ссылка содержит размеры, но в неправильном формате - пытаемся исправить
+        fixed_href = fix_tire_size_url(href)
+        if fixed_href
+          Rails.logger.info "Fixed tire size link: #{href} -> #{fixed_href}"
+          match.gsub(href, fixed_href)
+        else
+          # Не удалось исправить - удаляем ссылку, оставляем текст
+          Rails.logger.warn "Removed invalid tire size link: #{href}"
+          link_text
+        end
+      else
+        # Это не ссылка на типоразмер (например, ссылка на бренд) - оставляем
+        match
+      end
+    end
+  end
+
+  # Проверяет, соответствует ли URL правильному формату ссылки на типоразмер
+  # Правильный: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
+  def valid_tire_size_link?(url)
+    # Паттерн правильного формата: (опц. /ua)/shiny/w-ширина/h-профиль/r-радиус/
+    url.match?(%r{^(/ua)?/shiny/w-\d+/h-\d+/r-\d+/?$}i)
+  end
+
+  # Проверяет, является ли URL некорректной ссылкой на типоразмер (которую можно исправить)
+  # Неправильный: /shiny/215/55/r-17/ или /shiny/215/55/17/
+  def fixable_tire_size_link?(url)
+    # Паттерн неправильного формата - содержит числа размеров без правильных префиксов
+    # Например: /shiny/215/55/r-17/ или /shiny/215/55/17/ или /ua/shiny/265/75/r-16/
+    url.match?(%r{/shiny/\d+/\d+/(r-)?\d+}i) && !valid_tire_size_link?(url)
+  end
+
+  # Исправляет URL типоразмера, добавляя недостающие префиксы w-, h-, r-
+  def fix_tire_size_url(url)
+    # Извлекаем языковой префикс если есть
+    lang_prefix = url.match(%r{^(/ua)?})[1] || ''
+
+    # Пытаемся извлечь размеры из неправильного URL
+    # Варианты: /shiny/215/55/r-17/ или /shiny/215/55/17/
+    if url =~ %r{/shiny/(\d+)/(\d+)/(r-)?(\d+)}i
+      width = $1
+      height = $2
+      radius = $4
+
+      # Проверяем валидность извлеченных значений
+      return nil unless valid_tire_dimensions?(width, height, radius)
+
+      # Собираем правильный URL
+      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+    else
+      nil
+    end
+  end
+
+  # Проверяет валидность размеров шин
+  def valid_tire_dimensions?(width, height, radius)
+    w = width.to_i
+    h = height.to_i
+    r = radius.to_i
+
+    # Ширина обычно от 125 до 355
+    # Профиль от 25 до 85 (или 0 для специальных)
+    # Радиус от 12 до 24
+    w >= 125 && w <= 355 &&
+      h >= 0 && h <= 85 &&
+      r >= 12 && r <= 24
   end
 
   def build_geographic_restrictions
