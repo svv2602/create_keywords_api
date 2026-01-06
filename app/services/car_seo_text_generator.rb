@@ -179,8 +179,14 @@ class CarSeoTextGenerator
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
 
+    # Удаляем циклические ссылки на текущую модель автомобиля
+    text = remove_self_referencing_links(text)
+
     # Исправляем или удаляем некорректные ссылки на типоразмеры
     text = fix_tire_size_links(text)
+
+    # Валидируем анкоры ссылок на типоразмеры (анкор должен содержать размер)
+    text = validate_tire_link_anchors(text)
 
     # Сначала удаляем markdown блоки
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
@@ -339,6 +345,9 @@ class CarSeoTextGenerator
       - Вставляй ссылки органично в соответствующий контекст
       - Используй предоставленный HTML-код ссылок БЕЗ ИЗМЕНЕНИЙ
       - НЕ СОЗДАВАЙ ВЛОЖЕННЫЕ ССЫЛКИ
+      - АНКОР ссылки на типоразмер ДОЛЖЕН БЫТЬ САМИМ ТИПОРАЗМЕРОМ (например: <a href="...">215/55R17</a>)
+      - ЗАПРЕЩЕНО оставлять URL в виде открытого текста - всегда оборачивай в тег <a>
+      - ЗАПРЕЩЕНО создавать ссылки на текущую страницу модели #{@brand.capitalize} #{@model.capitalize} (/shiny/auto/#{@brand.downcase}/#{@model.downcase}/) - это циклическая ссылка!
 
       ТРЕБОВАНИЯ К ТЕКСТУ:
       1. НЕ используй <div>, классы, ID или <style> - только чистый HTML с заголовками, параграфами и списками
@@ -460,6 +469,9 @@ class CarSeoTextGenerator
       - Вставляй посилання органічно у відповідний контекст
       - Використовуй наданий HTML-код посилань БЕЗ ЗМІН
       - НЕ СТВОРЮЙ ВКЛАДЕНІ ПОСИЛАННЯ
+      - АНКОР посилання на типорозмір ПОВИНЕН БУТИ САМИМ ТИПОРОЗМІРОМ (наприклад: <a href="...">215/55R17</a>)
+      - ЗАБОРОНЕНО залишати URL у вигляді відкритого тексту - завжди обгортай в тег <a>
+      - ЗАБОРОНЕНО створювати посилання на поточну сторінку моделі #{@brand.capitalize} #{@model.capitalize} (/shiny/auto/#{@brand.downcase}/#{@model.downcase}/) - це циклічне посилання!
 
       ВИМОГИ ДО ТЕКСТУ:
       1. НЕ використовуй <div>, класи, ID або <style> - тільки чистий HTML із заголовками, параграфами та списками
@@ -819,6 +831,59 @@ class CarSeoTextGenerator
     end
 
     text
+  end
+
+  # Удаляет циклические ссылки на текущую модель автомобиля
+  # Например: /shiny/auto/acura/cl-type-s/ или /shiny/auto/acura/cl type-s/ (с пробелами)
+  def remove_self_referencing_links(text)
+    return text if text.blank?
+    return text if @brand.blank? || @model.blank?
+
+    # Нормализуем brand и model для сравнения (lowercase, убираем спецсимволы)
+    brand_normalized = @brand.downcase.gsub(/[^a-z0-9]/, '[-\\s]?')
+    model_normalized = @model.downcase.gsub(/[^a-z0-9]/, '[-\\s]?')
+
+    # Паттерн для ссылок на /shiny/auto/brand/model/ с любыми вариациями
+    # Учитываем пробелы, дефисы и их комбинации в URL
+    self_link_pattern = %r{<a\s+href="[^"]*\/shiny\/auto\/#{brand_normalized}\/#{model_normalized}\/?[^"]*"[^>]*>([^<]*)<\/a>}i
+
+    text.gsub(self_link_pattern) do |match|
+      link_text = $1
+      Rails.logger.info "Removed self-referencing link to #{@brand}/#{@model}, keeping text: #{link_text}"
+      link_text
+    end
+  end
+
+  # Валидирует анкоры ссылок на типоразмеры
+  # Анкор должен содержать типоразмер (например "215/55R17" или "215/55 R17")
+  # Если анкор не содержит размер - удаляем ссылку, оставляем текст
+  def validate_tire_link_anchors(text)
+    return text if text.blank?
+
+    # Паттерн для ссылок на типоразмеры (w-XXX/h-XX/r-XX)
+    tire_link_pattern = %r{<a\s+href="([^"]*\/shiny\/w-\d+\/h-\d+\/r-\d+\/?)"[^>]*>([^<]*)<\/a>}i
+
+    text.gsub(tire_link_pattern) do |match|
+      href = $1
+      anchor_text = $2
+
+      # Проверяем, содержит ли анкор типоразмер (например 215/55R17 или 215/55 R 17)
+      if anchor_contains_tire_size?(anchor_text)
+        # Анкор корректен - оставляем ссылку
+        match
+      else
+        # Анкор не содержит размер - удаляем ссылку, оставляем текст
+        Rails.logger.warn "Removed tire link with invalid anchor: #{anchor_text} (href: #{href})"
+        anchor_text
+      end
+    end
+  end
+
+  # Проверяет, содержит ли текст анкора типоразмер шины
+  # Допустимые форматы: 215/55R17, 215/55 R17, 215/55R 17, 215/55 R 17
+  def anchor_contains_tire_size?(text)
+    # Паттерн для типоразмера: ширина/профиль R радиус (с опциональными пробелами)
+    text.match?(/\d{3}\s*\/\s*\d{2}\s*R\s*\d{2}/i)
   end
 
   # Исправляет или удаляет некорректные ссылки на типоразмеры шин
