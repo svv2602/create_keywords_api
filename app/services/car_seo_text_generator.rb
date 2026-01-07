@@ -54,9 +54,9 @@ class CarSeoTextGenerator
       Rails.logger.info "Final text sample (last 200 chars): #{text[-200..-1]}"
 
       # Проверка на обрезанный текст
-      cta_phrases = @language == 'ru' ?
-        ['оформите заказ онлайн', 'оформіть замовлення онлайн'] :
-        ['оформіть замовлення онлайн', 'оформите заказ онлайн']
+      cta_phrases = @language == 'ua' ?
+        ['оформіть замовлення онлайн', 'замовлення онлайн', 'замовити онлайн'] :
+        ['оформите заказ онлайн', 'заказ онлайн', 'заказать онлайн']
 
       # Проверка целостности текста
       unless text_complete?(text, required_phrases: cta_phrases)
@@ -178,6 +178,9 @@ class CarSeoTextGenerator
 
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
+
+    # Исправляем пробелы в URL типоразмеров (w -225 -> w-225)
+    text = fix_spaces_in_tire_urls(text)
 
     # Удаляем циклические ссылки на текущую модель автомобиля
     text = remove_self_referencing_links(text)
@@ -810,6 +813,30 @@ class CarSeoTextGenerator
     end
 
     completion
+  end
+
+  # Исправляет пробелы в URL типоразмеров шин
+  # Неправильно: /shiny/w -225/h -35/r -18/ (пробел между буквой и дефисом)
+  # Правильно: /shiny/w-225/h-35/r-18/
+  def fix_spaces_in_tire_urls(text)
+    return text if text.blank?
+
+    # Паттерн для поиска ссылок с пробелами в URL
+    # w -225 -> w-225, h -35 -> h-35, r -18 -> r-18
+    original_text = text.dup
+
+    # Исправляем пробелы в href атрибутах
+    text = text.gsub(/href="([^"]*)"/) do |match|
+      href = $1
+      # Исправляем w -XXX -> w-XXX, h -XX -> h-XX, r -XX -> r-XX
+      fixed_href = href.gsub(/([whr])\s+-(\d+)/, '\1-\2')
+      if fixed_href != href
+        Rails.logger.info "Fixed spaces in tire URL: #{href} -> #{fixed_href}"
+      end
+      "href=\"#{fixed_href}\""
+    end
+
+    text
   end
 
   # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
