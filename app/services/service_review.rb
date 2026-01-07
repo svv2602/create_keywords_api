@@ -364,8 +364,8 @@ module ServiceReview
       end
     end
 
-    # очистить текст
-    new_text = first_text_clearing(new_text) if new_text
+    # очистить текст и скорректировать род
+    new_text = first_text_clearing(new_text, gender) if new_text
 
     new_text
   end
@@ -385,7 +385,7 @@ module ServiceReview
     end
   end
 
-  def first_text_clearing(txt)
+  def first_text_clearing(txt, gender = nil)
     # Удаляем иероглифы и символы восточноазиатских языков
     txt = remove_asian_characters(txt)
 
@@ -394,6 +394,9 @@ module ServiceReview
 
     # Заменяем запрещённые паттерны (однотипные фразы)
     txt = replace_banned_patterns(txt)
+
+    # Корректируем род глаголов в зависимости от пола автора
+    txt = correct_gender_in_text(txt, gender) if gender
 
     txt = txt.gsub(/["'""]/, '')
     txt = txt.gsub('*', '')
@@ -499,6 +502,78 @@ module ServiceReview
 
     # Делаем первую букву заглавной, если начало было удалено
     text = text.sub(/\A\s*[a-zа-яіїєґ]/) { |match| match.upcase } if text.present?
+
+    text
+  end
+
+  # Корректирует род глаголов в тексте в зависимости от пола автора
+  # Используется как страховка, если AI проигнорировал инструкции о поле
+  def correct_gender_in_text(text, gender)
+    return text if text.blank? || gender.blank?
+
+    if gender == "женщина"
+      # Замены мужского рода на женский
+      gender_replacements = [
+        # Глаголы прошедшего времени
+        { pattern: /\bпоставил\b/i, replacement: "поставила" },
+        { pattern: /\bустановил\b/i, replacement: "установила" },
+        { pattern: /\bкупил\b/i, replacement: "купила" },
+        { pattern: /\bвзял\b/i, replacement: "взяла" },
+        { pattern: /\bпроехал\b/i, replacement: "проехала" },
+        { pattern: /\bпоездил\b/i, replacement: "поездила" },
+        { pattern: /\bоткатал\b/i, replacement: "откатала" },
+        { pattern: /\bпроездил\b/i, replacement: "проездила" },
+        { pattern: /\bотъездил\b/i, replacement: "отъездила" },
+        { pattern: /\bпопробовал\b/i, replacement: "попробовала" },
+        { pattern: /\bрешил\b/i, replacement: "решила" },
+        { pattern: /\bвыбрал\b/i, replacement: "выбрала" },
+        { pattern: /\bзаказал\b/i, replacement: "заказала" },
+        { pattern: /\bполучил\b/i, replacement: "получила" },
+        { pattern: /\bпоменял\b/i, replacement: "поменяла" },
+        { pattern: /\bсменил\b/i, replacement: "сменила" },
+        { pattern: /\bперешел\b/i, replacement: "перешла" },
+        { pattern: /\bпонял\b/i, replacement: "поняла" },
+        { pattern: /\bзаметил\b/i, replacement: "заметила" },
+        { pattern: /\bоценил\b/i, replacement: "оценила" },
+        { pattern: /\bубедился\b/i, replacement: "убедилась" },
+        { pattern: /\bостался\b/i, replacement: "осталась" },
+        { pattern: /\bразочаровался\b/i, replacement: "разочаровалась" },
+        { pattern: /\bобрадовался\b/i, replacement: "обрадовалась" },
+        { pattern: /\bудивился\b/i, replacement: "удивилась" },
+        { pattern: /\bиспугался\b/i, replacement: "испугалась" },
+        { pattern: /\bнамучился\b/i, replacement: "намучилась" },
+        { pattern: /\bнаездил\b/i, replacement: "наездила" },
+        { pattern: /\bпроверил\b/i, replacement: "проверила" },
+        { pattern: /\bсравнил\b/i, replacement: "сравнила" },
+        { pattern: /\bпочувствовал\b/i, replacement: "почувствовала" },
+        { pattern: /\bездил\b/i, replacement: "ездила" },
+        { pattern: /\bбрал\b/i, replacement: "брала" },
+        { pattern: /\bстоял\b/i, replacement: "стояла" },
+        { pattern: /\bзастрял\b/i, replacement: "застряла" },
+        { pattern: /\bпопал\b/i, replacement: "попала" },
+        # Краткие прилагательные/причастия
+        { pattern: /\bдоволен\b/i, replacement: "довольна" },
+        { pattern: /\bрад\b/i, replacement: "рада" },
+        { pattern: /\bсчастлив\b/i, replacement: "счастлива" },
+        { pattern: /\bудивлен\b/i, replacement: "удивлена" },
+        { pattern: /\bразочарован\b/i, replacement: "разочарована" },
+        { pattern: /\bуверен\b/i, replacement: "уверена" },
+        { pattern: /\bвынужден\b/i, replacement: "вынуждена" },
+        { pattern: /\bготов\b/i, replacement: "готова" },
+        { pattern: /\bсогласен\b/i, replacement: "согласна" }
+      ]
+
+      gender_replacements.each do |rule|
+        text = text.gsub(rule[:pattern]) do |match|
+          # Сохраняем регистр первой буквы
+          if match[0] == match[0].upcase
+            rule[:replacement].capitalize
+          else
+            rule[:replacement]
+          end
+        end
+      end
+    end
 
     text
   end
