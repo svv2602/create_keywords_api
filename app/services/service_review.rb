@@ -248,7 +248,7 @@ module ServiceReview
 
           str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
           query_params = "#{record.main_string}\n#{str_errors}#{record.additional_string}"
-          review = generate_review(query_params, arr_review_length, record.season)
+          review = generate_review(query_params, arr_review_length, record.season, record.gender)
           # puts review
           new_hash[:id_review] = record.id
           new_hash[:review_ru] = review
@@ -287,7 +287,7 @@ module ServiceReview
     end
   end
 
-  def generate_review(query_params, arr_review_length, season = nil)
+  def generate_review(query_params, arr_review_length, season = nil, gender = nil)
     # Выбираем случайный тип автора для разнообразия
     author_type = AUTHOR_TYPES.sample
 
@@ -302,6 +302,18 @@ module ServiceReview
     topics += "\n"
     topics += "Длина отзыва: от #{arr_review_length[0]} до #{arr_review_length[1]} слов\n"
     topics += "в результат выведи только сгенерированный отзыв на русском языке\n"
+
+    # Добавляем инструкцию о роде в зависимости от пола автора
+    if gender == "женщина"
+      topics += "\n=== ПОЛ АВТОРА ===\n"
+      topics += "ВАЖНО: Автор отзыва - ЖЕНЩИНА. Используй ЖЕНСКИЙ род глаголов и прилагательных:\n"
+      topics += "- купила, поставила, установила, поездила, проехала\n"
+      topics += "- довольна, рада, удивлена, разочарована\n"
+      topics += "- НЕ используй мужской род: купил, поставил, доволен и т.д.\n"
+    elsif gender == "мужчина"
+      topics += "\n=== ПОЛ АВТОРА ===\n"
+      topics += "Автор отзыва - мужчина. Используй мужской род глаголов: купил, поставил, доволен.\n"
+    end
 
     topics += "\n=== ХАРАКТЕР АВТОРА ===\n"
     topics += "Тип автора: #{author_type[:type]}\n"
