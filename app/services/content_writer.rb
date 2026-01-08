@@ -119,8 +119,11 @@ class ContentWriter
     client = get_client_for_model(model)
     attempts = 0
 
+    Rails.logger.info "[ContentWriter] Starting generate_review with model: #{model}"
+
     begin
       # Выполняем запрос с rate limiting
+      Rails.logger.info "[ContentWriter] Attempt #{attempts + 1} - calling API..."
       execute_with_rate_limit(model) do
         response = client.chat(
           parameters: {
@@ -155,17 +158,18 @@ class ContentWriter
         nil
       end
 
-    rescue EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
+    rescue Faraday::ConnectionFailed, Faraday::TimeoutError, EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
       # Сетевые ошибки - повторяем с задержкой
       attempts += 1
+      Rails.logger.warn "[ContentWriter] CAUGHT network error: #{e.class} - #{e.message}"
 
       if attempts < MAX_ATTEMPTS
         wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
-        Rails.logger.warn "Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
+        Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
         sleep(wait_time)
         retry
       else
-        Rails.logger.error "Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
+        Rails.logger.error "[ContentWriter] Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
         nil
       end
 
