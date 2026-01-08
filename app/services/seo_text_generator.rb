@@ -273,8 +273,10 @@ class SeoTextGenerator
       ['оформіть замовлення онлайн', 'оформити замовлення онлайн'] :
       ['оформите заказ онлайн', 'оформить заказ онлайн']
 
-    # Фильтруем элементы
+    # Фильтруем элементы, сохраняя только один CTA
     cleaned_elements = []
+    valid_cta_element = nil  # Сохраняем последний валидный CTA
+
     elements.each do |element|
       element_text = element.downcase
 
@@ -300,10 +302,13 @@ class SeoTextGenerator
           has_forbidden = forbidden_patterns.any? { |pattern| element_text.match?(pattern) }
 
           if !has_forbidden
-            # Это правильный CTA - оставляем
-            cleaned_elements << element
+            # Это правильный CTA - сохраняем как кандидат (перезаписываем предыдущий)
+            if valid_cta_element
+              Rails.logger.info "Replaced duplicate CTA paragraph"
+            end
+            valid_cta_element = element
           else
-            # CTA с запрещёнными словами - пропускаем и добавим стандартный позже
+            # CTA с запрещёнными словами - пропускаем
             Rails.logger.warn "Removed CTA paragraph with forbidden words: #{element.truncate(100)}"
           end
         else
@@ -319,14 +324,11 @@ class SeoTextGenerator
       end
     end
 
-    # Проверяем, есть ли CTA в оставшихся элементах
-    has_valid_cta = cleaned_elements.any? do |element|
-      element_text = element.downcase
-      cta_phrases.any? { |phrase| element_text.include?(phrase) }
-    end
-
-    # Если CTA нет - добавляем стандартный
-    unless has_valid_cta
+    # Добавляем CTA в конец (только один)
+    if valid_cta_element
+      cleaned_elements << valid_cta_element
+    else
+      # Если валидного CTA нет - добавляем стандартный
       standard_cta = if @language == 'ua'
         "<p>Підберіть шини #{@brand} #{@model} #{@size} в каталозі ProKoleso та оформіть замовлення онлайн.</p>"
       else
