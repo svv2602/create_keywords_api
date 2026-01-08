@@ -103,6 +103,14 @@ class UniversalReviewProcessor
   def build_context_instructions(context)
     instructions = ""
 
+    # Обработка языка - ВАЖНО добавить в начало
+    if context[:language] == 'ua'
+      instructions += "- КРИТИЧНО ВАЖНО: Пиши відгук ТІЛЬКИ українською мовою!\n"
+      instructions += "- Використовуй українські слова: 'шини', 'гальмування', 'зчеплення', 'керованість', 'знос'\n"
+    else
+      instructions += "- Пиши отзыв на русском языке\n"
+    end
+
     if context[:brand]
       instructions += "- Обязательно используй бренд #{context[:brand]} в отзыве\n"
     end
