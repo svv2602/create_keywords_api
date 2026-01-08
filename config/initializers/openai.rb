@@ -13,7 +13,7 @@ DEEPSEEK_CLIENT = if ENV['DEEPSEEK_API_KEY'].present?
   OpenAI::Client.new(
     access_token: ENV['DEEPSEEK_API_KEY'],
     uri_base: "https://api.deepseek.com",
-    request_timeout: 240  # DeepSeek может быть медленнее
+    request_timeout: 300  # 5 минут - DeepSeek может быть медленнее при высокой нагрузке
   )
 else
   nil

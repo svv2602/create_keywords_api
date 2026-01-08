@@ -143,14 +143,30 @@ class ContentWriter
         attempts += 1
 
         if attempts < MAX_ATTEMPTS
-          puts "Произошла ошибка: #{e.message}. Повторная попытка..."
+          Rails.logger.warn "OpenAI Error: #{e.message}. Attempt #{attempts}/#{MAX_ATTEMPTS}..."
           # При ошибке пробуем fallback модель
           model = MODELS[:fallback] if attempts > 2
+          sleep(2 * attempts)  # Экспоненциальная задержка
           retry
         else
-          puts "Ошибка после #{MAX_ATTEMPTS} попыток: #{e.message}"
+          Rails.logger.error "OpenAI Error после #{MAX_ATTEMPTS} попыток: #{e.message}"
           nil
         end
+
+      rescue EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
+        # Сетевые ошибки - повторяем с задержкой
+        attempts += 1
+
+        if attempts < MAX_ATTEMPTS
+          wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
+          Rails.logger.warn "Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
+          sleep(wait_time)
+          retry
+        else
+          Rails.logger.error "Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
+          nil
+        end
+
       rescue AiRateLimiter::RateLimitExceeded => e
         Rails.logger.warn "AI Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
         sleep(e.retry_after)
