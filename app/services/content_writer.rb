@@ -146,45 +146,35 @@ class ContentWriter
     rescue OpenAI::Error => e
       attempts += 1
 
-      if attempts < MAX_ATTEMPTS
-        Rails.logger.warn "OpenAI Error: #{e.message}. Attempt #{attempts}/#{MAX_ATTEMPTS}..."
-        # При ошибке пробуем fallback модель
-        model = MODELS[:fallback] if attempts > 2
-        client = get_client_for_model(model)
+      if attempts < 3
+        Rails.logger.warn "[ContentWriter] API Error: #{e.message}. Attempt #{attempts}/3..."
         sleep(2 * attempts)  # Экспоненциальная задержка
         retry
       else
-        Rails.logger.error "OpenAI Error после #{MAX_ATTEMPTS} попыток: #{e.message}"
+        Rails.logger.error "[ContentWriter] API Error после 3 попыток: #{e.message}"
         nil
       end
 
     rescue Faraday::ConnectionFailed, Faraday::TimeoutError, EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
-      # Сетевые ошибки - повторяем с задержкой
+      # Сетевые ошибки - повторяем с задержкой (3 попытки, без fallback на OpenAI)
       attempts += 1
       Rails.logger.warn "[ContentWriter] CAUGHT network error: #{e.class} - #{e.message}"
 
-      if attempts < MAX_ATTEMPTS
-        # После 2 неудачных попыток переключаемся на OpenAI fallback
-        if attempts >= 2 && model.start_with?('deepseek')
-          model = MODELS[:fallback]
-          client = get_client_for_model(model)
-          Rails.logger.warn "[ContentWriter] Switching to fallback model: #{model}"
-        end
-
-        wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
-        Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
+      if attempts < 3
+        wait_time = 3 * attempts  # 3, 6 секунд
+        Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/3 after #{wait_time}s..."
         sleep(wait_time)
         retry
       else
-        Rails.logger.error "[ContentWriter] Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
+        Rails.logger.error "[ContentWriter] Network error после 3 попыток: #{e.class} - #{e.message}"
         nil
       end
 
     rescue AiRateLimiter::RateLimitExceeded => e
       attempts += 1
-      Rails.logger.warn "AI Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
+      Rails.logger.warn "[ContentWriter] Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
       sleep(e.retry_after)
-      retry if attempts < MAX_ATTEMPTS
+      retry if attempts < 3
       nil
     end
   end
