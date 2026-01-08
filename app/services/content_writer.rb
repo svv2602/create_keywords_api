@@ -119,9 +119,9 @@ class ContentWriter
     client = get_client_for_model(model)
     attempts = 0
 
-    # Выполняем запрос с rate limiting
-    execute_with_rate_limit(model) do
-      begin
+    begin
+      # Выполняем запрос с rate limiting
+      execute_with_rate_limit(model) do
         response = client.chat(
           parameters: {
             model: model,
@@ -138,41 +138,43 @@ class ContentWriter
         @cost_tracker.track_request(model, prompt.length, max_tokens) if @cost_tracker
 
         response
+      end
 
-      rescue OpenAI::Error => e
-        attempts += 1
+    rescue OpenAI::Error => e
+      attempts += 1
 
-        if attempts < MAX_ATTEMPTS
-          Rails.logger.warn "OpenAI Error: #{e.message}. Attempt #{attempts}/#{MAX_ATTEMPTS}..."
-          # При ошибке пробуем fallback модель
-          model = MODELS[:fallback] if attempts > 2
-          sleep(2 * attempts)  # Экспоненциальная задержка
-          retry
-        else
-          Rails.logger.error "OpenAI Error после #{MAX_ATTEMPTS} попыток: #{e.message}"
-          nil
-        end
-
-      rescue EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
-        # Сетевые ошибки - повторяем с задержкой
-        attempts += 1
-
-        if attempts < MAX_ATTEMPTS
-          wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
-          Rails.logger.warn "Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
-          sleep(wait_time)
-          retry
-        else
-          Rails.logger.error "Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
-          nil
-        end
-
-      rescue AiRateLimiter::RateLimitExceeded => e
-        Rails.logger.warn "AI Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
-        sleep(e.retry_after)
-        retry if (attempts += 1) < MAX_ATTEMPTS
+      if attempts < MAX_ATTEMPTS
+        Rails.logger.warn "OpenAI Error: #{e.message}. Attempt #{attempts}/#{MAX_ATTEMPTS}..."
+        # При ошибке пробуем fallback модель
+        model = MODELS[:fallback] if attempts > 2
+        client = get_client_for_model(model)
+        sleep(2 * attempts)  # Экспоненциальная задержка
+        retry
+      else
+        Rails.logger.error "OpenAI Error после #{MAX_ATTEMPTS} попыток: #{e.message}"
         nil
       end
+
+    rescue EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
+      # Сетевые ошибки - повторяем с задержкой
+      attempts += 1
+
+      if attempts < MAX_ATTEMPTS
+        wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
+        Rails.logger.warn "Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
+        sleep(wait_time)
+        retry
+      else
+        Rails.logger.error "Network error после #{MAX_ATTEMPTS} попыток: #{e.class} - #{e.message}"
+        nil
+      end
+
+    rescue AiRateLimiter::RateLimitExceeded => e
+      attempts += 1
+      Rails.logger.warn "AI Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
+      sleep(e.retry_after)
+      retry if attempts < MAX_ATTEMPTS
+      nil
     end
   end
 
