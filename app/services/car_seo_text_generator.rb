@@ -207,6 +207,9 @@ class CarSeoTextGenerator
     # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
     text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
 
+    # Исправляем закрывающие теги с пробелами: </p > -> </p>, < /p> -> </p>
+    text = text.gsub(/<\s*\/\s*(\w+)\s*>/i, '</\1>')
+
     # Если текст не заканчивается на </p>, добавляем его
     text += '</p>' unless text.strip.end_with?('</p>')
 

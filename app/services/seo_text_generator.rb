@@ -352,6 +352,9 @@ class SeoTextGenerator
       text = text.gsub(/<meta[^>]*>/i, '')
       text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')
 
+      # Исправляем закрывающие теги с пробелами: </p > -> </p>, < /p> -> </p>
+      text = text.gsub(/<\s*\/\s*(\w+)\s*>/i, '</\1>')
+
       # Удаляем лишние пробелы и переносы строк
       text = text.gsub(/\s+/, ' ')
           .gsub(/>\s+</, '><')
