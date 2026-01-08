@@ -146,27 +146,28 @@ class ContentWriter
     rescue OpenAI::Error => e
       attempts += 1
 
-      if attempts < 3
-        Rails.logger.warn "[ContentWriter] API Error: #{e.message}. Attempt #{attempts}/3..."
-        sleep(2 * attempts)  # Экспоненциальная задержка
+      if attempts < 5
+        wait_time = 5 * attempts  # 5, 10, 15, 20 секунд
+        Rails.logger.warn "[ContentWriter] API Error: #{e.message}. Attempt #{attempts}/5, retry after #{wait_time}s..."
+        sleep(wait_time)
         retry
       else
-        Rails.logger.error "[ContentWriter] API Error после 3 попыток: #{e.message}"
+        Rails.logger.error "[ContentWriter] API Error после 5 попыток: #{e.message}"
         nil
       end
 
     rescue Faraday::ConnectionFailed, Faraday::TimeoutError, EOFError, Net::ReadTimeout, Net::OpenTimeout, Errno::ECONNRESET, Errno::ETIMEDOUT => e
-      # Сетевые ошибки - повторяем с задержкой (3 попытки, без fallback на OpenAI)
+      # Сетевые ошибки - повторяем с задержкой (5 попыток)
       attempts += 1
       Rails.logger.warn "[ContentWriter] CAUGHT network error: #{e.class} - #{e.message}"
 
-      if attempts < 3
-        wait_time = 3 * attempts  # 3, 6 секунд
-        Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/3 after #{wait_time}s..."
+      if attempts < 5
+        wait_time = 5 * attempts  # 5, 10, 15, 20 секунд
+        Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/5 after #{wait_time}s..."
         sleep(wait_time)
         retry
       else
-        Rails.logger.error "[ContentWriter] Network error после 3 попыток: #{e.class} - #{e.message}"
+        Rails.logger.error "[ContentWriter] Network error после 5 попыток: #{e.class} - #{e.message}"
         nil
       end
 
@@ -174,7 +175,7 @@ class ContentWriter
       attempts += 1
       Rails.logger.warn "[ContentWriter] Rate limit exceeded: #{e.message}, retry after #{e.retry_after}s"
       sleep(e.retry_after)
-      retry if attempts < 3
+      retry if attempts < 5
       nil
     end
   end
