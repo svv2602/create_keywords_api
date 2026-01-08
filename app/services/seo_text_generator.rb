@@ -341,6 +341,17 @@ class SeoTextGenerator
   end
   
     def clean_html_text(text)
+      # Удаляем markdown блоки (```html ... ```)
+      text = text.gsub(/```html\s*/i, '').gsub(/```\s*$/m, '').gsub(/^```\s*/m, '')
+
+      # Удаляем нежелательные HTML теги документа
+      text = text.gsub(/<!DOCTYPE[^>]*>/i, '')
+      text = text.gsub(/<\/?html[^>]*>/i, '')
+      text = text.gsub(/<\/?body[^>]*>/i, '')
+      text = text.gsub(/<\/?head[^>]*>/i, '')
+      text = text.gsub(/<meta[^>]*>/i, '')
+      text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')
+
       # Удаляем лишние пробелы и переносы строк
       text = text.gsub(/\s+/, ' ')
           .gsub(/>\s+</, '><')
