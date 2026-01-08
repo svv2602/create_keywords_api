@@ -164,6 +164,13 @@ class ContentWriter
       Rails.logger.warn "[ContentWriter] CAUGHT network error: #{e.class} - #{e.message}"
 
       if attempts < MAX_ATTEMPTS
+        # После 2 неудачных попыток переключаемся на OpenAI fallback
+        if attempts >= 2 && model.start_with?('deepseek')
+          model = MODELS[:fallback]
+          client = get_client_for_model(model)
+          Rails.logger.warn "[ContentWriter] Switching to fallback model: #{model}"
+        end
+
         wait_time = 3 * attempts  # 3, 6, 9, 12 секунд
         Rails.logger.warn "[ContentWriter] Network error: #{e.class} - #{e.message}. Retry #{attempts}/#{MAX_ATTEMPTS} after #{wait_time}s..."
         sleep(wait_time)
