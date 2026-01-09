@@ -927,11 +927,11 @@ class CarSeoTextGenerator
   # Исправляет или удаляет некорректные ссылки на типоразмеры шин
   # Правильный формат: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
   # Неправильный формат: /shiny/215/55/r-17/ (без w- и h-)
+  # Заглушки от AI: /shiny/w1, /shiny/w2 и т.д.
   def fix_tire_size_links(text)
     return text if text.blank?
 
-    # Паттерн для поиска всех ссылок на типоразмеры (правильных и неправильных)
-    # Ищем href="...shiny..." содержащие числа размеров
+    # Паттерн для поиска всех ссылок на /shiny/
     link_pattern = /<a\s+href="([^"]*\/shiny\/[^"]*)"[^>]*>([^<]*)<\/a>/i
 
     text.gsub(link_pattern) do |match|
@@ -942,6 +942,18 @@ class CarSeoTextGenerator
       if valid_tire_size_link?(href)
         # Ссылка корректна - оставляем как есть
         match
+      elsif placeholder_link?(href)
+        # Ссылка-заглушка от AI (/shiny/w1, /shiny/w2 и т.д.)
+        # Пытаемся восстановить URL из текста анкора
+        fixed_href = build_url_from_anchor(link_text)
+        if fixed_href
+          Rails.logger.info "Fixed placeholder link from anchor: #{href} -> #{fixed_href} (anchor: #{link_text})"
+          match.sub(href, fixed_href)
+        else
+          # Не удалось восстановить - удаляем ссылку, оставляем текст
+          Rails.logger.warn "Removed placeholder link: #{href} (anchor: #{link_text})"
+          link_text
+        end
       elsif fixable_tire_size_link?(href)
         # Ссылка содержит размеры, но в неправильном формате - пытаемся исправить
         fixed_href = fix_tire_size_url(href)
@@ -957,6 +969,32 @@ class CarSeoTextGenerator
         # Это не ссылка на типоразмер (например, ссылка на бренд) - оставляем
         match
       end
+    end
+  end
+
+  # Проверяет, является ли URL ссылкой-заглушкой от AI
+  # Паттерны: /shiny/w1, /shiny/w2, /ua/shiny/w1, /shiny/size1 и т.д.
+  def placeholder_link?(url)
+    url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
+  end
+
+  # Строит правильный URL из текста анкора, содержащего типоразмер
+  # Например: "245/45R18" -> "/shiny/w-245/h-45/r-18/"
+  def build_url_from_anchor(anchor_text)
+    # Паттерн для извлечения размера: 245/45R18 или 245/45 R18 или 245/45 R 18
+    if anchor_text =~ /(\d{3})\s*\/\s*(\d{2})\s*R\s*(\d{2})/i
+      width = $1
+      height = $2
+      radius = $3
+
+      # Проверяем валидность размеров
+      return nil unless valid_tire_dimensions?(width, height, radius)
+
+      # Добавляем языковой префикс если нужно
+      lang_prefix = @language == 'ua' ? '/ua' : ''
+      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+    else
+      nil
     end
   end
 
