@@ -942,16 +942,17 @@ class CarSeoTextGenerator
       if valid_tire_size_link?(href)
         # Ссылка корректна - оставляем как есть
         match
-      elsif placeholder_link?(href)
-        # Ссылка-заглушка от AI (/shiny/w1, /shiny/w2 и т.д.)
+      elsif placeholder_link?(href) || malformed_tire_link?(href)
+        # Ссылка-заглушка или искажённая ссылка от AI
+        # Примеры: /shiny/w1, /shiny/w-275/h1-/r1-/
         # Пытаемся восстановить URL из текста анкора
         fixed_href = build_url_from_anchor(link_text)
         if fixed_href
-          Rails.logger.info "Fixed placeholder link from anchor: #{href} -> #{fixed_href} (anchor: #{link_text})"
+          Rails.logger.info "Fixed malformed link from anchor: #{href} -> #{fixed_href} (anchor: #{link_text})"
           match.sub(href, fixed_href)
         else
           # Не удалось восстановить - удаляем ссылку, оставляем текст
-          Rails.logger.warn "Removed placeholder link: #{href} (anchor: #{link_text})"
+          Rails.logger.warn "Removed malformed link: #{href} (anchor: #{link_text})"
           link_text
         end
       elsif fixable_tire_size_link?(href)
@@ -976,6 +977,15 @@ class CarSeoTextGenerator
   # Паттерны: /shiny/w1, /shiny/w2, /ua/shiny/w1, /shiny/size1 и т.д.
   def placeholder_link?(url)
     url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
+  end
+
+  # Проверяет, является ли URL искажённой ссылкой на типоразмер
+  # Паттерны: /shiny/w-275/h1-/r1-/, /shiny/w-/h-/r-/, и т.д.
+  # Ссылка содержит w-, h-, r- но не в правильном формате
+  def malformed_tire_link?(url)
+    # Если содержит /shiny/ и w- но не является валидной ссылкой
+    return false unless url.include?('/shiny/') && url.include?('w-')
+    !valid_tire_size_link?(url)
   end
 
   # Строит правильный URL из текста анкора, содержащего типоразмер

@@ -818,14 +818,14 @@ class SeoTextGenerator
       # Проверяем, соответствует ли ссылка правильному формату
       if valid_tire_size_link?(href)
         match
-      elsif placeholder_link?(href)
-        # Ссылка-заглушка от AI - пытаемся восстановить URL из анкора
+      elsif placeholder_link?(href) || malformed_tire_link?(href)
+        # Ссылка-заглушка или искажённая ссылка от AI
         fixed_href = build_url_from_anchor(link_text)
         if fixed_href
-          Rails.logger.info "Fixed placeholder link: #{href} -> #{fixed_href}"
+          Rails.logger.info "Fixed malformed link: #{href} -> #{fixed_href}"
           match.sub(href, fixed_href)
         else
-          Rails.logger.warn "Removed placeholder link: #{href}"
+          Rails.logger.warn "Removed malformed link: #{href}"
           link_text
         end
       elsif fixable_tire_size_link?(href)
@@ -845,6 +845,11 @@ class SeoTextGenerator
 
   def placeholder_link?(url)
     url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
+  end
+
+  def malformed_tire_link?(url)
+    return false unless url.include?('/shiny/') && url.include?('w-')
+    !valid_tire_size_link?(url)
   end
 
   def build_url_from_anchor(anchor_text)
