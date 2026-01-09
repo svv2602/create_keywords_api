@@ -353,9 +353,22 @@ class SeoTextGenerator
       text = text.gsub(/<\/?head[^>]*>/i, '')
       text = text.gsub(/<meta[^>]*>/i, '')
       text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')
+      text = text.gsub(/<\/?div[^>]*>/i, '')                   # Удаляем div
+      text = text.gsub(/<style[^>]*>.*?<\/style>/im, '')       # Удаляем style теги
+
+      # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
+      text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
 
       # Исправляем закрывающие теги с пробелами: </p > -> </p>, < /p> -> </p>
       text = text.gsub(/<\s*\/\s*(\w+)\s*>/i, '</\1>')
+
+      # Исправляем сломанные теги от AI: <]/li] -> </li>, <]/p] -> </p> и т.д.
+      # AI иногда генерирует квадратные скобки вместо угловых
+      text = text.gsub(/<\]\/(\w+)\]/, '</\1>')   # <]/li] -> </li>
+      text = text.gsub(/\[\/(\w+)\]/, '</\1>')    # [/li] -> </li>
+      text = text.gsub(/<\/(\w+)\]/, '</\1>')     # </li] -> </li>
+      text = text.gsub(/<\](\w+)\]/, '<\1>')      # <]li] -> <li>
+      text = text.gsub(/\[(\w+)\](?=[^a-z])/i, '<\1>') # [li] -> <li> (но не [слово])
 
       # Удаляем лишние пробелы и переносы строк
       text = text.gsub(/\s+/, ' ')
