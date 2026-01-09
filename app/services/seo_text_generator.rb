@@ -205,6 +205,8 @@ class SeoTextGenerator
     text = clean_html_text(text)
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
+    # Исправляем или удаляем некорректные ссылки на типоразмеры
+    text = fix_tire_size_links(text)
     # Удаляем параграфы с запрещёнными словами
     text = remove_forbidden_content(text)
     # optimize_keywords удален - AI сам добавит выделения согласно промпту
@@ -798,6 +800,82 @@ class SeoTextGenerator
         - При упоминании географии используй только Украину и украинские топонимы
       RESTRICTIONS
     end
+  end
+
+  # Исправляет или удаляет некорректные ссылки на типоразмеры шин
+  # Правильный формат: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
+  # Заглушки от AI: /shiny/w1, /shiny/w2 и т.д.
+  def fix_tire_size_links(text)
+    return text if text.blank?
+
+    # Паттерн для поиска всех ссылок на /shiny/
+    link_pattern = /<a\s+href="([^"]*\/shiny\/[^"]*)"[^>]*>([^<]*)<\/a>/i
+
+    text.gsub(link_pattern) do |match|
+      href = $1
+      link_text = $2
+
+      # Проверяем, соответствует ли ссылка правильному формату
+      if valid_tire_size_link?(href)
+        match
+      elsif placeholder_link?(href)
+        # Ссылка-заглушка от AI - пытаемся восстановить URL из анкора
+        fixed_href = build_url_from_anchor(link_text)
+        if fixed_href
+          Rails.logger.info "Fixed placeholder link: #{href} -> #{fixed_href}"
+          match.sub(href, fixed_href)
+        else
+          Rails.logger.warn "Removed placeholder link: #{href}"
+          link_text
+        end
+      elsif fixable_tire_size_link?(href)
+        fixed_href = fix_tire_size_url(href)
+        if fixed_href
+          Rails.logger.info "Fixed tire size link: #{href} -> #{fixed_href}"
+          match.gsub(href, fixed_href)
+        else
+          Rails.logger.warn "Removed invalid tire size link: #{href}"
+          link_text
+        end
+      else
+        match
+      end
+    end
+  end
+
+  def placeholder_link?(url)
+    url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
+  end
+
+  def build_url_from_anchor(anchor_text)
+    if anchor_text =~ /(\d{3})\s*\/\s*(\d{2})\s*R\s*(\d{2})/i
+      width, height, radius = $1, $2, $3
+      return nil unless valid_tire_dimensions?(width, height, radius)
+      lang_prefix = @language == 'ua' ? '/ua' : ''
+      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+    end
+  end
+
+  def valid_tire_size_link?(url)
+    url.match?(%r{^(/ua)?/shiny/w-\d+/h-\d+/r-\d+/?$}i)
+  end
+
+  def fixable_tire_size_link?(url)
+    url.match?(%r{/shiny/\d+/\d+/(r-)?\d+}i) && !valid_tire_size_link?(url)
+  end
+
+  def fix_tire_size_url(url)
+    lang_prefix = url.match(%r{^(/ua)?})[1] || ''
+    if url =~ %r{/shiny/(\d+)/(\d+)/(r-)?(\d+)}i
+      width, height, radius = $1, $2, $4
+      return nil unless valid_tire_dimensions?(width, height, radius)
+      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+    end
+  end
+
+  def valid_tire_dimensions?(width, height, radius)
+    w, h, r = width.to_i, height.to_i, radius.to_i
+    w >= 125 && w <= 355 && h >= 0 && h <= 85 && r >= 12 && r <= 24
   end
 
   private
