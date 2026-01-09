@@ -802,40 +802,25 @@ class SeoTextGenerator
     end
   end
 
-  # Исправляет или удаляет некорректные ссылки на типоразмеры шин
-  # Правильный формат: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
-  # Заглушки от AI: /shiny/w1, /shiny/w2 и т.д.
+  # Исправляет ссылки на типоразмеры шин
+  # Если анкор содержит типоразмер - генерируем правильную ссылку из него
   def fix_tire_size_links(text)
     return text if text.blank?
 
-    # Паттерн для поиска всех ссылок на /shiny/
     link_pattern = /<a\s+href="([^"]*\/shiny\/[^"]*)"[^>]*>([^<]*)<\/a>/i
 
     text.gsub(link_pattern) do |match|
       href = $1
-      link_text = $2
+      anchor_text = $2
 
-      # Проверяем, соответствует ли ссылка правильному формату
-      if valid_tire_size_link?(href)
-        match
-      elsif placeholder_link?(href) || malformed_tire_link?(href)
-        # Ссылка-заглушка или искажённая ссылка от AI
-        fixed_href = build_url_from_anchor(link_text)
-        if fixed_href
-          Rails.logger.info "Fixed malformed link: #{href} -> #{fixed_href}"
-          match.sub(href, fixed_href)
+      correct_href = build_url_from_anchor(anchor_text)
+
+      if correct_href
+        if href == correct_href
+          match
         else
-          Rails.logger.warn "Removed malformed link: #{href}"
-          link_text
-        end
-      elsif fixable_tire_size_link?(href)
-        fixed_href = fix_tire_size_url(href)
-        if fixed_href
-          Rails.logger.info "Fixed tire size link: #{href} -> #{fixed_href}"
-          match.gsub(href, fixed_href)
-        else
-          Rails.logger.warn "Removed invalid tire size link: #{href}"
-          link_text
+          Rails.logger.info "Fixed tire link: #{href} -> #{correct_href}"
+          match.sub(href, correct_href)
         end
       else
         match
@@ -843,37 +828,12 @@ class SeoTextGenerator
     end
   end
 
-  def placeholder_link?(url)
-    url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
-  end
-
-  def malformed_tire_link?(url)
-    return false unless url.include?('/shiny/') && url.include?('w-')
-    !valid_tire_size_link?(url)
-  end
-
   def build_url_from_anchor(anchor_text)
-    if anchor_text =~ /(\d{3})\s*\/\s*(\d{2})\s*R\s*(\d{2})/i
+    normalized = anchor_text.gsub(/\s+/, '').downcase
+    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})/i
       width, height, radius = $1, $2, $3
       return nil unless valid_tire_dimensions?(width, height, radius)
       lang_prefix = @language == 'ua' ? '/ua' : ''
-      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
-    end
-  end
-
-  def valid_tire_size_link?(url)
-    url.match?(%r{^(/ua)?/shiny/w-\d+/h-\d+/r-\d+/?$}i)
-  end
-
-  def fixable_tire_size_link?(url)
-    url.match?(%r{/shiny/\d+/\d+/(r-)?\d+}i) && !valid_tire_size_link?(url)
-  end
-
-  def fix_tire_size_url(url)
-    lang_prefix = url.match(%r{^(/ua)?})[1] || ''
-    if url =~ %r{/shiny/(\d+)/(\d+)/(r-)?(\d+)}i
-      width, height, radius = $1, $2, $4
-      return nil unless valid_tire_dimensions?(width, height, radius)
       "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
     end
   end

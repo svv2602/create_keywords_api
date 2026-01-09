@@ -924,10 +924,8 @@ class CarSeoTextGenerator
     text.match?(/\d{3}\s*\/\s*\d{2}\s*R\s*\d{2}/i)
   end
 
-  # Исправляет или удаляет некорректные ссылки на типоразмеры шин
-  # Правильный формат: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
-  # Неправильный формат: /shiny/215/55/r-17/ (без w- и h-)
-  # Заглушки от AI: /shiny/w1, /shiny/w2 и т.д.
+  # Исправляет ссылки на типоразмеры шин
+  # Если анкор содержит типоразмер - генерируем правильную ссылку из него
   def fix_tire_size_links(text)
     return text if text.blank?
 
@@ -936,63 +934,37 @@ class CarSeoTextGenerator
 
     text.gsub(link_pattern) do |match|
       href = $1
-      link_text = $2
+      anchor_text = $2
 
-      # Проверяем, соответствует ли ссылка правильному формату
-      if valid_tire_size_link?(href)
-        # Ссылка корректна - оставляем как есть
-        match
-      elsif placeholder_link?(href) || malformed_tire_link?(href)
-        # Ссылка-заглушка или искажённая ссылка от AI
-        # Примеры: /shiny/w1, /shiny/w-275/h1-/r1-/
-        # Пытаемся восстановить URL из текста анкора
-        fixed_href = build_url_from_anchor(link_text)
-        if fixed_href
-          Rails.logger.info "Fixed malformed link from anchor: #{href} -> #{fixed_href} (anchor: #{link_text})"
-          match.sub(href, fixed_href)
+      # Пробуем извлечь типоразмер из анкора
+      correct_href = build_url_from_anchor(anchor_text)
+
+      if correct_href
+        # Анкор содержит типоразмер - проверяем, нужно ли исправлять ссылку
+        if href == correct_href
+          # Ссылка уже правильная
+          match
         else
-          # Не удалось восстановить - удаляем ссылку, оставляем текст
-          Rails.logger.warn "Removed malformed link: #{href} (anchor: #{link_text})"
-          link_text
-        end
-      elsif fixable_tire_size_link?(href)
-        # Ссылка содержит размеры, но в неправильном формате - пытаемся исправить
-        fixed_href = fix_tire_size_url(href)
-        if fixed_href
-          Rails.logger.info "Fixed tire size link: #{href} -> #{fixed_href}"
-          match.gsub(href, fixed_href)
-        else
-          # Не удалось исправить - удаляем ссылку, оставляем текст
-          Rails.logger.warn "Removed invalid tire size link: #{href}"
-          link_text
+          # Ссылка неправильная - заменяем на правильную
+          Rails.logger.info "Fixed tire link: #{href} -> #{correct_href} (from anchor: #{anchor_text})"
+          match.sub(href, correct_href)
         end
       else
-        # Это не ссылка на типоразмер (например, ссылка на бренд) - оставляем
+        # Анкор не содержит типоразмер - это ссылка на бренд или что-то другое
         match
       end
     end
   end
 
-  # Проверяет, является ли URL ссылкой-заглушкой от AI
-  # Паттерны: /shiny/w1, /shiny/w2, /ua/shiny/w1, /shiny/size1 и т.д.
-  def placeholder_link?(url)
-    url.match?(%r{/shiny/(w|h|r|size|link|url)?\d+/?$}i)
-  end
-
-  # Проверяет, является ли URL искажённой ссылкой на типоразмер
-  # Паттерны: /shiny/w-275/h1-/r1-/, /shiny/w-/h-/r-/, и т.д.
-  # Ссылка содержит w-, h-, r- но не в правильном формате
-  def malformed_tire_link?(url)
-    # Если содержит /shiny/ и w- но не является валидной ссылкой
-    return false unless url.include?('/shiny/') && url.include?('w-')
-    !valid_tire_size_link?(url)
-  end
-
-  # Строит правильный URL из текста анкора, содержащего типоразмер
-  # Например: "245/45R18" -> "/shiny/w-245/h-45/r-18/"
+  # Извлекает типоразмер из текста и строит правильный URL
+  # Нормализует текст: убирает пробелы, приводит к нижнему регистру
+  # Примеры анкоров: "245/45R18", "245/45 R18", "275/45 R 19", "шини 215/55R17"
   def build_url_from_anchor(anchor_text)
-    # Паттерн для извлечения размера: 245/45R18 или 245/45 R18 или 245/45 R 18
-    if anchor_text =~ /(\d{3})\s*\/\s*(\d{2})\s*R\s*(\d{2})/i
+    # Нормализуем текст для поиска размера
+    normalized = anchor_text.gsub(/\s+/, '').downcase
+
+    # Паттерн для извлечения размера: 245/45r18
+    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})/i
       width = $1
       height = $2
       radius = $3
@@ -1002,43 +974,6 @@ class CarSeoTextGenerator
 
       # Добавляем языковой префикс если нужно
       lang_prefix = @language == 'ua' ? '/ua' : ''
-      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
-    else
-      nil
-    end
-  end
-
-  # Проверяет, соответствует ли URL правильному формату ссылки на типоразмер
-  # Правильный: /shiny/w-215/h-55/r-17/ или /ua/shiny/w-215/h-55/r-17/
-  def valid_tire_size_link?(url)
-    # Паттерн правильного формата: (опц. /ua)/shiny/w-ширина/h-профиль/r-радиус/
-    url.match?(%r{^(/ua)?/shiny/w-\d+/h-\d+/r-\d+/?$}i)
-  end
-
-  # Проверяет, является ли URL некорректной ссылкой на типоразмер (которую можно исправить)
-  # Неправильный: /shiny/215/55/r-17/ или /shiny/215/55/17/
-  def fixable_tire_size_link?(url)
-    # Паттерн неправильного формата - содержит числа размеров без правильных префиксов
-    # Например: /shiny/215/55/r-17/ или /shiny/215/55/17/ или /ua/shiny/265/75/r-16/
-    url.match?(%r{/shiny/\d+/\d+/(r-)?\d+}i) && !valid_tire_size_link?(url)
-  end
-
-  # Исправляет URL типоразмера, добавляя недостающие префиксы w-, h-, r-
-  def fix_tire_size_url(url)
-    # Извлекаем языковой префикс если есть
-    lang_prefix = url.match(%r{^(/ua)?})[1] || ''
-
-    # Пытаемся извлечь размеры из неправильного URL
-    # Варианты: /shiny/215/55/r-17/ или /shiny/215/55/17/
-    if url =~ %r{/shiny/(\d+)/(\d+)/(r-)?(\d+)}i
-      width = $1
-      height = $2
-      radius = $4
-
-      # Проверяем валидность извлеченных значений
-      return nil unless valid_tire_dimensions?(width, height, radius)
-
-      # Собираем правильный URL
       "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
     else
       nil
