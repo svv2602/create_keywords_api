@@ -248,6 +248,7 @@ module ServiceReview
 
           str_errors = rand(1..5) % 2 == 1 ? "" : str_errors_template
           query_params = "#{record.main_string}\n#{str_errors}#{record.additional_string}"
+
           review = generate_review(query_params, arr_review_length, record.season, record.gender)
           # puts review
           new_hash[:id_review] = record.id
@@ -298,6 +299,21 @@ module ServiceReview
     opening_context = select_opening_context(season)
 
     topics = "Создай уникальный отзыв о шинах, используя следующие параметры:\n"
+
+    # === КРИТИЧНЫЙ БЛОК О СЕЗОННОСТИ (в начале для максимального влияния) ===
+    if season == "летние"
+      topics += "\n!!! КРИТИЧНО: ЭТО ЛЕТНИЕ ШИНЫ !!!\n"
+      topics += "КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать:\n"
+      topics += "- снег, сніг, снежный, снігова, сугроб, замет\n"
+      topics += "- лёд, лід, ледяной, льодовий, гололёд, ожеледиця\n"
+      topics += "- мороз, зима, зимовий, минусовая температура, -10, -15, -20 градусов\n"
+      topics += "- шипы, шипів, липучка, ліпучка\n"
+      topics += "Пиши ТОЛЬКО о: дождь, жара, сухой асфальт, мокрый асфальт, лужи, летняя погода\n\n"
+    elsif season == "зимние"
+      topics += "\n!!! ЭТО ЗИМНИЕ ШИНЫ !!!\n"
+      topics += "Пиши о зимних условиях: снег, лёд, гололёд, мороз, низкие температуры\n\n"
+    end
+
     topics += query_params
     topics += "\n"
     topics += "Длина отзыва: от #{arr_review_length[0]} до #{arr_review_length[1]} слов\n"
@@ -346,7 +362,6 @@ module ServiceReview
 
     topics += "\n=== ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ===\n"
     topics += "- если в параметрах есть '195/65R15','GreenTire', 'SuperDefender' - используй их для размера/бренда/модели\n"
-    topics += "- если Сезонность летняя - не пиши о зимних условиях (снег, лед)\n"
     topics += "- вместо слова 'управляемость' используй: курсовая устойчивость, маневренность, сцепление, торможение\n"
 
     attempts = 0
@@ -364,8 +379,8 @@ module ServiceReview
       end
     end
 
-    # очистить текст и скорректировать род
-    new_text = first_text_clearing(new_text, gender) if new_text
+    # очистить текст, скорректировать род и отфильтровать по сезону
+    new_text = first_text_clearing(new_text, gender, season) if new_text
 
     new_text
   end
@@ -385,7 +400,7 @@ module ServiceReview
     end
   end
 
-  def first_text_clearing(txt, gender = nil)
+  def first_text_clearing(txt, gender = nil, season = nil)
     # Удаляем иероглифы и символы восточноазиатских языков
     txt = remove_asian_characters(txt)
 
@@ -397,6 +412,9 @@ module ServiceReview
 
     # Корректируем род глаголов в зависимости от пола автора
     txt = correct_gender_in_text(txt, gender) if gender
+
+    # Фильтруем зимний контент для летних шин
+    txt = filter_winter_content_for_summer(txt, season)
 
     txt = txt.gsub(/["'""]/, '')
     txt = txt.gsub('*', '')
@@ -444,6 +462,38 @@ module ServiceReview
     # которая ищет начало строки или конец предыдущего предложения.
     # [^\.!?]*#{word}[^\.!?]*[\.!?] матчит любое предложение которое содержит указанное слово.
     txt.gsub(/(?<=^|\.|\?|\!)\s*([^\.!?]*#{word}[^\.!?]*[\.!?])/i, '')
+  end
+
+  # Фильтрует зимний контент из отзывов для летних шин
+  # Удаляет предложения содержащие зимние слова (снег, лёд, мороз, гололёд и т.д.)
+  def filter_winter_content_for_summer(text, season)
+    return text if text.blank?
+    return text unless season == "летние"
+    return text unless defined?(WINTER_KEYWORDS_FOR_FILTER)
+
+    original_text = text.dup
+    sentences_removed = 0
+
+    WINTER_KEYWORDS_FOR_FILTER.each do |pattern|
+      # Удаляем предложения содержащие зимние слова
+      before_length = text.length
+      text = text.gsub(/[^.!?]*#{pattern}[^.!?]*[.!?]/i, '')
+      sentences_removed += 1 if text.length < before_length
+    end
+
+    # Убираем двойные пробелы и лишние знаки препинания
+    text = text.gsub(/\s{2,}/, ' ')
+    text = text.gsub(/^\s*[.!?,;:]+\s*/, '')
+    text = text.strip
+
+    # Делаем первую букву заглавной если она стала строчной
+    text = text.sub(/\A\s*[a-zа-яіїєґ]/) { |match| match.upcase } if text.present?
+
+    if sentences_removed > 0
+      Rails.logger.info "Filtered #{sentences_removed} winter-related sentence(s) from summer tire review"
+    end
+
+    text
   end
 
   # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
