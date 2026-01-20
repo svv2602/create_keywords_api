@@ -941,55 +941,204 @@ class CarSeoTextGenerator
   end
 
   # Исправляет ссылки на типоразмеры шин
-  # Если анкор содержит типоразмер - генерируем правильную ссылку из него
+  # Принцип: анкор = источник правды
+  # Если анкор содержит типоразмер - генерируем правильную ссылку из него,
+  # игнорируя что было в href (даже если там был битый URL)
+  #
+  # Примеры битых URL которые исправляются:
+  # /shiny/275/65-r18/ -> /shiny/w-275/h-65/r-18/
+  # /shiny/205-65-r16/ -> /shiny/w-205/h-65/r-16/
+  # /ua/shiny/215/55/r16/ -> /ua/shiny/w-215/h-55/r-16/
+  #
+  # Примеры ссылок которые удаляются (URL с размером, но анкор без размера):
+  # <a href="/shiny/275/65-r18/">зимові шини</a> -> зимові шини
+  # <a href="/shiny/w-215/h-55/r-16/">купити</a> -> купити
+  #
+  # Примеры битых ссылок на бренд/сезон которые исправляются:
+  # <a href="/shiny/kumnie/">Kumho</a> -> /shiny/kumho/
+  # <a href="/shiny/zimnne/">зимові шини</a> -> /shiny/zimnie/
   def fix_tire_size_links(text)
     return text if text.blank?
 
-    # Паттерн для поиска всех ссылок на /shiny/
-    link_pattern = /<a\s+href="([^"]*\/shiny\/[^"]*)"[^>]*>([^<]*)<\/a>/i
+    # Ищем ВСЕ ссылки в тексте
+    link_pattern = /<a\s+href="([^"]*)"[^>]*>([^<]*)<\/a>/i
 
     text.gsub(link_pattern) do |match|
       href = $1
       anchor_text = $2
 
-      # Пробуем извлечь типоразмер из анкора
-      correct_href = build_url_from_anchor(anchor_text)
+      # 1. Пробуем извлечь типоразмер из анкора
+      correct_href = build_url_from_anchor(anchor_text, href)
 
       if correct_href
-        # Анкор содержит типоразмер - проверяем, нужно ли исправлять ссылку
         if href == correct_href
-          # Ссылка уже правильная
           match
         else
-          # Ссылка неправильная - заменяем на правильную
-          Rails.logger.info "Fixed tire link: #{href} -> #{correct_href} (from anchor: #{anchor_text})"
+          Rails.logger.info "Fixed tire link from anchor: #{href} -> #{correct_href} (anchor: '#{anchor_text}')"
           match.sub(href, correct_href)
         end
+      elsif href_contains_tire_size_pattern?(href)
+        # URL содержит размер, но анкор - нет -> удаляем ссылку
+        Rails.logger.warn "Removed tire link with mismatched anchor: #{href} (anchor: '#{anchor_text}')"
+        anchor_text
+      elsif href_is_suspicious_shiny_url?(href)
+        # 2. URL подозрительный (/shiny/kumnie/) - пробуем определить бренд или сезон из анкора
+        brand_or_season_href = build_url_from_anchor_brand_or_season(anchor_text, href)
+
+        if brand_or_season_href
+          Rails.logger.info "Fixed brand/season link from anchor: #{href} -> #{brand_or_season_href} (anchor: '#{anchor_text}')"
+          match.sub(href, brand_or_season_href)
+        else
+          # Не смогли определить - удаляем ссылку, оставляем текст
+          Rails.logger.warn "Removed suspicious shiny link: #{href} (anchor: '#{anchor_text}')"
+          anchor_text
+        end
       else
-        # Анкор не содержит типоразмер - это ссылка на бренд или что-то другое
+        # Обычная ссылка - оставляем как есть
         match
       end
     end
   end
 
-  # Извлекает типоразмер из текста и строит правильный URL
-  # Нормализует текст: убирает пробелы, приводит к нижнему регистру
-  # Примеры анкоров: "245/45R18", "245/45 R18", "275/45 R 19", "шини 215/55R17"
-  def build_url_from_anchor(anchor_text)
-    # Нормализуем текст для поиска размера
+  # Проверяет, содержит ли URL паттерны размера шин
+  def href_contains_tire_size_pattern?(href)
+    return false if href.blank?
+
+    tire_size_patterns = [
+      /\/w-\d+\/h-\d+\/r-\d+/i,
+      /\/shiny\/\d{3}\/\d{2}-r\d{2}/i,
+      /\/shiny\/\d{3}-\d{2}-r\d{2}/i,
+      /\/shiny\/\d{3}\/\d{2}\/r?\d{2}/i,
+      /\/shiny\/\d{3}\/\d{2}\/\d{2}/i,
+    ]
+
+    tire_size_patterns.any? { |pattern| href.match?(pattern) }
+  end
+
+  # Проверяет, является ли URL подозрительным (содержит /shiny/ но не валидный)
+  # Например: /shiny/kumnie/ (склеенное kumho+zimnie)
+  def href_is_suspicious_shiny_url?(href)
+    return false if href.blank?
+    return false unless href.include?('/shiny/')
+
+    # Известные валидные паттерны URL
+    valid_patterns = [
+      /\/shiny\/w-\d+\/h-\d+\/r-\d+/i,           # размер
+      /\/shiny\/r-\d+\//i,                        # только радиус
+      /\/shiny\/(letnie|zimnie|vsesezonie)\//i,   # сезон
+      /\/shiny\/[a-z]+-[a-z]+\//i,                # бренд с дефисом (bf-goodrich)
+      /\/shiny\/auto\//i,                         # ссылка на авто
+    ]
+
+    # Если URL соответствует валидному паттерну - не подозрительный
+    return false if valid_patterns.any? { |p| href.match?(p) }
+
+    # Проверяем, есть ли бренд в URL
+    brand_in_url = extract_brand_slug_from_url(href)
+    return false if brand_in_url && Brand.exists?(url: "/shiny/#{brand_in_url}/")
+
+    # URL содержит /shiny/something/ но не соответствует известным паттернам
+    href.match?(/\/shiny\/[^\/]+\/?$/)
+  end
+
+  # Извлекает slug бренда из URL
+  def extract_brand_slug_from_url(href)
+    match = href.match(/\/shiny\/([a-z0-9-]+)\/?$/i)
+    match ? match[1].downcase : nil
+  end
+
+  # Пробует определить бренд или сезон из анкора и построить правильный URL
+  def build_url_from_anchor_brand_or_season(anchor_text, original_href = '')
+    lang_prefix = original_href.include?('/ua/') || @language == 'ua' ? '/ua' : ''
+
+    # 1. Пробуем найти бренд в анкоре
+    brand_url = find_brand_in_anchor(anchor_text)
+    if brand_url
+      return "#{lang_prefix}#{brand_url}"
+    end
+
+    # 2. Пробуем найти сезон в анкоре
+    season_url = find_season_in_anchor(anchor_text)
+    if season_url
+      return "#{lang_prefix}#{season_url}"
+    end
+
+    nil
+  end
+
+  # Ищет название бренда в анкоре и возвращает URL
+  def find_brand_in_anchor(anchor_text)
+    return nil if anchor_text.blank?
+
+    anchor_lower = anchor_text.downcase
+
+    # Получаем все бренды шин из БД
+    Brand.where(type_url: 0).find_each do |brand|
+      brand_name_lower = brand.name.downcase
+      # Проверяем, содержит ли анкор название бренда
+      if anchor_lower.include?(brand_name_lower)
+        return brand.url if brand.url.present?
+      end
+    end
+
+    nil
+  end
+
+  # Ищет сезонность в анкоре и возвращает URL
+  def find_season_in_anchor(anchor_text)
+    return nil if anchor_text.blank?
+
+    anchor_lower = anchor_text.downcase
+
+    # Паттерны для определения сезонности
+    season_patterns = {
+      '/shiny/letnie/' => [
+        /літн[іяюих]/i,           # українська
+        /летн[иіяюых]/i,          # русский
+      ],
+      '/shiny/zimnie/' => [
+        /зимов[іаую]/i,           # українська
+        /зимн[іиіяюых]/i,         # русский
+      ],
+      '/shiny/vsesezonie/' => [
+        /всесезонн[іиіяюых]/i,    # обе
+        /всесезонк/i,
+      ]
+    }
+
+    season_patterns.each do |url, patterns|
+      if patterns.any? { |pattern| anchor_lower.match?(pattern) }
+        return url
+      end
+    end
+
+    nil
+  end
+
+  # Извлекает типоразмер из текста анкора и строит правильный URL
+  # Поддерживаемые форматы анкора:
+  # - "215/55R17", "215/55 R17", "215/55 R 17"
+  # - "шини 215/55R17", "резина 215/55 R17"
+  # - "215/55R17C" (коммерческие)
+  def build_url_from_anchor(anchor_text, original_href = '')
+    # Убираем пробелы для унификации поиска
     normalized = anchor_text.gsub(/\s+/, '').downcase
 
-    # Паттерн для извлечения размера: 245/45r18
-    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})/i
-      width = $1
-      height = $2
-      radius = $3
+    # Паттерн: ширина/профиль R радиус (опционально C для коммерческих)
+    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})c?/i
+      width, height, radius = $1, $2, $3
 
-      # Проверяем валидность размеров
       return nil unless valid_tire_dimensions?(width, height, radius)
 
-      # Добавляем языковой префикс если нужно
-      lang_prefix = @language == 'ua' ? '/ua' : ''
+      # Определяем языковой префикс из оригинального href или из настроек
+      lang_prefix = if original_href.include?('/ua/')
+                      '/ua'
+                    elsif @language == 'ua'
+                      '/ua'
+                    else
+                      ''
+                    end
+
       "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
     else
       nil
@@ -998,16 +1147,9 @@ class CarSeoTextGenerator
 
   # Проверяет валидность размеров шин
   def valid_tire_dimensions?(width, height, radius)
-    w = width.to_i
-    h = height.to_i
-    r = radius.to_i
-
-    # Ширина обычно от 125 до 355
-    # Профиль от 25 до 85 (или 0 для специальных)
-    # Радиус от 12 до 24
-    w >= 125 && w <= 355 &&
-      h >= 0 && h <= 85 &&
-      r >= 12 && r <= 24
+    w, h, r = width.to_i, height.to_i, radius.to_i
+    # Ширина: 125-355, Профиль: 0-85, Радиус: 12-24
+    w >= 125 && w <= 355 && h >= 0 && h <= 85 && r >= 12 && r <= 24
   end
 
   def build_geographic_restrictions
