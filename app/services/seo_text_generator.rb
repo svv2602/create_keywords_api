@@ -939,11 +939,37 @@ class SeoTextGenerator
       brand_name_lower = brand.name.downcase
       # Проверяем, содержит ли анкор название бренда
       if anchor_lower.include?(brand_name_lower)
-        return brand.url if brand.url.present?
+        return normalize_brand_url(brand.url) if brand.url.present?
       end
     end
 
     nil
+  end
+
+  # Нормализует URL бренда к формату /shiny/brand-name/
+  def normalize_brand_url(url)
+    return '/shiny/' if url.blank?
+
+    # Убираем лишние пробелы
+    url = url.strip
+
+    # Если URL не начинается с / - добавляем /shiny/
+    unless url.start_with?('/')
+      url = "/shiny/#{url}"
+    end
+
+    # Если URL не содержит /shiny/ - добавляем
+    unless url.include?('/shiny/')
+      url = "/shiny#{url}"
+    end
+
+    # Убираем /ua/ если есть (добавим позже при необходимости)
+    url = url.sub('/ua/', '/')
+
+    # Добавляем / в конце если нет
+    url = "#{url}/" unless url.end_with?('/')
+
+    url
   end
 
   # Ищет сезонность в анкоре и возвращает URL

@@ -297,7 +297,7 @@ class CarSeoTextGenerator
       brand_record = Brand.find_by(name: brand_name, language: @language)
 
       if brand_record && brand_record.url.present?
-        url = brand_record.url
+        url = normalize_brand_url(brand_record.url)
         # Добавляем префикс для украинского языка если нужно
         url = "/ua#{url}" if @language == 'ua' && !url.start_with?('/ua')
         "- <a href=\"#{url}\">#{brand_name}</a>"
@@ -310,6 +310,32 @@ class CarSeoTextGenerator
     end
 
     { brands: selected_brands, links: links.join("\n") }
+  end
+
+  # Нормализует URL бренда к формату /shiny/brand-name/
+  def normalize_brand_url(url)
+    return '/shiny/' if url.blank?
+
+    # Убираем лишние пробелы
+    url = url.strip
+
+    # Если URL не начинается с / - добавляем /shiny/
+    unless url.start_with?('/')
+      url = "/shiny/#{url}"
+    end
+
+    # Если URL не содержит /shiny/ - добавляем
+    unless url.include?('/shiny/')
+      url = "/shiny#{url}"
+    end
+
+    # Убираем /ua/ если есть (добавим позже при необходимости)
+    url = url.sub('/ua/', '/')
+
+    # Добавляем / в конце если нет
+    url = "#{url}/" unless url.end_with?('/')
+
+    url
   end
 
   def build_russian_prompt
@@ -1078,7 +1104,7 @@ class CarSeoTextGenerator
       brand_name_lower = brand.name.downcase
       # Проверяем, содержит ли анкор название бренда
       if anchor_lower.include?(brand_name_lower)
-        return brand.url if brand.url.present?
+        return normalize_brand_url(brand.url) if brand.url.present?
       end
     end
 
