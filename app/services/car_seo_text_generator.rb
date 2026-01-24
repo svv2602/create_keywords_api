@@ -1005,11 +1005,12 @@ class CarSeoTextGenerator
     return false if href.blank?
 
     tire_size_patterns = [
-      /\/w-\d+\/h-\d+\/r-\d+/i,
-      /\/shiny\/\d{3}\/\d{2}-r\d{2}/i,
-      /\/shiny\/\d{3}-\d{2}-r\d{2}/i,
-      /\/shiny\/\d{3}\/\d{2}\/r?\d{2}/i,
-      /\/shiny\/\d{3}\/\d{2}\/\d{2}/i,
+      /\/w-\d+\/h-\d+\/r-\d+/i,             # правильный: /w-265/h-60/r-18/
+      /\/shiny\/\d{3}\/\d{2}-r\d{2}/i,      # битый: /shiny/275/65-r18/
+      /\/shiny\/\d{3}-\d{2}-r\d{2}/i,       # битый: /shiny/205-65-r16/
+      /\/shiny\/\d{3}\/\d{2}\/r-\d{2}/i,    # битый: /shiny/265/60/r-18/
+      /\/shiny\/\d{3}\/\d{2}\/r\d{2}/i,     # битый: /shiny/215/55/r16/
+      /\/shiny\/\d{3}\/\d{2}\/\d{2}/i,      # битый: /shiny/215/55/16/
     ]
 
     tire_size_patterns.any? { |pattern| href.match?(pattern) }
