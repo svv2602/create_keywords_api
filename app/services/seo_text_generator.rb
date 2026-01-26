@@ -209,6 +209,8 @@ class SeoTextGenerator
     text = fix_tire_size_links(text)
     # Удаляем параграфы с запрещёнными словами
     text = remove_forbidden_content(text)
+    # Очищаем ссылки: удаляем безанкорные и нормализуем домены
+    text = sanitize_links(text)
     # optimize_keywords удален - AI сам добавит выделения согласно промпту
     text
   end
@@ -1037,6 +1039,24 @@ class SeoTextGenerator
     w, h, r = width.to_i, height.to_i, radius.to_i
     # Ширина: 125-355, Профиль: 0-85, Радиус: 12-24
     w >= 125 && w <= 355 && h >= 0 && h <= 85 && r >= 12 && r <= 24
+  end
+
+  # Очищает ссылки: удаляет безанкорные и нормализует домены prokoleso.*
+  # 1. Безанкорные ссылки (<a href="..."></a> или <a href="..."> </a>) - удаляются полностью
+  # 2. Абсолютные ссылки prokoleso.* преобразуются в относительные:
+  #    https://prokoleso.com/shiny/ -> /shiny/
+  #    https://prokoleso.ua/ua/shiny/ -> /ua/shiny/
+  def sanitize_links(text)
+    return text if text.blank?
+
+    # 1. Удаляем безанкорные ссылки (пустой или только пробелы анкор)
+    text = text.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>\s*<\/a>/i, '')
+
+    # 2. Преобразуем абсолютные ссылки prokoleso.* в относительные
+    # Поддерживаем: prokoleso.ua, prokoleso.com, prokoleso.ru и т.д.
+    text = text.gsub(/href="https?:\/\/prokoleso\.[a-z]+(\.[a-z]+)?/i, 'href="')
+
+    text
   end
 
   private
