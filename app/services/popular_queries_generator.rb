@@ -178,18 +178,28 @@ class PopularQueriesGenerator
         parts_for_query << :size
         url_suffix = "w-#{@width}/h-#{@height}/r-#{@radius}"
         link_url = "/shiny/#{url_parts.join('/')}/#{url_suffix}/"
+        text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
+        queries << { text: text, url: link_url }
       elsif @radius
         parts_for_query << :radius
         link_url = "/shiny/#{url_parts.join('/')}/r-#{@radius}/"
+        text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
+        queries << { text: text, url: link_url }
       else
+        # Нет радиуса — сезон+бренд и дополнительно сезон+бренд+случайный_радиус
         link_url = "/shiny/#{url_parts.join('/')}/"
+        text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
+        queries << { text: text, url: link_url }
+
+        if rand < 0.6
+          r = POPULAR_RADIUSES.sample
+          text_r = build_text_from_parts([:season, :brand, :radius], brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season, radius_override: r)
+          queries << { text: text_r, url: "/shiny/#{url_parts.join('/')}/r-#{r}/" }
+        end
       end
 
-      text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
-      queries << { text: text, url: link_url }
-
-      # Optionally add a second query (~50% chance) with brand + radius (без сезона или с другим)
-      if rand < 0.5 && @radius && (@width && @height)
+      # Второй запрос (~50%): brand + только radius
+      if rand < 0.5 && @radius && @width && @height
         alt_parts = [:brand]
         use_season = rand < 0.5
         alt_season = use_season ? (@season || SEASONS.sample) : nil
