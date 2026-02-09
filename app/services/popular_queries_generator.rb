@@ -22,6 +22,8 @@ class PopularQueriesGenerator
     parse_url
   end
 
+  POPULAR_RADIUSES = %w[13 14 15 16 17 18 19 20].freeze
+
   def generate(count = 30)
     queries = []
     queries.concat(build_combinations)
@@ -30,6 +32,7 @@ class PopularQueriesGenerator
     queries.concat(build_general_queries)
     queries.concat(build_season_variations) unless @season
     queries.concat(build_popular_size_queries) if @radius && !@width
+    queries.concat(build_radius_queries) unless @radius
     queries.shuffle.first([count, 20].max)
   end
 
@@ -282,6 +285,42 @@ class PopularQueriesGenerator
     end.compact
   end
 
+  # --- Block 6: Radius variations when no radius in URL (~8-12) ---
+  def build_radius_queries
+    queries = []
+    selected_radiuses = POPULAR_RADIUSES.sample(rand(6..8))
+
+    selected_radiuses.each do |r|
+      season = @season || SEASONS.sample
+
+      # бренд + сезон + радиус
+      if @brand_slug
+        queries << {
+          text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
+          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
+        }
+      end
+
+      # сезон + радиус (без бренда)
+      if rand < 0.5
+        queries << {
+          text: build_text_from_parts([:season, :radius], season_override: season, radius_override: r),
+          url: "/shiny/#{season}/r-#{r}/"
+        }
+      end
+
+      # бренд + радиус (без сезона) — изредка
+      if @brand_slug && rand < 0.3
+        queries << {
+          text: build_text_from_parts([:brand, :radius], radius_override: r),
+          url: "/shiny/#{@brand_slug}/r-#{r}/"
+        }
+      end
+    end
+
+    queries
+  end
+
   def popular_sizes_for_radius
     key = @radius.to_s.to_sym
     TIRE_POPULAR_SIZES[key] || []
@@ -300,8 +339,9 @@ class PopularQueriesGenerator
     { text: build_text_from_parts(parts, season_override: season_override), url: url }
   end
 
-  def build_text_from_parts(parts, brand_name: nil, brand_slug: nil, season_override: nil, size_override: nil)
+  def build_text_from_parts(parts, brand_name: nil, brand_slug: nil, season_override: nil, size_override: nil, radius_override: nil)
     effective_season = season_override || @season
+    effective_radius = radius_override || @radius
     has_season_part = parts.include?(:season)
 
     components = parts.map do |part|
@@ -313,7 +353,7 @@ class PopularQueriesGenerator
       when :size
         format_size_text(size_override)
       when :radius
-        format_radius_text
+        format_radius_text(effective_radius)
       when :shiny_word
         shiny_words.sample
       end
@@ -344,13 +384,14 @@ class PopularQueriesGenerator
     end
   end
 
-  def format_radius_text
-    return nil unless @radius
+  def format_radius_text(radius = nil)
+    radius ||= @radius
+    return nil unless radius
     case rand(1..4)
-    when 1 then "R#{@radius}"
-    when 2 then "на #{@radius}"
-    when 3 then "р#{@radius}"
-    when 4 then "r#{@radius}"
+    when 1 then "R#{radius}"
+    when 2 then "на #{radius}"
+    when 3 then "р#{radius}"
+    when 4 then "r#{radius}"
     end
   end
 
