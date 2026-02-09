@@ -25,6 +25,7 @@ class PopularQueriesGenerator
   def generate(count = 30)
     queries = []
     queries.concat(build_combinations)
+    queries.concat(build_current_brand_queries) if @brand_slug
     queries.concat(build_brand_variations)
     queries.concat(build_general_queries)
     queries.concat(build_season_variations) unless @season
@@ -57,10 +58,8 @@ class PopularQueriesGenerator
       when /\Ar-(\d[\d.]*)\z/
         @radius = $1
       else
-        # Potential brand slug — verify against promoted brands
-        if promoted_brands.any? { |b| b[:slug] == part }
-          @brand_slug = part
-        end
+        # Any unrecognized segment is a brand slug
+        @brand_slug = part
       end
     end
   end
@@ -107,6 +106,55 @@ class PopularQueriesGenerator
       text = build_text_from_parts(t[:parts])
       { text: text, url: t[:url] }
     end
+  end
+
+  # --- Block 1b: Current brand with different seasons/sizes (~6-8, ~20-30% от итога) ---
+  def build_current_brand_queries
+    queries = []
+    brand_name = current_brand_name
+
+    # Запросы с разными сезонами
+    seasons_to_use = @season ? [@season] : SEASONS
+    seasons_to_use.each do |season|
+      # бренд + сезон + радиус
+      if @radius
+        queries << {
+          text: build_text_from_parts([:season, :brand, :radius], season_override: season),
+          url: "/shiny/#{season}/#{@brand_slug}/r-#{@radius}/"
+        }
+      end
+      # бренд + сезон
+      queries << {
+        text: build_text_from_parts([:season, :brand], season_override: season),
+        url: "/shiny/#{season}/#{@brand_slug}/"
+      }
+    end
+
+    # Запросы с популярными размерами для текущего бренда
+    if @radius && !@width
+      sizes = popular_sizes_for_radius.sample(rand(2..4))
+      sizes.each do |size_str|
+        w, h, r = parse_size_string(size_str)
+        next unless w && h && r
+        season = @season || SEASONS.sample
+        queries << {
+          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r]),
+          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{r}/"
+        }
+      end
+    end
+
+    # Просто бренд + радиус (без сезона)
+    if @radius
+      queries << {
+        text: build_text_from_parts([:brand, :radius]),
+        url: "/shiny/#{@brand_slug}/r-#{@radius}/"
+      }
+    end
+
+    # Исключить дубли с входным URL
+    normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
+    queries.reject { |q| q[:url] == normalized_input }
   end
 
   # --- Block 2: Other brands (~10-15) ---
