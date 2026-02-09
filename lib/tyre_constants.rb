@@ -204,7 +204,11 @@ module TyreConstants
     "iii" => "III",
     "winterking" => "винтеркинг",
     "prtech" => "PRTECH",
-    "alpin" => "Альпин"
+    "alpin" => "Альпин",
+    "lassa" => "Ласса",
+    "orium" => "Ориум",
+    "grenlander" => "Гренландер",
+    "habilead" => "Хабилид"
   }.freeze
 
   TRANSLIT_EXCEPTIONS_UA = {
@@ -346,7 +350,11 @@ module TyreConstants
     "iii" => "III",
     "winterking" => "вінтеркінг",
     "prtech" => "PRTECH",
-    "alpin" => "Альпін"
+    "alpin" => "Альпін",
+    "lassa" => "Ласса",
+    "orium" => "Оріум",
+    "grenlander" => "Гренландер",
+    "habilead" => "Хабілід"
   }.freeze
 
   TRANSLIT_MAP_RU = {

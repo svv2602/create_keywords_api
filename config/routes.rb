@@ -45,6 +45,10 @@ Rails.application.routes.draw do
       get '/car_seo_text', to: 'car_seo_texts#generate'
       # =========================================
 
+      # ==============Популярные запросы ====================================
+      get '/popular_queries', to: 'keys#popular_queries'
+      # =========================================
+
       get '/my_test', to: 'reviews#my_test'
 
     end

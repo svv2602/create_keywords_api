@@ -90,6 +90,18 @@ class Api::V1::KeysController < ApplicationController
 
   end
 
+  def popular_queries
+    generator = PopularQueriesGenerator.new(params[:url], params[:language])
+    queries = generator.generate
+
+    if params[:html_view].to_s == "1"
+      html = render_popular_queries_html(queries)
+      render html: html.html_safe
+    else
+      render json: { popular_queries: queries }
+    end
+  end
+
   private
 
   def pick_random_copies_sorted(limit = 9)
@@ -103,17 +115,14 @@ class Api::V1::KeysController < ApplicationController
       initial_records.each(&:destroy)
 
       missing_count = limit - available_count
-      new_candidates = TyreModel.all
-      # new_candidates = TyreModel.order("RANDOM()").limit(missing_count)
+      new_candidates = JSON.parse(File.read(Rails.root.join("lib", "tyre_models.json")))
 
       new_candidates.each do |model|
         TyreModelCopy.create(
-          name: model.name,
-          url: model.url,
-          language: model.language,
-          element_count: model.element_count,
-          sezon: model.sezon,
-          brand: model.brand
+          name: model["name"],
+          url: model["url"],
+          sezon: model["sezon"],
+          brand: model["brand"]
         )
       end
     end
@@ -210,9 +219,8 @@ class Api::V1::KeysController < ApplicationController
   def generate_recommendation_links_grouped(models, language = nil)
     language = params[:language]
 
-    base_url = "https://prokoleso.ua"
     lang_path = language.to_s == 'ua' ? '/ua' : ''
-    url_base = "#{base_url}#{lang_path}/"
+    url_base = "#{lang_path}/"
 
     season_variants = TyreConstants.season_variants(language)
     highlight_phrases = TyreConstants.highlight_phrases(language)
@@ -300,6 +308,26 @@ class Api::V1::KeysController < ApplicationController
 
   def capitalize_first_letter(text)
     text[0].upcase + text[1..]
+  end
+
+  def render_popular_queries_html(queries)
+    lang_path = params[:language].to_s == 'ua' ? '/ua' : ''
+
+    title = params[:language].to_s == 'ua' ? 'Популярні запити' : 'Популярные запросы'
+
+    html = "<div class='popular-queries'>\n"
+    html << "  <p>#{title}</p>\n"
+    html << "  <ul>\n"
+
+    queries.each do |q|
+      url = "#{lang_path}#{q[:url]}"
+      text = capitalize_first_letter(q[:text])
+      html << "    <li><a href='#{url}' title='#{text}'>#{text}</a></li>\n"
+    end
+
+    html << "  </ul>\n"
+    html << "</div>\n"
+    html
   end
 
   def normal_str(str)

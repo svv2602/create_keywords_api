@@ -451,13 +451,55 @@ DEFAULTS = {
         * в цикле будут обработаны все xlsx-файлы в директории lib/text_reviews_ua (обновление полей с отзывами по id)
 
 ===================
+### Блок «Популярные запросы»
+* `/api/v1/popular_queries` — генерация блока «Популярные запросы» (20-25 поисковых запросов со ссылками)
+
+#### Параметры:
+| Параметр | Тип | Описание |
+|----------|-----|----------|
+| `url` | string | Относительный URL страницы каталога, например `/shiny/letnie/barum/w-175/h-65/r-14/` |
+| `language` | string | `ru` (русский) или `ua` (украинский). По умолчанию `ru` |
+| `html_view` | string | `1` — вернуть HTML-блок, иначе JSON |
+
+#### Примеры запросов:
+```bash
+# JSON (русский)
+curl "http://localhost:3000/api/v1/popular_queries?url=/shiny/letnie/barum/w-175/h-65/r-14/&language=ru"
+
+# HTML (украинский)
+curl "http://localhost:3000/api/v1/popular_queries?url=/shiny/letnie/barum/w-175/h-65/r-14/&language=ua&html_view=1"
+
+# Без бренда
+curl "http://localhost:3000/api/v1/popular_queries?url=/shiny/letnie/w-175/h-65/r-14/&language=ru"
+
+# Только радиус
+curl "http://localhost:3000/api/v1/popular_queries?url=/shiny/r-14/&language=ru"
+```
+
+#### Формат JSON-ответа:
+```json
+{
+  "popular_queries": [
+    { "text": "летние шины Барум 175/65 R14", "url": "/shiny/letnie/barum/w-175/h-65/r-14/" },
+    { "text": "Michelin р14", "url": "/shiny/michelin/r-14/" },
+    ...
+  ]
+}
+```
+
+===================
 ### Блок ТОП-модели
-* залить данные в таблицу с моделями:
-  * создать файл lib/top_models.xlsx
-  * выполнить заливку: /add_new_model_entries
-* получение данных в json: 
-  * для украинской версии - /api/v1/show_models?language=ua
-  * для русской - /api/v1/show_models?language=ru или без параметра
+Модели хранятся в `lib/tyre_models.json` (не в БД).
+
+#### Обновление моделей:
+1. Положить CSV-файл в `lib/` (формат: `URL,сезон,бренд,название модели`)
+2. Запустить: `rake tyre_models:import_csv[lib/filename.csv]`
+   * без аргумента используется `lib/model2026-02.csv`
+3. Закоммитить обновлённый `lib/tyre_models.json`
+
+#### Получение данных:
+* для украинской версии - /api/v1/show_models?language=ua
+* для русской - /api/v1/show_models?language=ru или без параметра
 * просмотр в html: /api/v1/show_models?html_view=1&language=ua
 
 ### Генерация SEO текстов
