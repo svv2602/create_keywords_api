@@ -33,7 +33,27 @@ class PopularQueriesGenerator
     queries.concat(build_season_variations) unless @season
     queries.concat(build_popular_size_queries) if @radius && !@width
     queries.concat(build_radius_queries) unless @radius
-    queries.shuffle.first([count, 20].max)
+
+    total = [count, 20].max
+
+    if @brand_slug
+      brand_re = /#{Regexp.escape(@brand_slug)}/i
+      with_brand = queries.select { |q| q[:url] =~ brand_re }.shuffle
+      without_brand = queries.reject { |q| q[:url] =~ brand_re }.shuffle
+
+      brand_target = (total * 0.7).round
+      other_target = total - brand_target
+
+      result = with_brand.first(brand_target) + without_brand.first(other_target)
+      # Если не хватает запросов с брендом — добираем из остальных, и наоборот
+      if result.size < total
+        remaining = (with_brand + without_brand) - result
+        result.concat(remaining.first(total - result.size))
+      end
+      result.shuffle
+    else
+      queries.shuffle.first(total)
+    end
   end
 
   private
@@ -111,48 +131,95 @@ class PopularQueriesGenerator
     end
   end
 
-  # --- Block 1b: Current brand with different seasons/sizes (~6-8, ~20-30% от итога) ---
+  # --- Block 1b: Current brand queries (~70% от итога) ---
   def build_current_brand_queries
     queries = []
-    brand_name = current_brand_name
 
-    # Запросы с разными сезонами
     seasons_to_use = @season ? [@season] : SEASONS
+
+    # бренд + сезон
     seasons_to_use.each do |season|
-      # бренд + сезон + радиус
-      if @radius
-        queries << {
-          text: build_text_from_parts([:season, :brand, :radius], season_override: season),
-          url: "/shiny/#{season}/#{@brand_slug}/r-#{@radius}/"
-        }
-      end
-      # бренд + сезон
       queries << {
         text: build_text_from_parts([:season, :brand], season_override: season),
         url: "/shiny/#{season}/#{@brand_slug}/"
       }
     end
 
-    # Запросы с популярными размерами для текущего бренда
-    if @radius && !@width
-      sizes = popular_sizes_for_radius.sample(rand(2..4))
-      sizes.each do |size_str|
-        w, h, r = parse_size_string(size_str)
-        next unless w && h && r
-        season = @season || SEASONS.sample
+    # бренд + сезон + радиус
+    if @radius
+      seasons_to_use.each do |season|
         queries << {
-          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r]),
-          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{r}/"
+          text: build_text_from_parts([:season, :brand, :radius], season_override: season),
+          url: "/shiny/#{season}/#{@brand_slug}/r-#{@radius}/"
         }
       end
-    end
-
-    # Просто бренд + радиус (без сезона)
-    if @radius
+      # бренд + радиус (без сезона)
       queries << {
         text: build_text_from_parts([:brand, :radius]),
         url: "/shiny/#{@brand_slug}/r-#{@radius}/"
       }
+    end
+
+    # бренд + текущий размер с другими сезонами
+    if @width && @height && @radius
+      (SEASONS - seasons_to_use).each do |season|
+        queries << {
+          text: build_text_from_parts([:season, :brand, :size], season_override: season),
+          url: "/shiny/#{season}/#{@brand_slug}/w-#{@width}/h-#{@height}/r-#{@radius}/"
+        }
+      end
+    end
+
+    # бренд + популярные размеры из TIRE_POPULAR_SIZES
+    radiuses_for_sizes = if @radius
+                           # текущий диаметр + 2-3 других
+                           ([@radius] + POPULAR_RADIUSES.reject { |r| r == @radius }.sample(rand(2..3))).uniq
+                         else
+                           POPULAR_RADIUSES.sample(rand(4..6))
+                         end
+
+    radiuses_for_sizes.each do |r|
+      all_sizes = TIRE_POPULAR_SIZES[r.to_s.to_sym] || []
+      # Исключить текущий размер, если он совпадает
+      selected_sizes = all_sizes.reject { |s|
+        w, h, _rr = parse_size_string(s)
+        w == @width && h == @height
+      }.sample(rand(3..5))
+
+      selected_sizes.each do |size_str|
+        w, h, parsed_r = parse_size_string(size_str)
+        next unless w && h && parsed_r
+        season = seasons_to_use.sample
+        queries << {
+          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r]),
+          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+        }
+      end
+
+      # бренд + сезон + диаметр
+      unless @radius
+        season = seasons_to_use.sample
+        queries << {
+          text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
+          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
+        }
+        queries << {
+          text: build_text_from_parts([:brand, :radius], radius_override: r),
+          url: "/shiny/#{@brand_slug}/r-#{r}/"
+        }
+      end
+    end
+
+    # бренд + другие диаметры (когда в URL есть конкретный радиус)
+    if @radius
+      other_radiuses = POPULAR_RADIUSES.reject { |r| r == @radius }.sample(rand(4..6))
+      other_radiuses.each do |r|
+        season = seasons_to_use.sample
+        queries << {
+          text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
+          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
+        }
+      end
     end
 
     # Исключить дубли с входным URL
@@ -163,7 +230,8 @@ class PopularQueriesGenerator
   # --- Block 2: Other brands (~10-15) ---
   def build_brand_variations
     other_brands = promoted_brands.reject { |b| b[:slug] == @brand_slug }
-    selected = other_brands.sample(rand(10..15))
+    brand_count = @brand_slug ? rand(5..8) : rand(10..15)
+    selected = other_brands.sample(brand_count)
 
     selected.flat_map do |brand|
       queries = []
