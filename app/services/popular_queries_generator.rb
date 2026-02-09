@@ -36,6 +36,10 @@ class PopularQueriesGenerator
     queries.concat(build_popular_size_queries) if @radius && !@width
     queries.concat(build_radius_queries) unless @radius
 
+    # Исключить запросы с URL, совпадающим с входным
+    normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
+    queries.reject! { |q| q[:url] == normalized_input }
+
     total = [count, 20].max
 
     # Правило 70% бренда — только если нет полного размера в URL
