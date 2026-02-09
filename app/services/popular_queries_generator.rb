@@ -25,9 +25,11 @@ class PopularQueriesGenerator
   POPULAR_RADIUSES = %w[13 14 15 16 17 18 19 20].freeze
 
   def generate(count = 30)
+    has_full_size = @width && @height && @radius
+
     queries = []
     queries.concat(build_combinations)
-    queries.concat(build_current_brand_queries) if @brand_slug
+    queries.concat(build_current_brand_queries) if @brand_slug && !has_full_size
     queries.concat(build_brand_variations)
     queries.concat(build_general_queries)
     queries.concat(build_season_variations) unless @season
@@ -36,7 +38,8 @@ class PopularQueriesGenerator
 
     total = [count, 20].max
 
-    if @brand_slug
+    # Правило 70% бренда — только если нет полного размера в URL
+    if @brand_slug && !has_full_size
       brand_re = /#{Regexp.escape(@brand_slug)}/i
       with_brand = queries.select { |q| q[:url] =~ brand_re }.shuffle
       without_brand = queries.reject { |q| q[:url] =~ brand_re }.shuffle
@@ -45,7 +48,6 @@ class PopularQueriesGenerator
       other_target = total - brand_target
 
       result = with_brand.first(brand_target) + without_brand.first(other_target)
-      # Если не хватает запросов с брендом — добираем из остальных, и наоборот
       if result.size < total
         remaining = (with_brand + without_brand) - result
         result.concat(remaining.first(total - result.size))
