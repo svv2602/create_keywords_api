@@ -40,6 +40,9 @@ class PopularQueriesGenerator
     normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
     queries.reject! { |q| q[:url] == normalized_input }
 
+    # Убрать дубли по URL (оставить первый вариант текста)
+    queries.uniq! { |q| q[:url] }
+
     total = [count, 20].max
 
     # Правило 70% бренда — только если нет полного размера в URL
