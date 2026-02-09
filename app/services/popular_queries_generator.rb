@@ -180,33 +180,51 @@ class PopularQueriesGenerator
     end
 
     # бренд + популярные размеры из TIRE_POPULAR_SIZES
-    radiuses_for_sizes = if @radius
-                           # текущий диаметр + 2-3 других
-                           ([@radius] + POPULAR_RADIUSES.reject { |r| r == @radius }.sample(rand(2..3))).uniq
-                         else
-                           POPULAR_RADIUSES.sample(rand(4..6))
-                         end
-
-    radiuses_for_sizes.each do |r|
-      all_sizes = TIRE_POPULAR_SIZES[r.to_s.to_sym] || []
-      # Исключить текущий размер, если он совпадает
-      selected_sizes = all_sizes.reject { |s|
-        w, h, _rr = parse_size_string(s)
-        w == @width && h == @height
-      }.sample(rand(3..5))
+    if @radius && !@width
+      # Есть диаметр, но нет размера — только размеры текущего диаметра
+      all_sizes = TIRE_POPULAR_SIZES[@radius.to_s.to_sym] || []
+      selected_sizes = all_sizes.sample([all_sizes.size, rand(6..8)].min)
 
       selected_sizes.each do |size_str|
         w, h, parsed_r = parse_size_string(size_str)
         next unless w && h && parsed_r
+        # Каждый размер — со случайным сезоном
         season = seasons_to_use.sample
         queries << {
           text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r]),
           url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
         }
+        # Дополнительно: тот же размер с другим сезоном (~40%)
+        if rand < 0.4
+          other_season = (SEASONS - [season]).sample
+          queries << {
+            text: build_text_from_parts([:season, :brand, :size], season_override: other_season, size_override: [w, h, parsed_r]),
+            url: "/shiny/#{other_season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+          }
+        end
       end
+    elsif !@radius
+      # Нет диаметра — размеры из случайных диаметров
+      radiuses_for_sizes = POPULAR_RADIUSES.sample(rand(4..6))
 
-      # бренд + сезон + диаметр
-      unless @radius
+      radiuses_for_sizes.each do |r|
+        all_sizes = TIRE_POPULAR_SIZES[r.to_s.to_sym] || []
+        selected_sizes = all_sizes.reject { |s|
+          w, h, _rr = parse_size_string(s)
+          w == @width && h == @height
+        }.sample(rand(3..5))
+
+        selected_sizes.each do |size_str|
+          w, h, parsed_r = parse_size_string(size_str)
+          next unless w && h && parsed_r
+          season = seasons_to_use.sample
+          queries << {
+            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r]),
+            url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+          }
+        end
+
+        # бренд + сезон + диаметр
         season = seasons_to_use.sample
         queries << {
           text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
@@ -215,18 +233,6 @@ class PopularQueriesGenerator
         queries << {
           text: build_text_from_parts([:brand, :radius], radius_override: r),
           url: "/shiny/#{@brand_slug}/r-#{r}/"
-        }
-      end
-    end
-
-    # бренд + другие диаметры (когда в URL есть конкретный радиус)
-    if @radius
-      other_radiuses = POPULAR_RADIUSES.reject { |r| r == @radius }.sample(rand(4..6))
-      other_radiuses.each do |r|
-        season = seasons_to_use.sample
-        queries << {
-          text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
-          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
         }
       end
     end
@@ -350,21 +356,36 @@ class PopularQueriesGenerator
       season = @season || SEASONS.sample
       url = "/shiny/#{season}/w-#{w}/h-#{h}/r-#{r}/"
 
-      # Запрос: сезон + размер
-      queries << {
-        text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r]),
-        url: url
-      }
-
-      # С вероятностью 40% — добавить бренд
-      if rand < 0.4
-        brand = promoted_brands.reject { |b| b[:slug] == @brand_slug }.sample
-        if brand
-          brand_url = "/shiny/#{season}/#{brand[:slug]}/w-#{w}/h-#{h}/r-#{r}/"
+      if @brand_slug
+        # Есть бренд — чаще генерируем с текущим брендом
+        if rand < 0.7
+          brand_url = "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{r}/"
           queries << {
-            text: build_text_from_parts([:season, :brand, :size], brand_name: brand[:name], brand_slug: brand[:slug], season_override: season, size_override: [w, h, r]),
+            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r]),
             url: brand_url
           }
+        else
+          # Без бренда
+          queries << {
+            text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r]),
+            url: url
+          }
+        end
+      else
+        # Нет бренда — сезон + размер, иногда со случайным брендом
+        queries << {
+          text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r]),
+          url: url
+        }
+        if rand < 0.4
+          brand = promoted_brands.sample
+          if brand
+            brand_url = "/shiny/#{season}/#{brand[:slug]}/w-#{w}/h-#{h}/r-#{r}/"
+            queries << {
+              text: build_text_from_parts([:season, :brand, :size], brand_name: brand[:name], brand_slug: brand[:slug], season_override: season, size_override: [w, h, r]),
+              url: brand_url
+            }
+          end
         end
       end
 
