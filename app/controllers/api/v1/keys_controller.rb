@@ -92,13 +92,39 @@ class Api::V1::KeysController < ApplicationController
 
   def popular_queries
     generator = PopularQueriesGenerator.new(params[:url], params[:language])
-    queries = generator.generate
+    validated = []
+    checked_urls = Set.new
+    max_attempts = 3
+
+    max_attempts.times do
+      queries = generator.generate(50)
+      # Исключить уже проверенные URL
+      new_queries = queries.reject { |q| checked_urls.include?(q[:url]) }
+      break if new_queries.empty?
+
+      checked_urls.merge(new_queries.map { |q| q[:url] })
+      result = LinkValidator.validate(new_queries)
+
+      if result[:error]
+        if params[:html_view].to_s == "1"
+          render html: "".html_safe
+        else
+          render json: { popular_queries: [], error: result[:error] }
+        end
+        return
+      end
+
+      validated.concat(result[:queries])
+      break if validated.size >= 20
+    end
+
+    final = validated.first(30)
 
     if params[:html_view].to_s == "1"
-      html = render_popular_queries_html(queries)
+      html = render_popular_queries_html(final)
       render html: html.html_safe
     else
-      render json: { popular_queries: queries }
+      render json: { popular_queries: final }
     end
   end
 

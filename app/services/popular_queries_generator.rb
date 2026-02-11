@@ -24,7 +24,7 @@ class PopularQueriesGenerator
 
   POPULAR_RADIUSES = %w[13 14 15 16 17 18 19 20].freeze
 
-  def generate(count = 30)
+  def generate(count = 50)
     has_full_size = @width && @height && @radius
 
     queries = []
