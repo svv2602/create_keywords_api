@@ -55,8 +55,8 @@ class CarSeoTextGenerator
 
       # Проверка на обрезанный текст
       cta_phrases = @language == 'ua' ?
-        ['оформіть замовлення онлайн', 'замовлення онлайн', 'замовити онлайн'] :
-        ['оформите заказ онлайн', 'заказ онлайн', 'заказать онлайн']
+        ['замовлення онлайн', 'замовити онлайн', 'оформіть замовлення', 'оформте замовлення', 'зробіть замовлення'] :
+        ['заказ онлайн', 'заказать онлайн', 'оформите заказ', 'оформить заказ', 'сделайте заказ']
 
       # Проверка целостности текста
       unless text_complete?(text, required_phrases: cta_phrases)
@@ -242,8 +242,8 @@ class CarSeoTextGenerator
   def build_size_links
     # Генерируем HTML ссылки на размеры шин
     @typical_sizes.map.with_index do |size, index|
-      # Парсим размер типа "215/55R17"
-      if size =~ /(\d+)\/(\d+)R(\d+)/i
+      # Парсим размер типа "215/55R17" или "215/55 R17" (с пробелом перед R)
+      if size =~ /(\d+)\/(\d+)\s*R(\d+)/i
         width, height, radius = $1, $2, $3
         url = @language == 'ua' ? "/ua/shiny/w-#{width}/h-#{height}/r-#{radius}/" : "/shiny/w-#{width}/h-#{height}/r-#{radius}/"
         tires_word = @language == 'ua' ? 'шини' : 'шины'
@@ -263,7 +263,7 @@ class CarSeoTextGenerator
 
     # Добавляем ссылки на размеры с брендом
     @typical_sizes.first(2).each do |size|
-      if size =~ /(\d+)\/(\d+)R(\d+)/i
+      if size =~ /(\d+)\/(\d+)\s*R(\d+)/i
         width, height, radius = $1, $2, $3
         size_url = @language == 'ua' ? "/ua/shiny/w-#{width}/h-#{height}/r-#{radius}/" : "/shiny/w-#{width}/h-#{height}/r-#{radius}/"
         links << "- <a href=\"#{size_url}\">#{tires_word.split(' ')[0]} #{size} для #{@brand.capitalize} #{@model.capitalize}</a>"
