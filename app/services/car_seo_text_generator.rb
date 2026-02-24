@@ -244,17 +244,21 @@ class CarSeoTextGenerator
 
   def build_size_links
     # Генерируем HTML ссылки на размеры шин
-    @typical_sizes.map.with_index do |size, index|
+    valid_index = 0
+    @typical_sizes.filter_map do |size|
       # Парсим размер типа "215/55R17" или "215/55 R17" (с пробелом перед R)
       if size =~ /(\d+)\/(\d+)\s*R(\d+)/i
         width, height, radius = $1, $2, $3
+        unless valid_tire_dimensions?(width, height, radius)
+          Rails.logger.warn "Skipping invalid tire size in prompt: #{size} (w=#{width}, h=#{height}, r=#{radius})"
+          next
+        end
+        valid_index += 1
         url = @language == 'ua' ? "/ua/shiny/w-#{width}/h-#{height}/r-#{radius}/" : "/shiny/w-#{width}/h-#{height}/r-#{radius}/"
         tires_word = @language == 'ua' ? 'шини' : 'шины'
-        "#{index + 1}. <a href=\"#{url}\">#{tires_word} #{size}</a>"
-      else
-        nil
+        "#{valid_index}. <a href=\"#{url}\">#{tires_word} #{size}</a>"
       end
-    end.compact.join("\n")
+    end.join("\n")
   end
 
   def build_brand_links
@@ -264,8 +268,11 @@ class CarSeoTextGenerator
     links = []
     links << "- <a href=\"#{brand_url}\">#{tires_word} #{@brand.capitalize} #{@model.capitalize}</a>"
 
-    # Добавляем ссылки на размеры с брендом
-    @typical_sizes.first(2).each do |size|
+    # Добавляем ссылки на размеры с брендом (берём первые 2 валидных)
+    valid_sizes = @typical_sizes.select do |size|
+      size =~ /(\d+)\/(\d+)\s*R(\d+)/i && valid_tire_dimensions?($1, $2, $3)
+    end
+    valid_sizes.first(2).each do |size|
       if size =~ /(\d+)\/(\d+)\s*R(\d+)/i
         width, height, radius = $1, $2, $3
         size_url = @language == 'ua' ? "/ua/shiny/w-#{width}/h-#{height}/r-#{radius}/" : "/shiny/w-#{width}/h-#{height}/r-#{radius}/"
