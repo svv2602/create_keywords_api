@@ -230,6 +230,9 @@ class CarSeoTextGenerator
     # Если текст не заканчивается на </p>, добавляем его
     text += '</p>' unless text.strip.end_with?('</p>')
 
+    # Балансируем HTML-теги (LLM иногда забывает закрывающие теги)
+    text = balance_html_tags(text)
+
     # Удаляем атрибуты
     text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
     text = text.gsub(/\s*style="[^"]*"/, '')                  # Удаляем inline стили
@@ -905,6 +908,27 @@ class CarSeoTextGenerator
         Rails.logger.info "Fixed spaces in tire URL: #{href} -> #{fixed_href}"
       end
       "href=\"#{fixed_href}\""
+    end
+
+    text
+  end
+
+  # Балансирует HTML-теги: добавляет недостающие закрывающие теги
+  # LLM иногда забывает закрыть <p>, <li>, <ul> и т.д.
+  def balance_html_tags(text)
+    return text if text.blank?
+
+    tags_to_balance = ['p', 'ul', 'ol', 'li', 'h2', 'h3', 'h4']
+
+    tags_to_balance.each do |tag|
+      opening_count = text.scan(/<#{tag}(?:\s[^>]*)?>/).count
+      closing_count = text.scan(/<\/#{tag}>/).count
+
+      if opening_count > closing_count
+        missing = opening_count - closing_count
+        Rails.logger.info "Balanced HTML: added #{missing} missing </#{tag}> tag(s)"
+        missing.times { text += "</#{tag}>" }
+      end
     end
 
     text
