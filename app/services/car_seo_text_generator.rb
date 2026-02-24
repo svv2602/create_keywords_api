@@ -930,8 +930,10 @@ class CarSeoTextGenerator
     # Исправляем пробелы в href атрибутах
     text = text.gsub(/href="([^"]*)"/) do |match|
       href = $1
+      # Убираем пробелы вокруг / в путях: / ua / shiny / → /ua/shiny/
+      fixed_href = href.gsub(/\s*\/\s*/, '/')
       # Исправляем w -XXX -> w-XXX, h -XX -> h-XX, r -XX -> r-XX
-      fixed_href = href.gsub(/([whr])\s+-(\d+)/, '\1-\2')
+      fixed_href = fixed_href.gsub(/([whr])\s+-(\d+)/, '\1-\2')
       if fixed_href != href
         Rails.logger.info "Fixed spaces in tire URL: #{href} -> #{fixed_href}"
       end
@@ -946,7 +948,9 @@ class CarSeoTextGenerator
   def balance_html_tags(text)
     return text if text.blank?
 
-    tags_to_balance = ['p', 'ul', 'ol', 'li', 'h2', 'h3', 'h4']
+    # p обрабатывается ПОСЛЕДНИМ, чтобы </p> был в самом конце текста
+    # (иначе ending check добавит лишний </p>)
+    tags_to_balance = ['h2', 'h3', 'h4', 'ul', 'ol', 'li', 'p']
 
     tags_to_balance.each do |tag|
       opening_count = text.scan(/<#{tag}(?:\s[^>]*)?>/).count
@@ -955,7 +959,14 @@ class CarSeoTextGenerator
       if opening_count > closing_count
         missing = opening_count - closing_count
         Rails.logger.info "Balanced HTML: added #{missing} missing </#{tag}> tag(s)"
-        missing.times { text += "</#{tag}>" }
+        # Для не-p тегов: вставляем ПЕРЕД последним </p>, чтобы сохранить </p> в конце
+        # (требование text_complete? — текст должен заканчиваться на </p>)
+        if tag != 'p' && text.strip.end_with?('</p>')
+          insertion = "</#{tag}>" * missing
+          text = text.sub(/<\/p>(\s*)\z/, "#{insertion}</p>\\1")
+        else
+          missing.times { text += "</#{tag}>" }
+        end
       elsif closing_count > opening_count
         excess = closing_count - opening_count
         Rails.logger.info "Balanced HTML: removed #{excess} extra </#{tag}> tag(s)"
@@ -1023,8 +1034,9 @@ class CarSeoTextGenerator
     text.gsub(/<[^>]+>/) do |tag|
       original = tag
       fixed = tag.gsub(CYRILLIC_HOMOGLYPH_PATTERN) { |c| CYRILLIC_HOMOGLYPHS[c] || c }
-      # Исправляем задвоенные буквы от гомоглифов: hreef → href
-      fixed = fixed.gsub(/hre+f/i, 'href')
+      # Исправляем имя атрибута href: хреф/xpeф/hreef → href
+      # LLM пишет href кириллицей фонетически (хреф) или гомоглифами (xpeф)
+      fixed = fixed.gsub(/[хhx][рrp][еe]+[фf]/i, 'href')
       if fixed != original
         Rails.logger.info "Fixed Cyrillic homoglyphs in tag: #{original[0..60]} → #{fixed[0..60]}"
       end
