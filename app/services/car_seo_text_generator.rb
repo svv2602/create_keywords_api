@@ -185,6 +185,9 @@ class CarSeoTextGenerator
     # Удаляем циклические ссылки на текущую модель автомобиля
     text = remove_self_referencing_links(text)
 
+    # Нормализуем "інтернет-магазин" / "интернет-магазин" (убираем пробелы, спецсимволы)
+    text = fix_internet_magazin(text)
+
     # Исправляем или удаляем некорректные ссылки на типоразмеры
     text = fix_tire_size_links(text)
 
@@ -407,6 +410,7 @@ class CarSeoTextGenerator
       - НЕ выделяй жирным текст внутри ссылок <a>
       - НЕ дублируй информацию - каждый факт упоминай только один раз
       - ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!
+      - Слово "интернет-магазин" пиши ТОЛЬКО через дефис без пробелов: "интернет-магазин". ЗАПРЕЩЕНО: "интернет магазин", "интернет - магазин", "интернет+магазин", "интернет&магазин" и другие варианты!
 
       СТРУКТУРА ТЕКСТА (строго следуй этому порядку):
 
@@ -539,6 +543,7 @@ class CarSeoTextGenerator
       - НЕ виділяй жирним текст всередині посилань <a>
       - НЕ дублюй інформацію - кожен факт згадуй тільки один раз
       - ЗАБОРОНЕНО використовувати ієрогліфи, символи китайської, японської, корейської та інших східноазіатських мов. Використовуй ТІЛЬКИ кирилицю та латиницю!
+      - Слово "інтернет-магазин" пиши ТІЛЬКИ через дефіс без пробілів: "інтернет-магазин". ЗАБОРОНЕНО: "інтернет магазин", "інтернет - магазин", "інтернет+магазин", "інтернет&магазин" та будь-які інші варіанти!
 
       СТРУКТУРА ТЕКСТУ (строго дотримуйся цього порядку):
 
@@ -895,6 +900,20 @@ class CarSeoTextGenerator
     text
   end
 
+  # Нормализует написание "інтернет-магазин" / "интернет-магазин"
+  # Исправляет: інтернет1магазин, інтернет+магазин, інтернет - магазин, інтернет&магазин, інтернет магазин
+  def fix_internet_magazin(text)
+    return text if text.blank?
+
+    # Украинский: інтернет-магазин (все варианты разделителей)
+    text = text.gsub(/інтернет\s*[1+&\s-]+\s*магазин/i, 'інтернет-магазин')
+
+    # Русский: интернет-магазин (все варианты разделителей)
+    text = text.gsub(/интернет\s*[1+&\s-]+\s*магазин/i, 'интернет-магазин')
+
+    text
+  end
+
   # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
   def remove_asian_characters(text)
     # Паттерн для китайских, японских и корейских символов:
@@ -1006,6 +1025,10 @@ class CarSeoTextGenerator
           Rails.logger.info "Fixed tire link from anchor: #{href} -> #{correct_href} (anchor: '#{anchor_text}')"
           match.sub(href, correct_href)
         end
+      elsif (correct_href = build_url_from_href(href))
+        # 2. Пробуем извлечь размер из самого битого URL
+        Rails.logger.info "Fixed tire link from href: #{href} -> #{correct_href}"
+        match.sub(href, correct_href)
       elsif href_contains_tire_size_pattern?(href)
         # URL содержит размер, но анкор - нет -> удаляем ссылку
         Rails.logger.warn "Removed tire link with mismatched anchor: #{href} (anchor: '#{anchor_text}')"
@@ -1040,6 +1063,9 @@ class CarSeoTextGenerator
       /\/shiny\/\d{3}\/\d{2}\/r-\d{2}/i,    # битый: /shiny/265/60/r-18/
       /\/shiny\/\d{3}\/\d{2}\/r\d{2}/i,     # битый: /shiny/215/55/r16/
       /\/shiny\/\d{3}\/\d{2}\/\d{2}/i,      # битый: /shiny/215/55/16/
+      /[whr]\d*=\d+/i,                      # битый: w1=255, h=45, r=18, h1=35
+      /[whr]\d+r\d+/i,                      # битый: w1r225, h1r45, r1r17, r1r6
+      /\/shiny\/w\d+\/?$/i,                 # битый неполный: /shiny/w1/
     ]
 
     tire_size_patterns.any? { |pattern| href.match?(pattern) }
@@ -1068,7 +1094,8 @@ class CarSeoTextGenerator
     return false if brand_in_url && Brand.exists?(url: "/shiny/#{brand_in_url}/")
 
     # URL содержит /shiny/something/ но не соответствует известным паттернам
-    href.match?(/\/shiny\/[^\/]+\/?$/)
+    # Ловим как single-segment (/shiny/kumnie/), так и multi-segment (/shiny/w1=255/h1=35/r1=19/)
+    href.match?(/\/shiny\/[^\/]+/)
   end
 
   # Извлекает slug бренда из URL
@@ -1175,11 +1202,88 @@ class CarSeoTextGenerator
     end
   end
 
-  # Проверяет валидность размеров шин
+  # Извлекает типоразмер из битого URL и строит правильный
+  # Парсит сегменты w/h/r, собирает цифры, ищет валидные размеры
+  # Примеры:
+  #   /shiny/w1=255/h1=35/r1=19/   → /shiny/w-255/h-35/r-19/
+  #   /shiny/w1r225/h1r45/r1r17/   → /shiny/w-225/h-45/r-17/
+  #   /shiny/w-225/h-50/r1r6/      → /shiny/w-225/h-50/r-16/
+  #   /shiny/w1/                   → nil (неполный)
+  def build_url_from_href(href)
+    return nil if href.blank?
+    return nil unless href.include?('/shiny/')
+
+    # Извлекаем путь после /shiny/ (или /ua/shiny/)
+    path = href.sub(%r{.*/shiny/}i, '')
+    segments = path.split('/').reject(&:empty?)
+
+    width = nil
+    height = nil
+    radius = nil
+
+    segments.each do |seg|
+      seg_lower = seg.downcase
+      # Определяем тип параметра по первой букве
+      case seg_lower[0]
+      when 'w'
+        width = extract_tire_value(seg_lower, :width)
+      when 'h'
+        height = extract_tire_value(seg_lower, :height)
+      when 'r'
+        radius = extract_tire_value(seg_lower, :radius)
+      end
+    end
+
+    return nil unless width && height && radius
+    return nil unless valid_tire_dimensions?(width, height, radius)
+
+    lang_prefix = href.include?('/ua/') || @language == 'ua' ? '/ua' : ''
+    "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+  end
+
+  # Извлекает числовое значение из сегмента URL (w1=255 → 255, r1r6 → 16)
+  # Собирает все цифры, затем ищет валидное число нужной разрядности с конца
+  def extract_tire_value(segment, type)
+    # Убираем первую букву (w/h/r) и собираем все цифры
+    digits_only = segment[1..].gsub(/\D/, '')
+    return nil if digits_only.empty?
+
+    case type
+    when :width
+      # Ищем 3-значное число, предпочитаем с конца (реальное значение)
+      # w1=255 → "1255" → берём "255"; w1r225 → "1225" → берём "225"
+      (digits_only.length - 2).downto(0).each do |i|
+        candidate = digits_only[i, 3].to_i
+        return candidate if candidate >= 105 && candidate <= 495 && (candidate % 10 == 5)
+      end
+    when :height
+      # Ищем 2-значное число, предпочитаем с конца
+      # h1=35 → "135" → берём "35"; h1r45 → "145" → берём "45"
+      (digits_only.length - 1).downto(0).each do |i|
+        candidate = digits_only[i, 2].to_i
+        return candidate if candidate >= 25 && candidate <= 85 && (candidate % 5 == 0)
+      end
+    when :radius
+      # Ищем 2-значное число, предпочитаем с конца
+      # r1=19 → "119" → берём "19"; r1r6 → "16" → берём "16"
+      (digits_only.length - 1).downto(0).each do |i|
+        candidate = digits_only[i, 2].to_i
+        return candidate if candidate >= 12 && candidate <= 24
+      end
+    end
+
+    nil
+  end
+
+  # Проверяет валидность размеров шин (только легковые)
+  # w: 105-495, должна оканчиваться на 5 (105, 115, 125... 495)
+  # h: 25-85, кратно 5 (25, 30, 35... 85)
+  # r: 12-24
   def valid_tire_dimensions?(width, height, radius)
     w, h, r = width.to_i, height.to_i, radius.to_i
-    # Ширина: 125-355, Профиль: 0-85, Радиус: 12-24
-    w >= 125 && w <= 355 && h >= 0 && h <= 85 && r >= 12 && r <= 24
+    w >= 105 && w <= 495 && (w % 10 == 5) &&
+      h >= 25 && h <= 85 && (h % 5 == 0) &&
+      r >= 12 && r <= 24
   end
 
   # Очищает ссылки: удаляет безанкорные и нормализует домены prokoleso.*
