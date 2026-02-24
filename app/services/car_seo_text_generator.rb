@@ -184,6 +184,21 @@ class CarSeoTextGenerator
     # Нормализуем пробелы после < в тегах: < p> → <p>, < /p> → </p>
     text = text.gsub(/<\s+(\/?\w+)/, '<\1')
 
+    # Декодируем HTML-entities, формирующие теги: &lt;a href="..."&gt; → <a href="...">
+    text = decode_html_entity_tags(text)
+
+    # Удаляем HTML-комментарии (LLM генерирует <!--/а--> вместо </a>)
+    text = text.gsub(/<!--.*?-->/m, '')
+
+    # Нормализуем кириллические гомоглифы в HTML-тегах: <а hreеf=...> → <a href=...>
+    text = fix_cyrillic_in_html_tags(text)
+
+    # Нормализуем URL-пути в href (кириллица в /shiny/, двойные слеши)
+    text = fix_cyrillic_in_urls(text)
+
+    # Удаляем пустые теги <> (остатки от сломанных тегов LLM)
+    text = text.gsub(/<\s*>/, '')
+
     # Исправляем пробелы в URL типоразмеров (w -225 -> w-225)
     text = fix_spaces_in_tire_urls(text)
 
@@ -202,8 +217,9 @@ class CarSeoTextGenerator
     # Очищаем ссылки: удаляем безанкорные и нормализуем домены
     text = sanitize_links(text)
 
-    # Сначала удаляем markdown блоки
+    # Удаляем markdown-разметку
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
+    text = text.gsub(/\*{2,}/, '')  # **жирный** → жирный
 
     # Удаляем все нежелательные теги (даже если они обрезаны или без закрывающих скобок)
     text = text.gsub(/<!DOCTYPE[^>]*>/i, '')                 # Удаляем DOCTYPE
@@ -218,8 +234,10 @@ class CarSeoTextGenerator
     # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
     text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
 
-    # Исправляем закрывающие теги с пробелами: </p > -> </p>, < /p> -> </p>
-    text = text.gsub(/<\s*\/\s*(\w+)\s*>/i, '</\1>')
+    # Исправляем закрывающие теги с пробелами и мусором: </p >, < /p>, < //l i> → </p>, </li>
+    text = text.gsub(/<\s*\/+\s*([\w][\w\s]*?)\s*>/i) do
+      "</#{$1.gsub(/\s+/, '')}>"
+    end
 
     # Исправляем сломанные теги от AI: <]/li] -> </li>, <]/p] -> </p> и т.д.
     # AI иногда генерирует квадратные скобки вместо угловых
@@ -231,6 +249,11 @@ class CarSeoTextGenerator
 
     # Исправляем посимвольный вывод LLM ("о ф о р м і т и" → "оформіти")
     text = fix_garbled_character_sequences(text)
+
+    # Удаляем осиротевшие > (остатки сломанных тегов LLM)
+    text = text.gsub(/(>)\s*>/, '\1')       # </p>> → </p>
+    text = text.gsub(/^\s*>\s*$/m, '')      # строки состоящие только из >
+    text = text.gsub(/^\s*>(?=\s*[\wа-яА-ЯіІїЇєЄґҐ])/m, '') # > перед текстом в начале строки
 
     # Балансируем HTML-теги (LLM иногда забывает закрывающие/лишние теги)
     text = balance_html_tags(text)
@@ -958,6 +981,78 @@ class CarSeoTextGenerator
     end
 
     text
+  end
+
+  # Декодирует HTML-entities, формирующие теги
+  # &lt;а hreеf=&quot;url&quot;&gt; → <а hreеf="url">
+  # Также декодирует осиротевшие &gt; (безопасно в контексте HTML)
+  def decode_html_entity_tags(text)
+    return text if text.blank?
+
+    # Декодируем &lt;...&gt; последовательности, похожие на теги
+    text = text.gsub(/&lt;(.*?)&gt;/) do
+      inner = $1.strip
+      # Только если содержимое похоже на тег (начинается с буквы или /, НЕ цифры)
+      if inner.match?(/\A\/?[a-zA-Zа-яА-ЯіІїЇєЄґҐ]/)
+        decoded = inner.gsub('&quot;', '"').gsub('&amp;', '&').gsub('&apos;', "'")
+        "<#{decoded}>"
+      else
+        "&lt;#{$1}&gt;" # Оставляем как есть
+      end
+    end
+
+    # Декодируем осиротевшие entities (в SEO-тексте не должно быть entity-кодированных скобок)
+    text = text.gsub('&gt;', '>')
+    text.gsub('&lt;', '<')
+  end
+
+  # Нормализует кириллические гомоглифы в HTML-тегах
+  # Кириллические символы, визуально идентичные латинским, заменяются на латинские
+  # <а hreеf="..."> → <a href="...">, </а> → </a>
+  CYRILLIC_HOMOGLYPHS = {
+    'а' => 'a', 'е' => 'e', 'о' => 'o', 'р' => 'p', 'с' => 'c',
+    'х' => 'x', 'у' => 'y', 'і' => 'i',
+    'А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M',
+    'Н' => 'H', 'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'Х' => 'X'
+  }.freeze
+  CYRILLIC_HOMOGLYPH_PATTERN = /[#{CYRILLIC_HOMOGLYPHS.keys.join}]/
+
+  def fix_cyrillic_in_html_tags(text)
+    return text if text.blank?
+
+    text.gsub(/<[^>]+>/) do |tag|
+      original = tag
+      fixed = tag.gsub(CYRILLIC_HOMOGLYPH_PATTERN) { |c| CYRILLIC_HOMOGLYPHS[c] || c }
+      # Исправляем задвоенные буквы от гомоглифов: hreef → href
+      fixed = fixed.gsub(/hre+f/i, 'href')
+      if fixed != original
+        Rails.logger.info "Fixed Cyrillic homoglyphs in tag: #{original[0..60]} → #{fixed[0..60]}"
+      end
+      fixed
+    end
+  end
+
+  # Нормализует URL-пути в href-атрибутах
+  # - Убирает двойные слеши (кроме ://)
+  # - Исправляет кириллические варианты /shiny/ (shiиy, shiпy и т.д.)
+  def fix_cyrillic_in_urls(text)
+    return text if text.blank?
+
+    text.gsub(/href="([^"]*)"/) do |match|
+      href = $1
+      fixed = href.dup
+
+      # Убираем двойные слеши (кроме ://)
+      fixed = fixed.gsub(/(?<!:)\/{2,}/, '/')
+
+      # Нормализуем /shiny/ (различные LLM-опечатки с кириллицей: /shiиy/, /shiпy/)
+      fixed = fixed.gsub(/\/sh[a-zA-Zа-яА-ЯіІ]{1,4}y(?=\/)/i, '/shiny')
+
+      if fixed != href
+        Rails.logger.info "Fixed URL path: #{href} → #{fixed}"
+      end
+      "href=\"#{fixed}\""
+    end
   end
 
   # Обнаруживает и удаляет абзацы с посимвольным выводом LLM (DeepSeek issue)
