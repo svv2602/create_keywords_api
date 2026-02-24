@@ -19,5 +19,16 @@ else
   nil
 end
 
+# Gemini API клиент (OpenAI-совместимый endpoint)
+GEMINI_CLIENT = if ENV['GEMINI_API_KEY'].present?
+  OpenAI::Client.new(
+    access_token: ENV['GEMINI_API_KEY'],
+    uri_base: "https://generativelanguage.googleapis.com/v1beta/openai/",
+    request_timeout: 300
+  )
+else
+  nil
+end
+
 # Для обратной совместимости
 client = OPENAI_CLIENT

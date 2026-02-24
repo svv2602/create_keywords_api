@@ -19,7 +19,8 @@ class AiRateLimiter
     'gpt-4o' => { rpm: 400, concurrent: 50 },             # OpenAI Tier 1+
     'gpt-4o-mini' => { rpm: 400, concurrent: 50 },        # OpenAI Tier 1+
     'gpt-4-turbo' => { rpm: 400, concurrent: 50 },
-    'gpt-3.5-turbo' => { rpm: 400, concurrent: 50 }
+    'gpt-3.5-turbo' => { rpm: 400, concurrent: 50 },
+    'gemini-2.5-flash' => { rpm: 300, concurrent: 30 }  # Pay-as-you-go: 2000 RPM, берем 300 консервативно
   }.freeze
 
   DEFAULT_LIMITS = { rpm: 100, concurrent: 20 }.freeze

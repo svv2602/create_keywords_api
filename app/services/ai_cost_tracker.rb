@@ -15,7 +15,10 @@ class AiCostTracker
     
     # DeepSeek модели (льготные часы UTC 16:30–00:30) - в 2 раза дешевле
     'deepseek-chat-discount' => { input: 0.135, output: 0.55 },
-    'deepseek-reasoner-discount' => { input: 0.275, output: 1.10 }
+    'deepseek-reasoner-discount' => { input: 0.275, output: 1.10 },
+
+    # Google Gemini модели
+    'gemini-2.5-flash' => { input: 0.15, output: 0.60 }
   }.freeze
   
   DAILY_COST_LIMIT = Rails.env.production? ? 200.0 : 50.0  # USD

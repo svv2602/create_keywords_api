@@ -1,21 +1,29 @@
 # app/services/content_writer.rb
 
 class ContentWriter
-  # Конфигурация моделей (DeepSeek по умолчанию для всех задач)
+  # Конфигурация моделей (Gemini по умолчанию для всех задач)
   MODELS = {
-    review_generation: 'deepseek-chat',  # DeepSeek для массовой генерации отзывов (экономия 25%)
-    complex_analysis: 'deepseek-chat',   # DeepSeek для сложных задач (экономия 90%)
-    premium_content: 'deepseek-chat',    # DeepSeek для премиум контента (экономия 90%)
-    seo_generation: 'deepseek-chat',     # DeepSeek для SEO-текстов (экономия 90%)
-    fallback: 'gpt-4o-mini'              # OpenAI fallback при недоступности DeepSeek
+    review_generation: 'gemini-2.5-flash',
+    complex_analysis: 'gemini-2.5-flash',
+    premium_content: 'gemini-2.5-flash',
+    seo_generation: 'gemini-2.5-flash',
+    fallback: 'gpt-4o-mini'
   }.freeze
-  
-  # OpenAI модели (используются только при недоступности DeepSeek)
+
+  # DeepSeek модели (первый fallback при недоступности Gemini)
+  DEEPSEEK_FALLBACK_MODELS = {
+    review_generation: 'deepseek-chat',
+    complex_analysis: 'deepseek-chat',
+    premium_content: 'deepseek-chat',
+    seo_generation: 'deepseek-chat'
+  }.freeze
+
+  # OpenAI модели (второй fallback при недоступности Gemini и DeepSeek)
   OPENAI_FALLBACK_MODELS = {
-    review_generation: 'gpt-4o-mini',    # быстрая модель для отзывов
-    complex_analysis: 'gpt-4o',          # мощная модель для сложных задач
-    premium_content: 'gpt-4o',           # премиум модель
-    seo_generation: 'gpt-4o'             # для SEO-текстов
+    review_generation: 'gpt-4o-mini',
+    complex_analysis: 'gpt-4o',
+    premium_content: 'gpt-4o',
+    seo_generation: 'gpt-4o'
   }.freeze
   
   # Обратная совместимость
@@ -25,6 +33,7 @@ class ContentWriter
   def initialize(force_model: nil, skip_rate_limit: false)
     @openai_client = OPENAI_CLIENT
     @deepseek_client = DEEPSEEK_CLIENT
+    @gemini_client = GEMINI_CLIENT
     @cost_tracker = AiCostTracker.new
     @rate_limiter = AiRateLimiter.new
     @force_model = force_model  # Принудительный выбор модели через параметр
@@ -33,7 +42,9 @@ class ContentWriter
   
   # Получить правильный клиент для модели
   def get_client_for_model(model)
-    if model.start_with?('deepseek') && @deepseek_client
+    if model.start_with?('gemini') && @gemini_client
+      @gemini_client
+    elsif model.start_with?('deepseek') && @deepseek_client
       @deepseek_client
     else
       @openai_client
@@ -43,64 +54,44 @@ class ContentWriter
   def write_draft_post(prompt, max_tokens)
     model = select_model(:review_generation)
     client = get_client_for_model(model)
-    
-    # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-    client.chat(
-      parameters: {
-        model: MODEL,
-        messages: [
-          { role: "system",
-            content: 'Вы копирайтер мирового уровня. Пожалуйста, создайте SEO-текст с заголовками.'
-          },
 
-          { role: "system",
-            content: "Текст должен быть на русском языке"
-          },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.8,
-        # Temperature (температура): Можно установить значение около 0.5-0.7, чтобы получить
-        # более консервативные и ожидаемые ответы. Это поможет избежать слишком экспрессивных
-        # или неожиданных фраз.
-        max_tokens: max_tokens,
-        top_p: 0.9,
-        #Top p: Рекомендуется использовать значение около 0.9, чтобы модель могла выбирать
-        # наиболее вероятные следующие слова, исходя из распределения вероятностей,
-        # что способствует генерации более качественного текста.
-        frequency_penalty: 0.5,
-        # Frequency Penalty (штраф за частоту): Можно установить значение около 0.2-0.5,
-        # чтобы умеренно контролировать повторяемость ключевых слов или фраз в тексте.
-        # Это поможет избежать пересыщения текста ключевыми словами и обеспечит его естественность.
-        presence_penalty: 0.5
-        # Presence Penalty (штраф за присутствие):
-        # Также можно установить значение около 0.2-0.5, чтобы стимулировать разнообразие лексики
-        # в тексте и избежать излишнего повторения слов или фраз.
-      }
-    )
+    params = {
+      model: model,
+      messages: [
+        { role: "system",
+          content: 'Вы копирайтер мирового уровня. Пожалуйста, создайте SEO-текст с заголовками.'
+        },
+        { role: "system",
+          content: "Текст должен быть на русском языке"
+        },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.8,
+      max_tokens: max_tokens,
+      top_p: 0.9
+    }
+    add_penalty_params!(params, frequency_penalty: 0.5, presence_penalty: 0.5, model: model)
+
+    client.chat(parameters: params)
   end
 
   # +++++++++++++++++++++++++++++++++++++++++
   def rewrite_question(prompt, max_tokens)
     model = select_model(:review_generation)
     client = get_client_for_model(model)
-    
-    # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-    client.chat(
-      parameters: {
-        model: MODEL,
-        messages: [
-          # { role: "system",
-          #   content: 'Вы копирайтер мирового уровня.'
-          # },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.8,
-        max_tokens: max_tokens,
-        top_p: 0.9,
-        frequency_penalty: 0.4,
-        presence_penalty: 0.3
-      }
-    )
+
+    params = {
+      model: model,
+      messages: [
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.8,
+      max_tokens: max_tokens,
+      top_p: 0.9
+    }
+    add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
+
+    client.chat(parameters: params)
   end
 
 
@@ -125,17 +116,16 @@ class ContentWriter
       # Выполняем запрос с rate limiting
       Rails.logger.info "[ContentWriter] Attempt #{attempts + 1} - calling API..."
       execute_with_rate_limit(model) do
-        response = client.chat(
-          parameters: {
-            model: model,
-            messages: build_review_messages(prompt),
-            temperature: 0.7,        # снижаем для большей стабильности
-            max_tokens: max_tokens,
-            top_p: 0.9,
-            frequency_penalty: 0.3,  # уменьшаем повторения
-            presence_penalty: 0.4    # увеличиваем разнообразие
-          }
-        )
+        params = {
+          model: model,
+          messages: build_review_messages(prompt),
+          temperature: 0.7,
+          max_tokens: max_tokens,
+          top_p: 0.9
+        }
+        add_penalty_params!(params, frequency_penalty: 0.3, presence_penalty: 0.4, model: model)
+
+        response = client.chat(parameters: params)
 
         # Отслеживаем затраты
         @cost_tracker.track_request(model, prompt.length, max_tokens) if @cost_tracker
@@ -189,24 +179,21 @@ class ContentWriter
     attempts = 0
 
     begin
+      params = {
+        model: model,
+        messages: [
+          { role: "system",
+            content: 'Вы копирайтер мирового уровня с отличным знанием украинского языка.'
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: max_tokens,
+        top_p: 0.9
+      }
+      add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
 
-      # prompt = "Write a #{max_tokens} word blogpost about '#{title}'."
-      client.chat(
-        parameters: {
-          model: MODEL,
-          messages: [
-            { role: "system",
-              content: 'Вы копирайтер мирового уровня с отличным знанием украинского языка.'
-            },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: max_tokens,
-          top_p: 0.9,
-          frequency_penalty: 0.4,
-          presence_penalty: 0.3
-        }
-      )
+      client.chat(parameters: params)
     rescue OpenAI::Error => e
       attempts += 1
 
@@ -228,22 +215,20 @@ class ContentWriter
     attempts = 0
 
     begin
-      client.chat(
-        parameters: {
-          model: MODEL,
-          messages: [
-            { role: "system",
-              content: 'You are a world-class copywriter with excellent knowledge of Russian and Ukrainian.'
-            },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.8,
-          # max_tokens: max_tokens,
-          top_p: 0.9,
-          # frequency_penalty: 0.4,
-          presence_penalty: 0.3
-        }
-      )
+      params = {
+        model: model,
+        messages: [
+          { role: "system",
+            content: 'You are a world-class copywriter with excellent knowledge of Russian and Ukrainian.'
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.8,
+        top_p: 0.9
+      }
+      add_penalty_params!(params, presence_penalty: 0.3, model: model)
+
+      client.chat(parameters: params)
     rescue OpenAI::Error => e
       attempts += 1
 
@@ -265,26 +250,42 @@ class ContentWriter
       Rails.logger.info "Using forced model: #{@force_model}"
       return @force_model
     end
-    
+
     # 2. Проверяем лимиты затрат - переключаемся на fallback
     if @cost_tracker&.daily_cost_exceeded?
       Rails.logger.warn "Daily cost limit exceeded, using fallback model"
       return MODELS[:fallback]
     end
-    
-    # 3. Получаем базовую модель (DeepSeek по умолчанию)
+
+    # 3. Получаем базовую модель (Gemini по умолчанию)
     base_model = MODELS[model_type] || MODELS[:review_generation]
-    
-    # 4. Если DeepSeek недоступен, используем OpenAI альтернативу
+
+    # 4. Если Gemini недоступен — fallback на DeepSeek
+    if base_model.start_with?('gemini') && !@gemini_client
+      Rails.logger.warn "Gemini client not available, falling back to DeepSeek"
+
+      if @deepseek_client
+        fallback_model = DEEPSEEK_FALLBACK_MODELS[model_type] || 'deepseek-chat'
+        Rails.logger.info "Using DeepSeek fallback: #{fallback_model}"
+        return fallback_model
+      else
+        # DeepSeek тоже недоступен — fallback на OpenAI
+        Rails.logger.warn "DeepSeek client also not available, falling back to OpenAI"
+        fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4o-mini'
+        Rails.logger.info "Using OpenAI fallback: #{fallback_model}"
+        return fallback_model
+      end
+    end
+
+    # 5. Если DeepSeek модель (forced или fallback), но клиент недоступен
     if base_model.start_with?('deepseek') && !@deepseek_client
       Rails.logger.warn "DeepSeek client not available, falling back to OpenAI"
       fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4o-mini'
       Rails.logger.info "Using OpenAI fallback: #{fallback_model}"
       return fallback_model
     end
-    
-    # 5. Используем DeepSeek (модель по умолчанию)
-    Rails.logger.info "Using default DeepSeek model: #{base_model}"
+
+    Rails.logger.info "Using model: #{base_model}"
     base_model
   end
   
@@ -318,6 +319,14 @@ class ContentWriter
       Длина: соответствует указанной в запросе
       Язык: русский (если не указано иное)
     PROMPT
+  end
+
+  # Добавить penalty-параметры к запросу (Gemini их не поддерживает в beta)
+  def add_penalty_params!(params, frequency_penalty: nil, presence_penalty: nil, model: nil)
+    return if model&.start_with?('gemini')
+
+    params[:frequency_penalty] = frequency_penalty if frequency_penalty
+    params[:presence_penalty] = presence_penalty if presence_penalty
   end
 
   # Выполнить блок с rate limiting (или без него если skip_rate_limit)
