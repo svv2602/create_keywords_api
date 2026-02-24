@@ -179,6 +179,11 @@ class CarSeoTextGenerator
     # Удаляем иероглифы и символы восточноазиатских языков
     text = remove_asian_characters(text)
 
+    # Нормализуем Unicode-скобки от LLM: 〈 → <, 〉 → >, ＜ → <, ＞ → >
+    text = text.gsub(/[〈＜]/, '<').gsub(/[〉＞]/, '>')
+    # Нормализуем пробелы после < в тегах: < p> → <p>, < /p> → </p>
+    text = text.gsub(/<\s+(\/?\w+)/, '<\1')
+
     # Исправляем пробелы в URL типоразмеров (w -225 -> w-225)
     text = fix_spaces_in_tire_urls(text)
 
@@ -227,11 +232,11 @@ class CarSeoTextGenerator
     # Исправляем посимвольный вывод LLM ("о ф о р м і т и" → "оформіти")
     text = fix_garbled_character_sequences(text)
 
-    # Если текст не заканчивается на </p>, добавляем его
-    text += '</p>' unless text.strip.end_with?('</p>')
-
-    # Балансируем HTML-теги (LLM иногда забывает закрывающие теги)
+    # Балансируем HTML-теги (LLM иногда забывает закрывающие/лишние теги)
     text = balance_html_tags(text)
+
+    # Если текст не заканчивается на </p>, добавляем его (ПОСЛЕ балансировки!)
+    text += '</p>' unless text.strip.end_with?('</p>')
 
     # Удаляем атрибуты
     text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
@@ -928,6 +933,27 @@ class CarSeoTextGenerator
         missing = opening_count - closing_count
         Rails.logger.info "Balanced HTML: added #{missing} missing </#{tag}> tag(s)"
         missing.times { text += "</#{tag}>" }
+      elsif closing_count > opening_count
+        excess = closing_count - opening_count
+        Rails.logger.info "Balanced HTML: removed #{excess} extra </#{tag}> tag(s)"
+        # Умное удаление: отслеживаем глубину вложенности, удаляем только
+        # "осиротевшие" закрывающие теги (те, у которых нет пары)
+        depth = 0
+        removed = 0
+        text = text.gsub(/<(\/?)#{tag}(?:\s[^>]*)?>/) do |match|
+          if $1 == '/'
+            if depth <= 0 && removed < excess
+              removed += 1
+              '' # Удаляем осиротевший закрывающий тег
+            else
+              depth -= 1
+              match
+            end
+          else
+            depth += 1
+            match
+          end
+        end
       end
     end
 
