@@ -224,6 +224,9 @@ class CarSeoTextGenerator
     text = text.gsub(/<\](\w+)\]/, '<\1>')      # <]li] -> <li>
     text = text.gsub(/\[(\w+)\](?=[^a-z])/i, '<\1>') # [li] -> <li> (но не [слово])
 
+    # Исправляем посимвольный вывод LLM ("о ф о р м і т и" → "оформіти")
+    text = fix_garbled_character_sequences(text)
+
     # Если текст не заканчивается на </p>, добавляем его
     text += '</p>' unless text.strip.end_with?('</p>')
 
@@ -905,6 +908,31 @@ class CarSeoTextGenerator
     end
 
     text
+  end
+
+  # Обнаруживает и удаляет абзацы с посимвольным выводом LLM (DeepSeek issue)
+  # Если >50% слов в абзаце — одиночные символы, абзац считается "рассыпанным" и удаляется
+  # Это позволяет completion-механизму добавить нормальный текст вместо мусора
+  def fix_garbled_character_sequences(text)
+    return text if text.blank?
+
+    text.gsub(/<p[^>]*>([^<]*)<\/p>/i) do |match|
+      content = $1.strip
+      words = content.split(/\s+/)
+
+      if words.length >= 8
+        single_char_count = words.count { |w| w.length == 1 }
+        ratio = single_char_count.to_f / words.length
+        if ratio > 0.5
+          Rails.logger.warn "Removed garbled paragraph (#{(ratio * 100).round}% single-char tokens): #{content[0..80]}..."
+          ''
+        else
+          match
+        end
+      else
+        match
+      end
+    end
   end
 
   # Нормализует написание "інтернет-магазин" / "интернет-магазин"
