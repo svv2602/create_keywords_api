@@ -67,7 +67,7 @@ class ContentWriter
         { role: "user", content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: max_tokens,
+      max_tokens: adjust_max_tokens_for_model(max_tokens, model),
       top_p: 0.9
     }
     add_penalty_params!(params, frequency_penalty: 0.5, presence_penalty: 0.5, model: model)
@@ -86,7 +86,7 @@ class ContentWriter
         { role: "user", content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: max_tokens,
+      max_tokens: adjust_max_tokens_for_model(max_tokens, model),
       top_p: 0.9
     }
     add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
@@ -120,7 +120,7 @@ class ContentWriter
           model: model,
           messages: build_review_messages(prompt),
           temperature: 0.7,
-          max_tokens: max_tokens,
+          max_tokens: adjust_max_tokens_for_model(max_tokens, model),
           top_p: 0.9
         }
         add_penalty_params!(params, frequency_penalty: 0.3, presence_penalty: 0.4, model: model)
@@ -188,7 +188,7 @@ class ContentWriter
           { role: "user", content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: max_tokens,
+        max_tokens: adjust_max_tokens_for_model(max_tokens, model),
         top_p: 0.9
       }
       add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
@@ -327,6 +327,18 @@ class ContentWriter
 
     params[:frequency_penalty] = frequency_penalty if frequency_penalty
     params[:presence_penalty] = presence_penalty if presence_penalty
+  end
+
+  # Gemini 2.5 — thinking-модель: часть бюджета max_tokens уходит на внутренние рассуждения.
+  # Увеличиваем лимит, чтобы на реальный ответ осталось достаточно токенов.
+  def adjust_max_tokens_for_model(max_tokens, model)
+    if model&.start_with?('gemini-2.5')
+      adjusted = [max_tokens * 4, 65_536].min
+      Rails.logger.info "[ContentWriter] Adjusted max_tokens for thinking model #{model}: #{max_tokens} -> #{adjusted}"
+      adjusted
+    else
+      max_tokens
+    end
   end
 
   # Выполнить блок с rate limiting (или без него если skip_rate_limit)
