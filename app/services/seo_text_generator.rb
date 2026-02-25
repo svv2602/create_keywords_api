@@ -18,9 +18,9 @@ class SeoTextGenerator
     @seo_requirements = params[:seo_requirements] || ''
     @links = parse_links(params[:links])
     # Фиксированный лимит токенов для предотвращения обрезания
-    # 2500 токенов достаточно для SEO-текста ~4000-5000 символов о модели шин
-    # Параметр max_tokens от клиента игнорируется для стабильности генерации
-    @max_tokens = 2500
+    # 4000 токенов (×4 = 16000 для Gemini thinking) — запас для thinking + текст 4-5k символов
+    # Длина текста контролируется промптом, а не max_tokens
+    @max_tokens = 4000
     @force_model = params[:force_model]  # Опциональный параметр для выбора модели
     @content_writer = ContentWriter.new(force_model: @force_model)
   end
