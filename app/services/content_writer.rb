@@ -333,7 +333,7 @@ class ContentWriter
   # Увеличиваем лимит, чтобы на реальный ответ осталось достаточно токенов.
   def adjust_max_tokens_for_model(max_tokens, model)
     if model&.start_with?('gemini-2.5')
-      adjusted = [max_tokens * 4, 65_536].min
+      adjusted = [max_tokens * 8, 65_536].min
       Rails.logger.info "[ContentWriter] Adjusted max_tokens for thinking model #{model}: #{max_tokens} -> #{adjusted}"
       adjusted
     else
