@@ -174,15 +174,14 @@ module ServiceReviewOut
   def change_chars_register(text)
     n = rand(1..10)
     case n
-    when 2, 3, 4, 5, 7, 9
+    when 1, 8
+      # 20% — всё строчными (убираем запятые иногда, точки оставляем)
+      result = text.downcase
+      result = result.gsub(/,/, "") if rand(1..100) % 2 == 0
+    else
+      # 80% — нормальная капитализация предложений
       splitted_text = text.split(/(?<=[.!?])/)
       result = splitted_text.map { |sentence| sentence.strip.capitalize }.join(' ')
-    when 1, 8
-      result = text.downcase
-      result =  result.gsub(/,|\./,"") if rand(1..100)%2 == 0
-    else
-      result = text.upcase
-      result =  result.gsub(/,|\./,"") if rand(1..100)%3 == 0
     end
     result
   end
@@ -884,9 +883,7 @@ module ServiceReviewOut
         case rand(10)
         when 1, 2  # 20% - все строчные
           sentence.downcase
-        when 9     # 10% - все заглавные (для эмоций)
-          sentence.upcase
-        else       # 70% - нормальный регистр
+        else       # 80% - нормальный регистр
           sentence.capitalize
         end
       end

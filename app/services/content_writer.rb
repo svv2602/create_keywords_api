@@ -1,9 +1,10 @@
 # app/services/content_writer.rb
 
 class ContentWriter
-  # Конфигурация моделей (Gemini по умолчанию для всех задач)
+  # Конфигурация моделей: DeepSeek для отзывов (дешевле, без thinking-overhead),
+  # Gemini для SEO-текстов и сложных задач
   MODELS = {
-    review_generation: 'gemini-2.5-flash',
+    review_generation: 'deepseek-chat',
     complex_analysis: 'gemini-2.5-flash',
     premium_content: 'gemini-2.5-flash',
     seo_generation: 'gemini-2.5-flash',

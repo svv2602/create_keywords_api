@@ -267,9 +267,8 @@ class UniversalReviewProcessor
   def build_final_instructions(analysis)
     instructions = ""
     
-    if analysis[:has_caps]
-      instructions += "- В оригинале есть ЗАГЛАВНЫЕ буквы для эмоций - используй их умеренно\n"
-    end
+    # CAPS запрещён — регистр управляется кодом постобработки
+    instructions += "- ЗАПРЕЩЕНО писать ЗАГЛАВНЫМИ БУКВАМИ (CAPS LOCK). Пиши обычным регистром.\n"
     
     if analysis[:has_exclamation]
       instructions += "- Сохрани эмоциональность с восклицательными знаками\n"
@@ -280,6 +279,8 @@ class UniversalReviewProcessor
     instructions += "- Избегай рекламных клише и шаблонных фраз\n"
     instructions += "- Результат должен звучать естественно и по-человечески\n"
     instructions += "- КРИТИЧЕСКИ ВАЖНО: Максимальная длина отзыва - 1000 символов! Не превышай этот лимит!\n"
+    instructions += "- ЗАПРЕЩЕНО использовать обращения к читателю: 'Друзі', 'Хлопці', 'Люди', 'Народ', 'Братья', 'Друзья', 'Ребята' и т.д.\n"
+    instructions += "- ВАЖНО: Каждое предложение ДОЛЖНО быть завершено. Не обрывай текст на полуслове.\n"
     instructions += "- ЗАПРЕЩЕНО использовать иероглифы, символы китайского, японского, корейского и других восточноазиатских языков. Используй ТОЛЬКО кириллицу и латиницу!\n"
     instructions += "\nВерни ТОЛЬКО переписанный отзыв без дополнительных комментариев."
 
@@ -287,7 +288,7 @@ class UniversalReviewProcessor
   end
   
   def process_through_ai(prompt, estimated_tokens)
-    max_tokens = [estimated_tokens * 2, 150].max  # минимум 150 токенов для ответа
+    max_tokens = [estimated_tokens * 2, 2000].max  # минимум 2000 токенов (Gemini thinking тратит ~8000-10000 из бюджета)
     
     attempts = 0
     begin
@@ -335,7 +336,24 @@ class UniversalReviewProcessor
     text = text.gsub(/\s+/, ' ').strip
 
     return nil if text.blank?
+
+    # Защита от обрезанного AI-ответа: если текст не заканчивается на знак препинания,
+    # обрезаем до последнего полного предложения
+    text = trim_to_last_complete_sentence(text)
+
+    return nil if text.blank?
     text
+  end
+
+  def trim_to_last_complete_sentence(text)
+    return text if text.blank?
+    return text if text.match?(/[.!?]\s*$/)
+
+    # Ищем последний знак конца предложения
+    last_end = [text.rindex('.'), text.rindex('!'), text.rindex('?')].compact.max
+    return text if last_end.nil? || last_end < 10
+
+    text[0..last_end].strip
   end
   
   def finalize_review(processed_review, analysis, context)
@@ -499,7 +517,8 @@ class UniversalReviewProcessor
     shortened_review = nil
 
     begin
-      response = @content_writer.generate_review(shorten_prompt, estimated_tokens * 2, model_type: :review_generation)
+      shorten_max_tokens = [estimated_tokens * 2, 2000].max
+      response = @content_writer.generate_review(shorten_prompt, shorten_max_tokens, model_type: :review_generation)
 
       if response && response['choices'] && response['choices'][0]
         shortened_review = response['choices'][0]['message']['content'].strip
