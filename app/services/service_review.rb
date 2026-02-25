@@ -369,7 +369,7 @@ module ServiceReview
     attempts = 0
     new_text = nil
     begin
-      new_text = ContentWriter.new.write_seo_text(topics, 3500)
+      new_text = ContentWriter.new.write_seo_text(topics, 4000)
       new_text = new_text['choices'][0]['message']['content'].strip if new_text
     rescue => e
       attempts += 1
