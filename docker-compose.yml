@@ -1,11 +1,12 @@
 services:
   web:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
         OPENAI_API_KEY: ${OPENAI_API_KEY}
         DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+        GEMINI_API_KEY: ${GEMINI_API_KEY}
     ports:
       - "3000:3000"
     volumes:
@@ -15,18 +16,20 @@ services:
       - RAILS_ENV=development
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     stdin_open: true
     tty: true
     command: rails server -b 0.0.0.0
 
   # Сервис для выполнения задач rake
   worker:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
         OPENAI_API_KEY: ${OPENAI_API_KEY}
         DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+        GEMINI_API_KEY: ${GEMINI_API_KEY}
     volumes:
       - .:/app
       - bundle_cache:/usr/local/bundle
@@ -34,6 +37,7 @@ services:
       - RAILS_ENV=development
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     command: tail -f /dev/null # Держим контейнер запущенным
 
 volumes:
