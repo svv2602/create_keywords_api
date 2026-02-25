@@ -35,6 +35,10 @@ class SeoTextGenerator
       if response && response['choices'] && response['choices'][0]
         generated_text = response['choices'][0]['message']['content'].strip
 
+        # Быстрая починка HTML перед проверкой целостности
+        generated_text = fix_html_ending(generated_text)
+        generated_text = fix_unbalanced_tags(generated_text)
+
         # Проверка целостности сгенерированного текста
         unless text_complete?(generated_text)
           log_incomplete_text_warning("#{@brand} #{@model} #{@size} (#{@language})")
@@ -42,6 +46,8 @@ class SeoTextGenerator
 
           # Пытаемся автоматически завершить обрезанный текст
           completed_text = complete_truncated_text(generated_text)
+          completed_text = fix_html_ending(completed_text) if completed_text
+          completed_text = fix_unbalanced_tags(completed_text) if completed_text
 
           if completed_text && text_complete?(completed_text)
             Rails.logger.info "Text successfully completed!"
@@ -527,6 +533,60 @@ class SeoTextGenerator
     end
   end
 
+
+  # Если текст не заканчивается на </p>, оборачиваем хвост в <p>...</p>
+  def fix_html_ending(text)
+    return text if text.blank?
+    stripped = text.strip
+    return stripped if stripped.end_with?('</p>') || stripped.end_with?('</ul>') || stripped.end_with?('</ol>')
+
+    # Находим последний закрывающий тег блочного элемента
+    last_block_end = [
+      stripped.rindex('</p>'),
+      stripped.rindex('</ul>'),
+      stripped.rindex('</ol>'),
+      stripped.rindex('</table>')
+    ].compact.max
+
+    if last_block_end
+      trailing = stripped[(last_block_end + 4)..].to_s.strip  # +4 для длины "</p>"
+      # Подстраховка: вычисляем точную длину закрывающего тега
+      after_tag = stripped[last_block_end..]
+      tag_end = after_tag.index('>') + 1
+      trailing = stripped[(last_block_end + tag_end)..].to_s.strip
+
+      if trailing.length > 5
+        Rails.logger.info "fix_html_ending: wrapping trailing text (#{trailing.length} chars) in <p>"
+        return stripped[0...(last_block_end + tag_end)] + "\n\n<p>#{trailing}</p>"
+      end
+    end
+
+    # Текст совсем без блочных тегов — оборачиваем целиком
+    stripped
+  end
+
+  # Исправляет небаланс HTML-тегов (off-by-one от LLM)
+  def fix_unbalanced_tags(text)
+    return text if text.blank?
+
+    %w[p li ul ol h2 h3 h4].each do |tag|
+      opening = text.scan(/<#{tag}(?:\s[^>]*)?>/).count
+      closing = text.scan(/<\/#{tag}>/).count
+
+      if opening > closing
+        # Не хватает закрывающих — добавляем в конец
+        (opening - closing).times { text = text + "</#{tag}>" }
+        Rails.logger.info "fix_unbalanced_tags: added #{opening - closing} missing </#{tag}>"
+      elsif closing > opening
+        # Лишние закрывающие — убираем последние лишние
+        excess = closing - opening
+        excess.times { text = text.sub(/<\/#{tag}>\s*\z/, '') }
+        Rails.logger.info "fix_unbalanced_tags: removed #{excess} extra </#{tag}>"
+      end
+    end
+
+    text
+  end
 
   # Автоматически завершает обрезанный текст
   def complete_truncated_text(truncated_text)
