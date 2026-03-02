@@ -4,14 +4,14 @@ class ContentWriter
   # Конфигурация моделей: DeepSeek как основная модель (дешевле, без thinking-overhead),
   # Gemini как fallback для сложных задач
   MODELS = {
-    review_generation: 'deepseek-chat',
+    review_generation: 'gpt-4.1-mini',
     complex_analysis: 'gemini-2.5-flash',
     premium_content: 'gemini-2.5-flash',
-    seo_generation: 'deepseek-chat',
-    fallback: 'gpt-4.1-mini'
+    seo_generation: 'gpt-4.1-mini',
+    fallback: 'deepseek-chat'
   }.freeze
 
-  # DeepSeek модели (первый fallback при недоступности Gemini)
+  # DeepSeek модели (первый fallback при недоступности основной модели)
   DEEPSEEK_FALLBACK_MODELS = {
     review_generation: 'deepseek-chat',
     complex_analysis: 'deepseek-chat',
@@ -19,12 +19,12 @@ class ContentWriter
     seo_generation: 'deepseek-chat'
   }.freeze
 
-  # OpenAI модели (второй fallback при недоступности Gemini и DeepSeek)
+  # OpenAI модели (второй fallback при недоступности DeepSeek)
   OPENAI_FALLBACK_MODELS = {
     review_generation: 'gpt-4.1-mini',
     complex_analysis: 'gpt-4o',
     premium_content: 'gpt-4o',
-    seo_generation: 'gpt-4o'
+    seo_generation: 'gpt-4.1-mini'
   }.freeze
   
   # Обратная совместимость
