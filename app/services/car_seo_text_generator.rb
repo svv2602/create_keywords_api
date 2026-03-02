@@ -219,6 +219,10 @@ class CarSeoTextGenerator
 
     # Очищаем ссылки: удаляем безанкорные и нормализуем домены
     text = sanitize_links(text)
+    # Дедупликация ссылок: оставляем первое вхождение каждого href
+    text = deduplicate_links(text)
+    # Исправляем CTA: ссылка-предложение → plain text
+    text = fix_cta_link_wrapping(text)
 
     # Удаляем markdown-разметку
     text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
@@ -1550,6 +1554,52 @@ class CarSeoTextGenerator
     text = text.gsub(/href="https?:\/\/prokoleso\.[a-z]+(\.[a-z]+)?/i, 'href="')
 
     text
+  end
+
+  # Дедупликация ссылок: оставляет первое вхождение каждого href,
+  # последующие разворачивает в plain text (оставляет только анкор).
+  def deduplicate_links(text)
+    return text if text.blank?
+
+    seen_hrefs = Set.new
+
+    text.gsub(/<a\s+[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/im) do
+      href = $1
+      anchor = $2
+      normalized = href.downcase.chomp('/')
+
+      if seen_hrefs.include?(normalized)
+        Rails.logger.info "Deduplicate links: removing duplicate href=\"#{href}\", keeping anchor \"#{anchor}\""
+        anchor
+      else
+        seen_hrefs.add(normalized)
+        $& # возвращаем оригинальное совпадение
+      end
+    end
+  end
+
+  # Исправляет CTA-параграф: если в последнем <p> есть ссылка с анкором-предложением
+  # (>60 символов), разворачивает её в plain text.
+  def fix_cta_link_wrapping(text)
+    return text if text.blank?
+
+    # Находим последний <p>...</p>
+    last_p_match = text.match(/.*(<p>.*?<\/p>)\s*\z/im)
+    return text unless last_p_match
+
+    last_p = last_p_match[1]
+    fixed_p = last_p.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>(.*?)<\/a>/im) do
+      anchor = $1
+      plain_anchor = anchor.gsub(/<[^>]+>/, '') # убираем вложенные теги для подсчёта длины
+      if plain_anchor.length > 60
+        Rails.logger.info "Fix CTA wrapping: unwrapped long anchor (#{plain_anchor.length} chars): \"#{plain_anchor.truncate(80)}\""
+        anchor
+      else
+        $& # короткий анкор — оставляем ссылку
+      end
+    end
+
+    text.sub(last_p, fixed_p)
   end
 
   def build_geographic_restrictions
