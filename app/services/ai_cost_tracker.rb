@@ -5,7 +5,7 @@ class AiCostTracker
   MODEL_PRICING = {
     # OpenAI модели
     'gpt-4o' => { input: 2.50, output: 10.0 },
-    'gpt-4o-mini' => { input: 0.15, output: 0.6 },
+    'gpt-4.1-mini' => { input: 0.40, output: 1.60 },
     'gpt-4-turbo' => { input: 10.0, output: 30.0 },
     'gpt-3.5-turbo' => { input: 0.5, output: 1.5 },
     

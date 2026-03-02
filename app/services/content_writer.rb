@@ -8,7 +8,7 @@ class ContentWriter
     complex_analysis: 'gemini-2.5-flash',
     premium_content: 'gemini-2.5-flash',
     seo_generation: 'deepseek-chat',
-    fallback: 'gpt-4o-mini'
+    fallback: 'gpt-4.1-mini'
   }.freeze
 
   # DeepSeek модели (первый fallback при недоступности Gemini)
@@ -21,7 +21,7 @@ class ContentWriter
 
   # OpenAI модели (второй fallback при недоступности Gemini и DeepSeek)
   OPENAI_FALLBACK_MODELS = {
-    review_generation: 'gpt-4o-mini',
+    review_generation: 'gpt-4.1-mini',
     complex_analysis: 'gpt-4o',
     premium_content: 'gpt-4o',
     seo_generation: 'gpt-4o'
@@ -272,7 +272,7 @@ class ContentWriter
       else
         # DeepSeek тоже недоступен — fallback на OpenAI
         Rails.logger.warn "DeepSeek client also not available, falling back to OpenAI"
-        fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4o-mini'
+        fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4.1-mini'
         Rails.logger.info "Using OpenAI fallback: #{fallback_model}"
         return fallback_model
       end
@@ -281,7 +281,7 @@ class ContentWriter
     # 5. Если DeepSeek модель (forced или fallback), но клиент недоступен
     if base_model.start_with?('deepseek') && !@deepseek_client
       Rails.logger.warn "DeepSeek client not available, falling back to OpenAI"
-      fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4o-mini'
+      fallback_model = OPENAI_FALLBACK_MODELS[model_type] || 'gpt-4.1-mini'
       Rails.logger.info "Using OpenAI fallback: #{fallback_model}"
       return fallback_model
     end

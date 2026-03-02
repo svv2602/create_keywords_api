@@ -8,7 +8,7 @@
 #   - 60 RPM для deepseek-reasoner
 #
 # Лимиты OpenAI API (зависят от tier):
-#   - Tier 1: 500 RPM для gpt-4o-mini, 500 RPM для gpt-4o
+#   - Tier 1: 500 RPM для gpt-4.1-mini, 500 RPM для gpt-4o
 #   - Tier 2+: выше
 #
 class AiRateLimiter
@@ -17,7 +17,7 @@ class AiRateLimiter
     'deepseek-chat' => { rpm: 400, concurrent: 50 },      # DeepSeek: 500 RPM, берем 400
     'deepseek-reasoner' => { rpm: 50, concurrent: 10 },   # DeepSeek: 60 RPM, берем 50
     'gpt-4o' => { rpm: 400, concurrent: 50 },             # OpenAI Tier 1+
-    'gpt-4o-mini' => { rpm: 400, concurrent: 50 },        # OpenAI Tier 1+
+    'gpt-4.1-mini' => { rpm: 400, concurrent: 50 },        # OpenAI Tier 1+
     'gpt-4-turbo' => { rpm: 400, concurrent: 50 },
     'gpt-3.5-turbo' => { rpm: 400, concurrent: 50 },
     'gemini-2.5-flash' => { rpm: 300, concurrent: 30 }  # Pay-as-you-go: 2000 RPM, берем 300 консервативно
