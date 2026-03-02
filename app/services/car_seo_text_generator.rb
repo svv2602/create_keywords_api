@@ -190,6 +190,9 @@ class CarSeoTextGenerator
     # Удаляем HTML-комментарии (LLM генерирует <!--/а--> вместо </a>)
     text = text.gsub(/<!--.*?-->/m, '')
 
+    # Восстанавливаем сломанные <a> теги (DeepSeek разбивает href на символы)
+    text = fix_broken_a_tags(text)
+
     # Нормализуем кириллические гомоглифы в HTML-тегах: <а hreеf=...> → <a href=...>
     text = fix_cyrillic_in_html_tags(text)
 
@@ -199,8 +202,8 @@ class CarSeoTextGenerator
     # Удаляем пустые теги <> (остатки от сломанных тегов LLM)
     text = text.gsub(/<\s*>/, '')
 
-    # Исправляем пробелы в URL типоразмеров (w -225 -> w-225)
-    text = fix_spaces_in_tire_urls(text)
+    # Комплексное исправление пробелов во всех href (заменяет fix_spaces_in_tire_urls)
+    text = fix_all_href_spaces(text)
 
     # Удаляем циклические ссылки на текущую модель автомобиля
     text = remove_self_referencing_links(text)
@@ -505,6 +508,7 @@ class CarSeoTextGenerator
       - ВСЕГДА используй формат: /shiny/w-215/h-55/r-17/
       - НЕПРАВИЛЬНО: /shiny/215/55/r17/ или /shiny/w215/h55/r-17/
       - ПРАВИЛЬНО: /shiny/w-215/h-55/r-17/
+      - ЗАПРЕЩЕНО вставлять пробелы внутри URL-адресов и HTML-атрибутов. URL должен быть слитным: /shiny/w-245/h-40/r-19/, а НЕ /shiny/w 245/h 40/r 19/
 
       #{build_geographic_restrictions}
 
@@ -638,6 +642,7 @@ class CarSeoTextGenerator
       - ЗАВЖДИ використовуй формат: /shiny/w-215/h-55/r-17/
       - НЕПРАВИЛЬНО: /shiny/215/55/r17/ або /shiny/w215/h55/r-17/
       - ПРАВИЛЬНО: /shiny/w-215/h-55/r-17/
+      - ЗАБОРОНЕНО вставляти пробіли всередині URL-адрес та HTML-атрибутів. URL має бути злитним: /shiny/w-245/h-40/r-19/, а НЕ /shiny/w 245/h 40/r 19/
 
       #{build_geographic_restrictions}
 
@@ -917,32 +922,6 @@ class CarSeoTextGenerator
     completion
   end
 
-  # Исправляет пробелы в URL типоразмеров шин
-  # Неправильно: /shiny/w -225/h -35/r -18/ (пробел между буквой и дефисом)
-  # Правильно: /shiny/w-225/h-35/r-18/
-  def fix_spaces_in_tire_urls(text)
-    return text if text.blank?
-
-    # Паттерн для поиска ссылок с пробелами в URL
-    # w -225 -> w-225, h -35 -> h-35, r -18 -> r-18
-    original_text = text.dup
-
-    # Исправляем пробелы в href атрибутах
-    text = text.gsub(/href="([^"]*)"/) do |match|
-      href = $1
-      # Убираем пробелы вокруг / в путях: / ua / shiny / → /ua/shiny/
-      fixed_href = href.gsub(/\s*\/\s*/, '/')
-      # Исправляем w -XXX -> w-XXX, h -XX -> h-XX, r -XX -> r-XX
-      fixed_href = fixed_href.gsub(/([whr])\s+-(\d+)/, '\1-\2')
-      if fixed_href != href
-        Rails.logger.info "Fixed spaces in tire URL: #{href} -> #{fixed_href}"
-      end
-      "href=\"#{fixed_href}\""
-    end
-
-    text
-  end
-
   # Балансирует HTML-теги: добавляет недостающие закрывающие теги
   # LLM иногда забывает закрыть <p>, <li>, <ul> и т.д.
   def balance_html_tags(text)
@@ -1067,8 +1046,61 @@ class CarSeoTextGenerator
     end
   end
 
+  # Восстанавливает сломанные <a> теги от DeepSeek
+  # DeepSeek иногда разбивает href на отдельные символы-атрибуты:
+  # <a e="" f="URL" h="" r=""> → <a href="URL">
+  # <a ef="URL" hr=""> → <a href="URL">
+  # Любой <a ...> без href= но с атрибутом, содержащим "/" — восстанавливаем
+  def fix_broken_a_tags(text)
+    return text if text.blank?
+
+    text.gsub(/<a\s+([^>]*?)>/i) do |match|
+      attrs = $1.strip
+      # Пропускаем нормальные теги с href=
+      next match if attrs.match?(/\bhref\s*=/i)
+
+      # Ищем URL среди значений атрибутов (самое длинное значение с /)
+      urls = attrs.scan(/(?:\w+)="([^"]*)"/).flatten.select { |v| v.include?('/') }
+      if urls.any?
+        url = urls.max_by(&:length)
+        Rails.logger.info "Fixed broken <a> tag: #{match[0..80]} → <a href=\"#{url}\">"
+        "<a href=\"#{url}\">"
+      else
+        match
+      end
+    end
+  end
+
+  # Комплексное исправление пробелов во ВСЕХ href="..." значениях
+  # URL-адреса никогда не должны содержать пробелов
+  # Заменяет fix_spaces_in_tire_urls — покрывает все случаи, а не только w/h/r
+  def fix_all_href_spaces(text)
+    return text if text.blank?
+
+    text.gsub(/href="([^"]*)"/) do |match|
+      href = $1
+      original_href = href.dup
+
+      # 1. Убираем пробелы вокруг слешей: / ua / shiny / → /ua/shiny/
+      href = href.gsub(/\s*\/\s*/, '/')
+
+      # 2. Исправляем паттерны типоразмеров: w 245 или w245 → w-245 (буква + цифры без дефиса)
+      href = href.gsub(/([whr])\s+(\d+)/, '\1-\2')
+      href = href.gsub(/\/([whr])(\d+)(?=\/)/, '/\1-\2')
+
+      # 3. Убираем все оставшиеся пробелы из URL
+      href = href.gsub(/\s+/, '')
+
+      if href != original_href
+        Rails.logger.info "Fixed spaces in href: #{original_href} -> #{href}"
+      end
+      "href=\"#{href}\""
+    end
+  end
+
   # Обнаруживает и удаляет абзацы с посимвольным выводом LLM (DeepSeek issue)
   # Если >50% слов в абзаце — одиночные символы, абзац считается "рассыпанным" и удаляется
+  # Также обнаруживает частично "рассыпанный" текст по низкой средней длине слов
   # Это позволяет completion-механизму добавить нормальный текст вместо мусора
   def fix_garbled_character_sequences(text)
     return text if text.blank?
@@ -1080,11 +1112,35 @@ class CarSeoTextGenerator
       if words.length >= 8
         single_char_count = words.count { |w| w.length == 1 }
         ratio = single_char_count.to_f / words.length
+
         if ratio > 0.5
           Rails.logger.warn "Removed garbled paragraph (#{(ratio * 100).round}% single-char tokens): #{content[0..80]}..."
           ''
         else
-          match
+          # Пробуем починить: склеиваем последовательности из 3+ одиночных кириллических символов
+          fixed_content = content.gsub(/(?<=[а-яА-ЯіІїЇєЄґҐ])\s+(?=[а-яА-ЯіІїЇєЄґҐ]\s+[а-яА-ЯіІїЇєЄґҐ](?:\s|$))/) { '' }
+          # Дополнительная склейка: два одиночных кириллических символа подряд
+          fixed_content = fixed_content.gsub(/\b([а-яА-ЯіІїЇєЄґҐ])\s+([а-яА-ЯіІїЇєЄґҐ])\b/, '\1\2')
+
+          if fixed_content != content
+            Rails.logger.info "Repaired spaced-out text in paragraph: #{content[0..60]} → #{fixed_content[0..60]}"
+          end
+
+          # Проверяем среднюю длину слов после починки (частично рассыпанный текст)
+          repaired_words = fixed_content.split(/\s+/)
+          if repaired_words.length > 15
+            avg_length = repaired_words.sum(&:length).to_f / repaired_words.length
+            if avg_length < 3.0
+              Rails.logger.warn "Removed paragraph with abnormally low avg word length (#{avg_length.round(1)}): #{fixed_content[0..80]}..."
+              next ''
+            end
+          end
+
+          if fixed_content != content
+            match.sub(content, fixed_content)
+          else
+            match
+          end
         end
       else
         match
