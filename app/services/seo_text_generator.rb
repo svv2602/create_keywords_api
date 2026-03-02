@@ -221,6 +221,10 @@ class SeoTextGenerator
     text = deduplicate_links(text)
     # Исправляем CTA: ссылка-предложение → plain text
     text = fix_cta_link_wrapping(text)
+    # Удаляем изображения из сгенерированного текста
+    text = remove_images(text)
+    # Заголовки h1-h6 должны начинаться с заглавной буквы
+    text = capitalize_headings(text)
     # optimize_keywords удален - AI сам добавит выделения согласно промпту
     text
   end
@@ -1167,6 +1171,30 @@ class SeoTextGenerator
     end
 
     text.sub(last_p, fixed_p)
+  end
+
+  # Удаляет все <img> теги из текста
+  def remove_images(text)
+    return text if text.blank?
+
+    cleaned = text.gsub(/<img\s[^>]*>/i, '')
+    # Удаляем пустые параграфы, оставшиеся после удаления изображений
+    cleaned = cleaned.gsub(/<p>\s*<\/p>/i, '')
+    cleaned
+  end
+
+  # Капитализирует первую букву текста в заголовках h1-h6
+  def capitalize_headings(text)
+    return text if text.blank?
+
+    text.gsub(/<(h[1-6])([^>]*)>(.*?)<\/\1>/im) do
+      tag = $1
+      attrs = $2
+      content = $3
+      # Капитализируем первую букву текстового содержимого (пропускаем теги)
+      capitalized = content.sub(/\A(\s*(?:<[^>]+>)*)(\p{L})/i) { "#{$1}#{$2.upcase}" }
+      "<#{tag}#{attrs}>#{capitalized}</#{tag}>"
+    end
   end
 
   private
