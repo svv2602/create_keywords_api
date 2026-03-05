@@ -78,6 +78,7 @@ class PopularQueriesGenerator
     @width = nil
     @height = nil
     @radius = nil
+    @commercial = false
 
     parts.each do |part|
       case part
@@ -87,6 +88,9 @@ class PopularQueriesGenerator
         @width = $1
       when /\Ah-(\d+)\z/
         @height = $1
+      when /\Ar-(\d[\d.]*)c\z/i
+        @radius = $1
+        @commercial = true
       when /\Ar-(\d[\d.]*)\z/
         @radius = $1
       else
@@ -100,35 +104,37 @@ class PopularQueriesGenerator
   def build_combinations
     templates = []
 
+    rp = radius_url_part
+
     if @season && @brand_slug && @width && @height && @radius
-      templates << { parts: [:season, :brand, :size], url: "/shiny/#{@season}/#{@brand_slug}/w-#{@width}/h-#{@height}/r-#{@radius}/" }
+      templates << { parts: [:season, :brand, :size], url: "/shiny/#{@season}/#{@brand_slug}/w-#{@width}/h-#{@height}/#{rp}/" }
     end
     if @season && @brand_slug && @radius
-      templates << { parts: [:season, :brand, :radius], url: "/shiny/#{@season}/#{@brand_slug}/r-#{@radius}/" }
+      templates << { parts: [:season, :brand, :radius], url: "/shiny/#{@season}/#{@brand_slug}/#{rp}/" }
     end
     if @season && @brand_slug
       templates << { parts: [:season, :brand], url: "/shiny/#{@season}/#{@brand_slug}/" }
     end
     if @season && @width && @height && @radius
-      templates << { parts: [:season, :size], url: "/shiny/#{@season}/w-#{@width}/h-#{@height}/r-#{@radius}/" }
+      templates << { parts: [:season, :size], url: "/shiny/#{@season}/w-#{@width}/h-#{@height}/#{rp}/" }
     end
     if @season && @radius
-      templates << { parts: [:season, :radius], url: "/shiny/#{@season}/r-#{@radius}/" }
+      templates << { parts: [:season, :radius], url: "/shiny/#{@season}/#{rp}/" }
     end
     if @season
       templates << { parts: [:season], url: "/shiny/#{@season}/" }
     end
     if @brand_slug && @width && @height && @radius
-      templates << { parts: [:brand, :size], url: "/shiny/#{@brand_slug}/w-#{@width}/h-#{@height}/r-#{@radius}/" }
+      templates << { parts: [:brand, :size], url: "/shiny/#{@brand_slug}/w-#{@width}/h-#{@height}/#{rp}/" }
     end
     if @brand_slug && @radius
-      templates << { parts: [:brand, :radius], url: "/shiny/#{@brand_slug}/r-#{@radius}/" }
+      templates << { parts: [:brand, :radius], url: "/shiny/#{@brand_slug}/#{rp}/" }
     end
     if @width && @height && @radius
-      templates << { parts: [:size], url: "/shiny/w-#{@width}/h-#{@height}/r-#{@radius}/" }
+      templates << { parts: [:size], url: "/shiny/w-#{@width}/h-#{@height}/#{rp}/" }
     end
     if @radius
-      templates << { parts: [:radius], url: "/shiny/r-#{@radius}/" }
+      templates << { parts: [:radius], url: "/shiny/#{rp}/" }
     end
 
     # Normalize input URL for comparison
@@ -156,50 +162,53 @@ class PopularQueriesGenerator
 
     # бренд + сезон + радиус
     if @radius
+      rp = radius_url_part
       seasons_to_use.each do |season|
         queries << {
           text: build_text_from_parts([:season, :brand, :radius], season_override: season),
-          url: "/shiny/#{season}/#{@brand_slug}/r-#{@radius}/"
+          url: "/shiny/#{season}/#{@brand_slug}/#{rp}/"
         }
       end
       # бренд + радиус (без сезона)
       queries << {
         text: build_text_from_parts([:brand, :radius]),
-        url: "/shiny/#{@brand_slug}/r-#{@radius}/"
+        url: "/shiny/#{@brand_slug}/#{rp}/"
       }
     end
 
     # бренд + текущий размер с другими сезонами
     if @width && @height && @radius
+      rp = radius_url_part
       (SEASONS - seasons_to_use).each do |season|
         queries << {
           text: build_text_from_parts([:season, :brand, :size], season_override: season),
-          url: "/shiny/#{season}/#{@brand_slug}/w-#{@width}/h-#{@height}/r-#{@radius}/"
+          url: "/shiny/#{season}/#{@brand_slug}/w-#{@width}/h-#{@height}/#{rp}/"
         }
       end
     end
 
-    # бренд + популярные размеры из TIRE_POPULAR_SIZES
+    # бренд + популярные размеры
     if @radius && !@width
       # Есть диаметр, но нет размера — только размеры текущего диаметра
-      all_sizes = TIRE_POPULAR_SIZES[@radius.to_s.to_sym] || []
+      all_sizes = popular_sizes_for_radius
       selected_sizes = all_sizes.sample([all_sizes.size, rand(6..8)].min)
 
       selected_sizes.each do |size_str|
-        w, h, parsed_r = parse_size_string(size_str)
+        w, h, parsed_r, size_c = parse_size_string(size_str)
         next unless w && h && parsed_r
+        srp = radius_url_part(parsed_r, commercial: size_c)
         # Каждый размер — со случайным сезоном
         season = seasons_to_use.sample
         queries << {
-          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r]),
-          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r, size_c]),
+          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
         }
         # Дополнительно: тот же размер с другим сезоном (~40%)
         if rand < 0.4
           other_season = (SEASONS - [season]).sample
           queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: other_season, size_override: [w, h, parsed_r]),
-            url: "/shiny/#{other_season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+            text: build_text_from_parts([:season, :brand, :size], season_override: other_season, size_override: [w, h, parsed_r, size_c]),
+            url: "/shiny/#{other_season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
           }
         end
       end
@@ -208,31 +217,35 @@ class PopularQueriesGenerator
       radiuses_for_sizes = POPULAR_RADIUSES.sample(rand(4..6))
 
       radiuses_for_sizes.each do |r|
-        all_sizes = TIRE_POPULAR_SIZES[r.to_s.to_sym] || []
+        sizes_hash = @commercial ? TIRE_POPULAR_SIZES_C : TIRE_POPULAR_SIZES
+        all_sizes = sizes_hash[r.to_s.to_sym] || []
+        all_sizes = all_sizes.reject { |s| s =~ /c\s*\z/i } unless @commercial
         selected_sizes = all_sizes.reject { |s|
           w, h, _rr = parse_size_string(s)
           w == @width && h == @height
         }.sample(rand(3..5))
 
         selected_sizes.each do |size_str|
-          w, h, parsed_r = parse_size_string(size_str)
+          w, h, parsed_r, size_c = parse_size_string(size_str)
           next unless w && h && parsed_r
+          srp = radius_url_part(parsed_r, commercial: size_c)
           season = seasons_to_use.sample
           queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r]),
-            url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{parsed_r}/"
+            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r, size_c]),
+            url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
           }
         end
 
         # бренд + сезон + диаметр
+        rp = radius_url_part(r)
         season = seasons_to_use.sample
         queries << {
           text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
-          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
+          url: "/shiny/#{season}/#{@brand_slug}/#{rp}/"
         }
         queries << {
           text: build_text_from_parts([:brand, :radius], radius_override: r),
-          url: "/shiny/#{@brand_slug}/r-#{r}/"
+          url: "/shiny/#{@brand_slug}/#{rp}/"
         }
       end
     end
@@ -258,14 +271,16 @@ class PopularQueriesGenerator
       url_parts = [brand_season, brand[:slug]]
 
       if @width && @height && @radius
+        rp = radius_url_part
         parts_for_query << :size
-        url_suffix = "w-#{@width}/h-#{@height}/r-#{@radius}"
+        url_suffix = "w-#{@width}/h-#{@height}/#{rp}"
         link_url = "/shiny/#{url_parts.join('/')}/#{url_suffix}/"
         text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
         queries << { text: text, url: link_url }
       elsif @radius
+        rp = radius_url_part
         parts_for_query << :radius
-        link_url = "/shiny/#{url_parts.join('/')}/r-#{@radius}/"
+        link_url = "/shiny/#{url_parts.join('/')}/#{rp}/"
         text = build_text_from_parts(parts_for_query, brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season)
         queries << { text: text, url: link_url }
       else
@@ -276,13 +291,15 @@ class PopularQueriesGenerator
 
         if rand < 0.6
           r = POPULAR_RADIUSES.sample
+          rp = radius_url_part(r)
           text_r = build_text_from_parts([:season, :brand, :radius], brand_name: brand[:name], brand_slug: brand[:slug], season_override: brand_season, radius_override: r)
-          queries << { text: text_r, url: "/shiny/#{url_parts.join('/')}/r-#{r}/" }
+          queries << { text: text_r, url: "/shiny/#{url_parts.join('/')}/#{rp}/" }
         end
       end
 
       # Второй запрос (~50%): brand + только radius
       if rand < 0.5 && @radius && @width && @height
+        rp = radius_url_part
         alt_parts = [:brand]
         use_season = rand < 0.5
         alt_season = use_season ? (@season || SEASONS.sample) : nil
@@ -291,7 +308,7 @@ class PopularQueriesGenerator
         alt_url_parts = []
         alt_url_parts << alt_season if use_season
         alt_url_parts << brand[:slug]
-        alt_link = "/shiny/#{alt_url_parts.join('/')}/r-#{@radius}/"
+        alt_link = "/shiny/#{alt_url_parts.join('/')}/#{rp}/"
 
         text2 = build_text_from_parts(alt_parts, brand_name: brand[:name], brand_slug: brand[:slug], season_override: alt_season)
         queries << { text: text2, url: alt_link }
@@ -304,18 +321,19 @@ class PopularQueriesGenerator
   # --- Block 3: General queries without brand (~3-5) ---
   def build_general_queries
     queries = []
+    rp = radius_url_part
 
     if @season && @width && @height && @radius
-      queries << build_query([:season, :size], "/shiny/#{@season}/w-#{@width}/h-#{@height}/r-#{@radius}/")
+      queries << build_query([:season, :size], "/shiny/#{@season}/w-#{@width}/h-#{@height}/#{rp}/")
     end
     if @season && @radius
-      queries << build_query([:season, :radius], "/shiny/#{@season}/r-#{@radius}/")
+      queries << build_query([:season, :radius], "/shiny/#{@season}/#{rp}/")
     end
     if @width && @height && @radius
-      queries << build_query([:shiny_word, :size], "/shiny/w-#{@width}/h-#{@height}/r-#{@radius}/")
+      queries << build_query([:shiny_word, :size], "/shiny/w-#{@width}/h-#{@height}/#{rp}/")
     end
     if @radius
-      queries << build_query([:shiny_word, :radius], "/shiny/r-#{@radius}/")
+      queries << build_query([:shiny_word, :radius], "/shiny/#{rp}/")
     end
     if @season
       queries << build_query([:season], "/shiny/#{@season}/")
@@ -327,13 +345,14 @@ class PopularQueriesGenerator
   # --- Block 4: Season variations when no season in URL (~6-9) ---
   def build_season_variations
     queries = []
+    rp = radius_url_part
 
     SEASONS.each do |season|
       if @width && @height && @radius
-        queries << build_query([:season, :size], "/shiny/#{season}/w-#{@width}/h-#{@height}/r-#{@radius}/", season_override: season)
+        queries << build_query([:season, :size], "/shiny/#{season}/w-#{@width}/h-#{@height}/#{rp}/", season_override: season)
       end
       if @radius
-        queries << build_query([:season, :radius], "/shiny/#{season}/r-#{@radius}/", season_override: season)
+        queries << build_query([:season, :radius], "/shiny/#{season}/#{rp}/", season_override: season)
       end
       queries << build_query([:season], "/shiny/#{season}/", season_override: season)
     end
@@ -349,40 +368,41 @@ class PopularQueriesGenerator
     selected = sizes.sample([sizes.size, rand(8..12)].min)
 
     selected.flat_map do |size_str|
-      w, h, r = parse_size_string(size_str)
+      w, h, r, size_c = parse_size_string(size_str)
       next unless w && h && r
 
       queries = []
       season = @season || SEASONS.sample
-      url = "/shiny/#{season}/w-#{w}/h-#{h}/r-#{r}/"
+      srp = radius_url_part(r, commercial: size_c)
+      url = "/shiny/#{season}/w-#{w}/h-#{h}/#{srp}/"
 
       if @brand_slug
         # Есть бренд — чаще генерируем с текущим брендом
         if rand < 0.7
-          brand_url = "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/r-#{r}/"
+          brand_url = "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
           queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r]),
+            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r, size_c]),
             url: brand_url
           }
         else
           # Без бренда
           queries << {
-            text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r]),
+            text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r, size_c]),
             url: url
           }
         end
       else
         # Нет бренда — сезон + размер, иногда со случайным брендом
         queries << {
-          text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r]),
+          text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r, size_c]),
           url: url
         }
         if rand < 0.4
           brand = promoted_brands.sample
           if brand
-            brand_url = "/shiny/#{season}/#{brand[:slug]}/w-#{w}/h-#{h}/r-#{r}/"
+            brand_url = "/shiny/#{season}/#{brand[:slug]}/w-#{w}/h-#{h}/#{srp}/"
             queries << {
-              text: build_text_from_parts([:season, :brand, :size], brand_name: brand[:name], brand_slug: brand[:slug], season_override: season, size_override: [w, h, r]),
+              text: build_text_from_parts([:season, :brand, :size], brand_name: brand[:name], brand_slug: brand[:slug], season_override: season, size_override: [w, h, r, size_c]),
               url: brand_url
             }
           end
@@ -400,12 +420,13 @@ class PopularQueriesGenerator
 
     selected_radiuses.each do |r|
       season = @season || SEASONS.sample
+      rp = radius_url_part(r)
 
       # бренд + сезон + радиус
       if @brand_slug
         queries << {
           text: build_text_from_parts([:season, :brand, :radius], season_override: season, radius_override: r),
-          url: "/shiny/#{season}/#{@brand_slug}/r-#{r}/"
+          url: "/shiny/#{season}/#{@brand_slug}/#{rp}/"
         }
       end
 
@@ -413,7 +434,7 @@ class PopularQueriesGenerator
       if rand < 0.5
         queries << {
           text: build_text_from_parts([:season, :radius], season_override: season, radius_override: r),
-          url: "/shiny/#{season}/r-#{r}/"
+          url: "/shiny/#{season}/#{rp}/"
         }
       end
 
@@ -421,7 +442,7 @@ class PopularQueriesGenerator
       if @brand_slug && rand < 0.3
         queries << {
           text: build_text_from_parts([:brand, :radius], radius_override: r),
-          url: "/shiny/#{@brand_slug}/r-#{r}/"
+          url: "/shiny/#{@brand_slug}/#{rp}/"
         }
       end
     end
@@ -431,14 +452,25 @@ class PopularQueriesGenerator
 
   def popular_sizes_for_radius
     key = @radius.to_s.to_sym
-    TIRE_POPULAR_SIZES[key] || []
+    if @commercial
+      TIRE_POPULAR_SIZES_C[key] || []
+    else
+      sizes = TIRE_POPULAR_SIZES[key] || []
+      sizes.reject { |s| s =~ /c\s*\z/i }
+    end
   end
 
   def parse_size_string(size_str)
-    # "175/65 R14" or "205/65 R16C" -> [175, 65, 14]
-    if size_str =~ /(\d+)\/(\d+)\s*R?(\d+)/i
-      [$1, $2, $3]
+    # "175/65 R14" or "205/65 R16C" -> [width, height, radius, commercial]
+    if size_str =~ /(\d+)\/(\d+)\s*R?(\d+)(c?)\s*\z/i
+      [$1, $2, $3, !$4.empty?]
     end
+  end
+
+  def radius_url_part(r = nil, commercial: nil)
+    r ||= @radius
+    c = commercial.nil? ? @commercial : commercial
+    c ? "r-#{r}c" : "r-#{r}"
   end
 
   # --- Text formatting helpers ---
@@ -485,21 +517,23 @@ class PopularQueriesGenerator
 
   def format_size_text(override = nil)
     if override
-      size_name(override[0], override[1], override[2])
+      c = override[3]
+      size_name(override[0], override[1], override[2], c)
     else
       return nil unless @width && @height && @radius
-      size_name(@width, @height, @radius)
+      size_name(@width, @height, @radius, @commercial)
     end
   end
 
   def format_radius_text(radius = nil)
     radius ||= @radius
     return nil unless radius
+    c_suffix = @commercial ? 'C' : ''
     case rand(1..4)
-    when 1 then "R#{radius}"
-    when 2 then "на #{radius}"
-    when 3 then "р#{radius}"
-    when 4 then "r#{radius}"
+    when 1 then "R#{radius}#{c_suffix}"
+    when 2 then "на #{radius}#{c_suffix}"
+    when 3 then "р#{radius}#{c_suffix}"
+    when 4 then "r#{radius}#{c_suffix}"
     end
   end
 
@@ -525,27 +559,28 @@ class PopularQueriesGenerator
   end
 
   # Size formatting (matching keys_controller.rb size_name approach)
-  def size_name(ww, hh, rr)
+  def size_name(ww, hh, rr, commercial = false)
+    c = commercial ? 'C' : ''
     case rand(1..120)
-    when 1..5   then "#{ww} #{hh}R#{rr}"
-    when 6..10  then "#{ww}/#{hh} R#{rr}"
-    when 11..15 then "#{ww} #{hh} #{rr}"
-    when 16..20 then "#{ww}/#{hh} R#{rr}"
-    when 21..25 then "#{ww}/#{hh} #{rr}"
-    when 26..30 then "#{ww}/#{hh} R#{rr}"
-    when 31..40 then "#{ww} #{hh} R#{rr}"
-    when 41..45 then "#{ww}х#{hh} #{rr}"
-    when 46..50 then "#{ww}/#{hh}/#{rr}"
-    when 51..55 then "#{ww}х#{hh} Р#{rr}"
-    when 56..60 then "#{ww}/#{hh} р#{rr}"
-    when 61..65 then "#{ww}/#{hh} на #{rr}"
-    when 66..70 then "#{ww}/#{hh} на R#{rr}"
-    when 71..80 then "#{ww}/#{hh}R#{rr}"
-    when 81..85 then "R#{rr} на #{ww} #{hh}"
-    when 86..90 then "р#{rr} на #{ww} #{hh}"
-    when 91..95 then "#{ww} #{hh} #{rr}"
-    when 96..100 then "#{ww}/#{hh}R#{rr}"
-    else "#{ww} #{hh} R#{rr}"
+    when 1..5   then "#{ww} #{hh}R#{rr}#{c}"
+    when 6..10  then "#{ww}/#{hh} R#{rr}#{c}"
+    when 11..15 then "#{ww} #{hh} #{rr}#{c}"
+    when 16..20 then "#{ww}/#{hh} R#{rr}#{c}"
+    when 21..25 then "#{ww}/#{hh} #{rr}#{c}"
+    when 26..30 then "#{ww}/#{hh} R#{rr}#{c}"
+    when 31..40 then "#{ww} #{hh} R#{rr}#{c}"
+    when 41..45 then "#{ww}х#{hh} #{rr}#{c}"
+    when 46..50 then "#{ww}/#{hh}/#{rr}#{c}"
+    when 51..55 then "#{ww}х#{hh} Р#{rr}#{c}"
+    when 56..60 then "#{ww}/#{hh} р#{rr}#{c}"
+    when 61..65 then "#{ww}/#{hh} на #{rr}#{c}"
+    when 66..70 then "#{ww}/#{hh} на R#{rr}#{c}"
+    when 71..80 then "#{ww}/#{hh}R#{rr}#{c}"
+    when 81..85 then "R#{rr}#{c} на #{ww} #{hh}"
+    when 86..90 then "р#{rr}#{c} на #{ww} #{hh}"
+    when 91..95 then "#{ww} #{hh} #{rr}#{c}"
+    when 96..100 then "#{ww}/#{hh}R#{rr}#{c}"
+    else "#{ww} #{hh} R#{rr}#{c}"
     end
   end
 
