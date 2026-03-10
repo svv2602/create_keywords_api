@@ -272,8 +272,22 @@ class CarSeoTextGenerator
     # Балансируем HTML-теги (LLM иногда забывает закрывающие/лишние теги)
     text = balance_html_tags(text)
 
-    # Если текст не заканчивается на </p>, добавляем его (ПОСЛЕ балансировки!)
-    text += '</p>' unless text.strip.end_with?('</p>')
+    # Если текст не заканчивается на </p>, оборачиваем хвост в <p>...</p>
+    unless text.strip.end_with?('</p>')
+      # Находим позицию после последнего закрывающего блочного тега
+      last_close = text.rindex(/<\/(?:p|ul|ol|h[2-4]|li)>/i)
+      if last_close
+        end_of_tag = text.index('>', last_close) + 1
+        tail = text[end_of_tag..].strip
+        if tail.length > 0
+          text = text[0...end_of_tag] + "<p>#{tail}</p>"
+        else
+          text += '</p>'
+        end
+      else
+        text += '</p>'
+      end
+    end
 
     # Удаляем атрибуты
     text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
