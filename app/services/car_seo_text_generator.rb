@@ -183,6 +183,9 @@ class CarSeoTextGenerator
     text = validate_tire_link_anchors(text)
     text = fix_cta_link_wrapping(text)
 
+    # Повторная дедупликация после fix_tire_size_links (может создавать новые совпадения)
+    text = deduplicate_links(text)
+
     text
   end
 
