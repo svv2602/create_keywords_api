@@ -68,9 +68,9 @@ class ContentWriter
         { role: "user", content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: adjust_max_tokens_for_model(max_tokens, model),
       top_p: 0.9
     }
+    apply_max_tokens!(params, max_tokens, model)
     add_penalty_params!(params, frequency_penalty: 0.5, presence_penalty: 0.5, model: model)
 
     client.chat(parameters: params)
@@ -87,9 +87,9 @@ class ContentWriter
         { role: "user", content: prompt }
       ],
       temperature: 0.8,
-      max_tokens: adjust_max_tokens_for_model(max_tokens, model),
       top_p: 0.9
     }
+    apply_max_tokens!(params, max_tokens, model)
     add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
 
     client.chat(parameters: params)
@@ -121,9 +121,9 @@ class ContentWriter
           model: model,
           messages: build_review_messages(prompt),
           temperature: 0.7,
-          max_tokens: adjust_max_tokens_for_model(max_tokens, model),
           top_p: 0.9
         }
+        apply_max_tokens!(params, max_tokens, model)
         add_penalty_params!(params, frequency_penalty: 0.3, presence_penalty: 0.4, model: model)
 
         response = client.chat(parameters: params)
@@ -189,9 +189,9 @@ class ContentWriter
           { role: "user", content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: adjust_max_tokens_for_model(max_tokens, model),
         top_p: 0.9
       }
+      apply_max_tokens!(params, max_tokens, model)
       add_penalty_params!(params, frequency_penalty: 0.4, presence_penalty: 0.3, model: model)
 
       client.chat(parameters: params)
@@ -330,16 +330,29 @@ class ContentWriter
     params[:presence_penalty] = presence_penalty if presence_penalty
   end
 
-  # Gemini 2.5 — thinking-модель: часть бюджета max_tokens уходит на внутренние рассуждения.
-  # Увеличиваем лимит, чтобы на реальный ответ осталось достаточно токенов.
-  def adjust_max_tokens_for_model(max_tokens, model)
-    if model&.start_with?('gemini-2.5')
-      adjusted = [max_tokens * 8, 65_536].min
-      Rails.logger.info "[ContentWriter] Adjusted max_tokens for thinking model #{model}: #{max_tokens} -> #{adjusted}"
-      adjusted
+  # Устанавливает правильный параметр лимита токенов в params.
+  # GPT-5.4+ требует max_completion_tokens вместо max_tokens.
+  # Gemini 2.5 (thinking-модель) — увеличиваем лимит, т.к. часть уходит на рассуждения.
+  def apply_max_tokens!(params, max_tokens, model)
+    adjusted = if model&.start_with?('gemini-2.5')
+      value = [max_tokens * 8, 65_536].min
+      Rails.logger.info "[ContentWriter] Adjusted max_tokens for thinking model #{model}: #{max_tokens} -> #{value}"
+      value
     else
       max_tokens
     end
+
+    if model_uses_completion_tokens?(model)
+      params[:max_completion_tokens] = adjusted
+    else
+      params[:max_tokens] = adjusted
+    end
+  end
+
+  # GPT-5.4+ и другие новые модели OpenAI используют max_completion_tokens
+  def model_uses_completion_tokens?(model)
+    return false if model.blank?
+    model.start_with?('gpt-5')
   end
 
   # Выполнить блок с rate limiting (или без него если skip_rate_limit)
