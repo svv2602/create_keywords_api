@@ -4,10 +4,10 @@ class ContentWriter
   # Конфигурация моделей: GPT-5.4 Mini как основная (лучшее следование инструкциям),
   # Gemini для сложного анализа, DeepSeek как fallback
   MODELS = {
-    review_generation: 'gpt-5.4-mini',
+    review_generation: 'gpt-4.1-mini',
     complex_analysis: 'gemini-2.5-flash',
     premium_content: 'gemini-2.5-flash',
-    seo_generation: 'gpt-5.4-mini',
+    seo_generation: 'gpt-4.1-mini',
     fallback: 'deepseek-chat'
   }.freeze
 
