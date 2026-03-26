@@ -190,6 +190,9 @@ class CarSeoTextGenerator
     # Удаляем HTML-комментарии (LLM генерирует <!--/а--> вместо </a>)
     text = text.gsub(/<!--.*?-->/m, '')
 
+    # Заменяем кириллические теги-слова на HTML: <п> → <p>, </ли> → </li>, <—ли—> → </li>
+    text = fix_cyrillic_tag_names(text)
+
     # Восстанавливаем сломанные <a> теги (DeepSeek разбивает href на символы)
     text = fix_broken_a_tags(text)
 
@@ -292,6 +295,7 @@ class CarSeoTextGenerator
     # Удаляем атрибуты
     text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
     text = text.gsub(/\s*style="[^"]*"/, '')                  # Удаляем inline стили
+    text = text.gsub(/\s*target="[^"]*"/, '')                 # Удаляем target="_blank"
 
     # Очищаем пробелы
     text = text.gsub(/\s+/, ' ')                              # Множественные пробелы в один
@@ -1052,6 +1056,37 @@ class CarSeoTextGenerator
   }.freeze
   CYRILLIC_HOMOGLYPH_PATTERN = /[#{CYRILLIC_HOMOGLYPHS.keys.join}]/
 
+  # Заменяет кириллические имена тегов на латинские эквиваленты
+  # <п> → <p>, </п> → </p>, <ли> → <li>, </ли> → </li>
+  # <—ли—> → </li>, <—п-> → </p> (LLM использует тире вместо угловых скобок)
+  CYRILLIC_TAG_MAP = {
+    'п' => 'p', 'р' => 'p',
+    'ли' => 'li', 'лі' => 'li',
+    'ул' => 'ul',
+    'ол' => 'ol',
+  }.freeze
+
+  def fix_cyrillic_tag_names(text)
+    return text if text.blank?
+
+    cyrillic_names = CYRILLIC_TAG_MAP.keys.join('|')
+
+    # <п>, </п>, <ли>, </ли> — кириллические теги в угловых скобках
+    text = text.gsub(/<\s*(\/?)\s*(#{cyrillic_names})\s*>/i) do
+      slash = $1
+      name = CYRILLIC_TAG_MAP[$2.downcase] || $2
+      "<#{slash}#{name}>"
+    end
+
+    # <—ли—>, <—п->, <-ли->, <—п—> — тире вместо / (закрывающий тег)
+    text = text.gsub(/<[—–-]\s*(#{cyrillic_names})\s*[—–-]>/i) do
+      name = CYRILLIC_TAG_MAP[$1.downcase] || $1
+      "</#{name}>"
+    end
+
+    text
+  end
+
   def fix_cyrillic_in_html_tags(text)
     return text if text.blank?
 
@@ -1102,6 +1137,15 @@ class CarSeoTextGenerator
 
       # Нормализуем Unicode-дефисы в URL (‐ ‑ – — → -)
       fixed = fixed.gsub(/[‐‑–—]/, '-')
+
+      # Исправляем дубли /shiny/shiny → /shiny/ и /shiny/shiny-brand/ → /shiny/brand/
+      fixed = fixed.gsub(/\/shiny\/shiny-/, '/shiny/')
+      fixed = fixed.gsub(/\/shiny\/shiny\//, '/shiny/')
+
+      # Исправляем кириллические сезоны в URL
+      fixed = fixed.gsub(/\/(?:зимов[іі]|зимн[іиіе]{1,2})(?=\/)/i, '/zimnie')
+      fixed = fixed.gsub(/\/(?:літн[іі]|летн[іиіе]{1,2})(?=\/)/i, '/letnie')
+      fixed = fixed.gsub(/\/всесезонн[іиіе]{1,2}(?=\/)/i, '/vsesezonie')
 
       # Проверяем: если после всех фиксов в URL остались кириллические символы — удаляем ссылку, оставляем анкор
       if fixed.match?(/[а-яА-ЯіІїЇєЄґҐёЁ]/)
