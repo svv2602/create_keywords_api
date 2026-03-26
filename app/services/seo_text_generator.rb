@@ -4,6 +4,7 @@ class SeoTextGenerator
     include StringProcessing
     include TextOptimization
     include TextCompletenessValidation
+    include HtmlSanitization
   
   def initialize(params)
     @tire_description = params[:tire_description]
@@ -230,45 +231,13 @@ class SeoTextGenerator
   end
   
   def format_generated_text(text)
-    # Очистка и форматирование сгенерированного текста
-    text = clean_html_text(text)
-    # Удаляем иероглифы и символы восточноазиатских языков
-    text = remove_asian_characters(text)
-    # Исправляем или удаляем некорректные ссылки на типоразмеры
+    # Общая постобработка HTML (из HtmlSanitization concern)
+    text = sanitize_llm_html(text)
+
+    # Специфичные для SeoTextGenerator фиксы
     text = fix_tire_size_links(text)
-    # Удаляем параграфы с запрещёнными словами
     text = remove_forbidden_content(text)
-    # Очищаем ссылки: удаляем безанкорные и нормализуем домены
-    text = sanitize_links(text)
-    # Дедупликация ссылок: оставляем первое вхождение каждого href
-    text = deduplicate_links(text)
-    # Исправляем CTA: ссылка-предложение → plain text
     text = fix_cta_link_wrapping(text)
-    # Удаляем изображения из сгенерированного текста
-    text = remove_images(text)
-    # Заголовки h1-h6 должны начинаться с заглавной буквы
-    text = capitalize_headings(text)
-    # optimize_keywords удален - AI сам добавит выделения согласно промпту
-    text
-  end
-
-  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
-  def remove_asian_characters(text)
-    # Паттерн для китайских, японских и корейских символов:
-    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
-    # \p{Hiragana} - японская хирагана
-    # \p{Katakana} - японская катакана
-    # \p{Hangul} - корейские символы
-    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
-
-    if text.match?(asian_pattern)
-      Rails.logger.warn "Found Asian characters in generated text, removing them..."
-      # Удаляем иероглифы
-      text = text.gsub(asian_pattern, '')
-      # Убираем двойные пробелы, которые могли образоваться
-      text = text.gsub(/\s{2,}/, ' ')
-      Rails.logger.info "Asian characters removed successfully"
-    end
 
     text
   end
@@ -383,44 +352,6 @@ class SeoTextGenerator
     cleaned_elements.join
   end
   
-    def clean_html_text(text)
-      # Удаляем markdown блоки (```html ... ```)
-      text = text.gsub(/```html\s*/i, '').gsub(/```\s*$/m, '').gsub(/^```\s*/m, '')
-
-      # Удаляем нежелательные HTML теги документа
-      text = text.gsub(/<!DOCTYPE[^>]*>/i, '')
-      text = text.gsub(/<\/?html[^>]*>/i, '')
-      text = text.gsub(/<\/?body[^>]*>/i, '')
-      text = text.gsub(/<\/?head[^>]*>/i, '')
-      text = text.gsub(/<meta[^>]*>/i, '')
-      text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')
-      text = text.gsub(/<\/?div[^>]*>/i, '')                   # Удаляем div
-      text = text.gsub(/<style[^>]*>.*?<\/style>/im, '')       # Удаляем style теги
-
-      # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
-      text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
-
-      # Исправляем закрывающие теги с пробелами: </p > -> </p>, < /p> -> </p>
-      text = text.gsub(/<\s*\/\s*(\w+)\s*>/i, '</\1>')
-
-      # Исправляем сломанные теги от AI: <]/li] -> </li>, <]/p] -> </p> и т.д.
-      # AI иногда генерирует квадратные скобки вместо угловых
-      text = text.gsub(/<\]\/(\w+)\]/, '</\1>')   # <]/li] -> </li>
-      text = text.gsub(/\[\/(\w+)\]/, '</\1>')    # [/li] -> </li>
-      text = text.gsub(/<\/(\w+)\]/, '</\1>')     # </li] -> </li>
-      text = text.gsub(/<\](\w+)\]/, '<\1>')      # <]li] -> <li>
-      text = text.gsub(/\[(\w+)\](?=[^a-z])/i, '<\1>') # [li] -> <li> (но не [слово])
-
-      # Удаляем лишние пробелы и переносы строк
-      text = text.gsub(/\s+/, ' ')
-          .gsub(/>\s+</, '><')
-          .strip
-
-      # Если текст не заканчивается на </p>, добавляем его
-      text += '</p>' unless text.strip.end_with?('</p>')
-
-      text
-    end
   
   def parse_links(links_param)
     # Парсинг массива ссылок из параметров
@@ -771,7 +702,7 @@ class SeoTextGenerator
     merged += completion
 
     # Финальная очистка
-    clean_html_text(merged)
+    sanitize_llm_html(merged)
   end
 
   # Удаляет неполный CTA параграф из конца текста
@@ -1132,92 +1063,27 @@ class SeoTextGenerator
     w >= 125 && w <= 355 && h >= 0 && h <= 85 && r >= 12 && r <= 24
   end
 
-  # Очищает ссылки: удаляет безанкорные и нормализует домены prokoleso.*
-  # 1. Безанкорные ссылки (<a href="..."></a> или <a href="..."> </a>) - удаляются полностью
-  # 2. Абсолютные ссылки prokoleso.* преобразуются в относительные:
-  #    https://prokoleso.com/shiny/ -> /shiny/
-  #    https://prokoleso.ua/ua/shiny/ -> /ua/shiny/
-  def sanitize_links(text)
-    return text if text.blank?
-
-    # 1. Удаляем безанкорные ссылки (пустой или только пробелы анкор)
-    text = text.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>\s*<\/a>/i, '')
-
-    # 2. Преобразуем абсолютные ссылки prokoleso.* в относительные
-    # Поддерживаем: prokoleso.ua, prokoleso.com, prokoleso.ru и т.д.
-    text = text.gsub(/href="https?:\/\/prokoleso\.[a-z]+(\.[a-z]+)?/i, 'href="')
-
-    text
-  end
-
-  # Дедупликация ссылок: оставляет первое вхождение каждого href,
-  # последующие разворачивает в plain text (оставляет только анкор).
-  def deduplicate_links(text)
-    return text if text.blank?
-
-    seen_hrefs = Set.new
-
-    text.gsub(/<a\s+[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/im) do
-      href = $1
-      anchor = $2
-      normalized = href.downcase.chomp('/')
-
-      if seen_hrefs.include?(normalized)
-        Rails.logger.info "Deduplicate links: removing duplicate href=\"#{href}\", keeping anchor \"#{anchor}\""
-        anchor
-      else
-        seen_hrefs.add(normalized)
-        $& # возвращаем оригинальное совпадение
-      end
-    end
-  end
-
   # Исправляет CTA-параграф: если в последнем <p> есть ссылка с анкором-предложением
   # (>60 символов), разворачивает её в plain text.
   def fix_cta_link_wrapping(text)
     return text if text.blank?
 
-    # Находим последний <p>...</p>
     last_p_match = text.match(/.*(<p>.*?<\/p>)\s*\z/im)
     return text unless last_p_match
 
     last_p = last_p_match[1]
     fixed_p = last_p.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>(.*?)<\/a>/im) do
       anchor = $1
-      plain_anchor = anchor.gsub(/<[^>]+>/, '') # убираем вложенные теги для подсчёта длины
+      plain_anchor = anchor.gsub(/<[^>]+>/, '')
       if plain_anchor.length > 60
         Rails.logger.info "Fix CTA wrapping: unwrapped long anchor (#{plain_anchor.length} chars): \"#{plain_anchor.truncate(80)}\""
         anchor
       else
-        $& # короткий анкор — оставляем ссылку
+        $&
       end
     end
 
     text.sub(last_p, fixed_p)
-  end
-
-  # Удаляет все <img> теги из текста
-  def remove_images(text)
-    return text if text.blank?
-
-    cleaned = text.gsub(/<img\s[^>]*>/i, '')
-    # Удаляем пустые параграфы, оставшиеся после удаления изображений
-    cleaned = cleaned.gsub(/<p>\s*<\/p>/i, '')
-    cleaned
-  end
-
-  # Капитализирует первую букву текста в заголовках h1-h6
-  def capitalize_headings(text)
-    return text if text.blank?
-
-    text.gsub(/<(h[1-6])([^>]*)>(.*?)<\/\1>/im) do
-      tag = $1
-      attrs = $2
-      content = $3
-      # Капитализируем первую букву текстового содержимого (пропускаем теги)
-      capitalized = content.sub(/\A(\s*(?:<[^>]+>)*)(\p{L})/i) { "#{$1}#{$2.upcase}" }
-      "<#{tag}#{attrs}>#{capitalized}</#{tag}>"
-    end
   end
 
   private

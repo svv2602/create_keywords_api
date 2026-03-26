@@ -2,6 +2,7 @@
 class CarSeoTextGenerator
   include StringProcessing
   include TextCompletenessValidation
+  include HtmlSanitization
 
   # Классификация брендов шин по сегментам
   TIRE_BRANDS_BY_SEGMENT = {
@@ -173,135 +174,16 @@ class CarSeoTextGenerator
   end
 
   def clean_html_text(text)
-    # Удаляем лишние пробелы и переносы строк, но сохраняем структуру HTML
-    # Также удаляем возможные div, классы и стили
+    # Общая постобработка HTML (из HtmlSanitization concern)
+    text = sanitize_llm_html(text)
 
-    # Удаляем иероглифы и символы восточноазиатских языков
-    text = remove_asian_characters(text)
-
-    # Нормализуем Unicode-скобки от LLM: 〈 → <, 〉 → >, ＜ → <, ＞ → >
-    text = text.gsub(/[〈＜]/, '<').gsub(/[〉＞]/, '>')
-    # Нормализуем пробелы после < в тегах: < p> → <p>, < /p> → </p>
-    text = text.gsub(/<\s+(\/?\w+)/, '<\1')
-
-    # Декодируем HTML-entities, формирующие теги: &lt;a href="..."&gt; → <a href="...">
-    text = decode_html_entity_tags(text)
-
-    # Удаляем HTML-комментарии (LLM генерирует <!--/а--> вместо </a>)
-    text = text.gsub(/<!--.*?-->/m, '')
-
-    # Заменяем кириллические теги-слова на HTML: <п> → <p>, </ли> → </li>, <—ли—> → </li>
-    text = fix_cyrillic_tag_names(text)
-
-    # Восстанавливаем сломанные <a> теги (DeepSeek разбивает href на символы)
-    text = fix_broken_a_tags(text)
-
-    # Нормализуем кириллические гомоглифы в HTML-тегах: <а hreеf=...> → <a href=...>
-    text = fix_cyrillic_in_html_tags(text)
-
-    # Нормализуем URL-пути в href (кириллица в /shiny/, двойные слеши)
-    text = fix_cyrillic_in_urls(text)
-
-    # Удаляем пустые теги <> (остатки от сломанных тегов LLM)
-    text = text.gsub(/<\s*>/, '')
-
-    # Комплексное исправление пробелов во всех href (заменяет fix_spaces_in_tire_urls)
-    text = fix_all_href_spaces(text)
-
-    # Удаляем циклические ссылки на текущую модель автомобиля
+    # Специфичные для CarSeoTextGenerator фиксы
     text = remove_self_referencing_links(text)
-
-    # Нормализуем "інтернет-магазин" / "интернет-магазин" (убираем пробелы, спецсимволы)
-    text = fix_internet_magazin(text)
-
-    # Исправляем или удаляем некорректные ссылки на типоразмеры
     text = fix_tire_size_links(text)
-
-    # Валидируем анкоры ссылок на типоразмеры (анкор должен содержать размер)
     text = validate_tire_link_anchors(text)
-
-    # Очищаем ссылки: удаляем безанкорные и нормализуем домены
-    text = sanitize_links(text)
-    # Дедупликация ссылок: оставляем первое вхождение каждого href
-    text = deduplicate_links(text)
-    # Исправляем CTA: ссылка-предложение → plain text
     text = fix_cta_link_wrapping(text)
-    # Удаляем изображения из сгенерированного текста
-    text = remove_images(text)
-    # Удаляем пустые теги с &nbsp; и лишние &nbsp; между тегами
-    text = text.gsub(/<p>\s*(?:&nbsp;\s*)+<\/p>/i, '')
-    text = text.gsub(/(?:<\/li>|<\/a>)\s*(?:&nbsp;\s*)+/i) { |m| m.match(/<\/\w+>/)[0] }
-    # Заголовки h1-h6 должны начинаться с заглавной буквы
-    text = capitalize_headings(text)
 
-    # Удаляем markdown-разметку
-    text = text.gsub(/```html\s*/, '').gsub(/```\s*$/, '')
-    text = text.gsub(/\*{2,}/, '')  # **жирный** → жирный
-
-    # Удаляем все нежелательные теги (даже если они обрезаны или без закрывающих скобок)
-    text = text.gsub(/<!DOCTYPE[^>]*>/i, '')                 # Удаляем DOCTYPE
-    text = text.gsub(/<\/?html[^>]*>/i, '')                  # Удаляем <html> и </html>
-    text = text.gsub(/<\/?body[^>]*>/i, '')                  # Удаляем <body> и </body>
-    text = text.gsub(/<\/?head[^>]*>/i, '')                  # Удаляем <head> и </head>
-    text = text.gsub(/<meta[^>]*>/i, '')                     # Удаляем meta теги
-    text = text.gsub(/<title[^>]*>.*?<\/title>/im, '')       # Удаляем title
-    text = text.gsub(/<\/?div[^>]*>/i, '')                   # Удаляем div
-    text = text.gsub(/<style[^>]*>.*?<\/style>/im, '')       # Удаляем style теги
-
-    # Удаляем обрезанные теги в конце (например "</html" или "</p" без закрывающей скобки)
-    text = text.gsub(/<\/?(html|body|head|div|style|p|h[1-6]|ul|ol|li|a)[^>]*$/i, '')
-
-    # Исправляем закрывающие теги с пробелами и мусором: </p >, < /p>, < //l i> → </p>, </li>
-    text = text.gsub(/<\s*\/+\s*([\w][\w\s]*?)\s*>/i) do
-      "</#{$1.gsub(/\s+/, '')}>"
-    end
-
-    # Исправляем сломанные теги от AI: <]/li] -> </li>, <]/p] -> </p> и т.д.
-    # AI иногда генерирует квадратные скобки вместо угловых
-    text = text.gsub(/<\]\/(\w+)\]/, '</\1>')   # <]/li] -> </li>
-    text = text.gsub(/\[\/(\w+)\]/, '</\1>')    # [/li] -> </li>
-    text = text.gsub(/<\/(\w+)\]/, '</\1>')     # </li] -> </li>
-    text = text.gsub(/<\](\w+)\]/, '<\1>')      # <]li] -> <li>
-    text = text.gsub(/\[(\w+)\](?=[^a-z])/i, '<\1>') # [li] -> <li> (но не [слово])
-
-    # Исправляем посимвольный вывод LLM ("о ф о р м і т и" → "оформіти")
-    text = fix_garbled_character_sequences(text)
-
-    # Удаляем осиротевшие > (остатки сломанных тегов LLM)
-    text = text.gsub(/(>)\s*>/, '\1')       # </p>> → </p>
-    text = text.gsub(/^\s*>\s*$/m, '')      # строки состоящие только из >
-    text = text.gsub(/^\s*>(?=\s*[\wа-яА-ЯіІїЇєЄґҐ])/m, '') # > перед текстом в начале строки
-
-    # Балансируем HTML-теги (LLM иногда забывает закрывающие/лишние теги)
-    text = balance_html_tags(text)
-
-    # Если текст не заканчивается на </p>, оборачиваем хвост в <p>...</p>
-    unless text.strip.end_with?('</p>')
-      # Находим позицию после последнего закрывающего блочного тега
-      last_close = text.rindex(/<\/(?:p|ul|ol|h[2-4]|li)>/i)
-      if last_close
-        end_of_tag = text.index('>', last_close) + 1
-        tail = text[end_of_tag..].strip
-        if tail.length > 0
-          text = text[0...end_of_tag] + "<p>#{tail}</p>"
-        else
-          text += '</p>'
-        end
-      else
-        text += '</p>'
-      end
-    end
-
-    # Удаляем атрибуты
-    text = text.gsub(/\s*class="[^"]*"/,  '')                 # Удаляем классы
-    text = text.gsub(/\s*style="[^"]*"/, '')                  # Удаляем inline стили
-    text = text.gsub(/\s*target="[^"]*"/, '')                 # Удаляем target="_blank"
-
-    # Очищаем пробелы
-    text = text.gsub(/\s+/, ' ')                              # Множественные пробелы в один
-    text = text.gsub(/>\s+</, '><')                           # Удаляем пробелы между тегами
-
-    text.strip
+    text
   end
 
   def build_prompt
@@ -971,332 +853,6 @@ class CarSeoTextGenerator
     completion
   end
 
-  # Балансирует HTML-теги: добавляет недостающие закрывающие теги
-  # LLM иногда забывает закрыть <p>, <li>, <ul> и т.д.
-  def balance_html_tags(text)
-    return text if text.blank?
-
-    # p обрабатывается ПОСЛЕДНИМ, чтобы </p> был в самом конце текста
-    # (иначе ending check добавит лишний </p>)
-    tags_to_balance = ['h2', 'h3', 'h4', 'ul', 'ol', 'li', 'p']
-
-    tags_to_balance.each do |tag|
-      opening_count = text.scan(/<#{tag}(?:\s[^>]*)?>/).count
-      closing_count = text.scan(/<\/#{tag}>/).count
-
-      if opening_count > closing_count
-        missing = opening_count - closing_count
-        Rails.logger.info "Balanced HTML: added #{missing} missing </#{tag}> tag(s)"
-        # Для не-p тегов: вставляем ПЕРЕД последним </p>, чтобы сохранить </p> в конце
-        # (требование text_complete? — текст должен заканчиваться на </p>)
-        if tag != 'p' && text.strip.end_with?('</p>')
-          insertion = "</#{tag}>" * missing
-          text = text.sub(/<\/p>(\s*)\z/, "#{insertion}</p>\\1")
-        else
-          missing.times { text += "</#{tag}>" }
-        end
-      elsif closing_count > opening_count
-        excess = closing_count - opening_count
-        Rails.logger.info "Balanced HTML: removed #{excess} extra </#{tag}> tag(s)"
-        # Умное удаление: отслеживаем глубину вложенности, удаляем только
-        # "осиротевшие" закрывающие теги (те, у которых нет пары)
-        depth = 0
-        removed = 0
-        text = text.gsub(/<(\/?)#{tag}(?:\s[^>]*)?>/) do |match|
-          if $1 == '/'
-            if depth <= 0 && removed < excess
-              removed += 1
-              '' # Удаляем осиротевший закрывающий тег
-            else
-              depth -= 1
-              match
-            end
-          else
-            depth += 1
-            match
-          end
-        end
-      end
-    end
-
-    text
-  end
-
-  # Декодирует HTML-entities, формирующие теги
-  # &lt;а hreеf=&quot;url&quot;&gt; → <а hreеf="url">
-  # Также декодирует осиротевшие &gt; (безопасно в контексте HTML)
-  def decode_html_entity_tags(text)
-    return text if text.blank?
-
-    # Декодируем &lt;...&gt; последовательности, похожие на теги
-    text = text.gsub(/&lt;(.*?)&gt;/) do
-      inner = $1.strip
-      # Только если содержимое похоже на тег (начинается с буквы или /, НЕ цифры)
-      if inner.match?(/\A\/?[a-zA-Zа-яА-ЯіІїЇєЄґҐ]/)
-        decoded = inner.gsub('&quot;', '"').gsub('&amp;', '&').gsub('&apos;', "'")
-        "<#{decoded}>"
-      else
-        "&lt;#{$1}&gt;" # Оставляем как есть
-      end
-    end
-
-    # Декодируем осиротевшие entities (в SEO-тексте не должно быть entity-кодированных скобок)
-    text = text.gsub('&gt;', '>')
-    text.gsub('&lt;', '<')
-  end
-
-  # Нормализует кириллические гомоглифы в HTML-тегах
-  # Кириллические символы, визуально идентичные латинским, заменяются на латинские
-  # <а hreеf="..."> → <a href="...">, </а> → </a>
-  CYRILLIC_HOMOGLYPHS = {
-    'а' => 'a', 'е' => 'e', 'о' => 'o', 'р' => 'p', 'с' => 'c',
-    'х' => 'x', 'у' => 'y', 'і' => 'i',
-    'А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M',
-    'Н' => 'H', 'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'Х' => 'X'
-  }.freeze
-  CYRILLIC_HOMOGLYPH_PATTERN = /[#{CYRILLIC_HOMOGLYPHS.keys.join}]/
-
-  # Заменяет кириллические имена тегов на латинские эквиваленты
-  # <п> → <p>, </п> → </p>, <ли> → <li>, </ли> → </li>
-  # <—ли—> → </li>, <—п-> → </p> (LLM использует тире вместо угловых скобок)
-  CYRILLIC_TAG_MAP = {
-    'п' => 'p', 'р' => 'p',
-    'ли' => 'li', 'лі' => 'li',
-    'ул' => 'ul',
-    'ол' => 'ol',
-  }.freeze
-
-  def fix_cyrillic_tag_names(text)
-    return text if text.blank?
-
-    cyrillic_names = CYRILLIC_TAG_MAP.keys.join('|')
-
-    # <п>, </п>, <ли>, </ли> — кириллические теги в угловых скобках
-    text = text.gsub(/<\s*(\/?)\s*(#{cyrillic_names})\s*>/i) do
-      slash = $1
-      name = CYRILLIC_TAG_MAP[$2.downcase] || $2
-      "<#{slash}#{name}>"
-    end
-
-    # <—ли—>, <—п->, <-ли->, <—п—> — тире вместо / (закрывающий тег)
-    text = text.gsub(/<[—–-]\s*(#{cyrillic_names})\s*[—–-]>/i) do
-      name = CYRILLIC_TAG_MAP[$1.downcase] || $1
-      "</#{name}>"
-    end
-
-    text
-  end
-
-  def fix_cyrillic_in_html_tags(text)
-    return text if text.blank?
-
-    text.gsub(/<[^>]+>/) do |tag|
-      original = tag
-      fixed = tag.gsub(CYRILLIC_HOMOGLYPH_PATTERN) { |c| CYRILLIC_HOMOGLYPHS[c] || c }
-      # Исправляем имя атрибута href: хреф/xpeф/hreef → href
-      # LLM пишет href кириллицей фонетически (хреф) или гомоглифами (xpeф)
-      fixed = fixed.gsub(/[хhx][рrp][еe]+[фf]/i, 'href')
-      if fixed != original
-        Rails.logger.info "Fixed Cyrillic homoglyphs in tag: #{original[0..60]} → #{fixed[0..60]}"
-      end
-      fixed
-    end
-  end
-
-  # Нормализует URL-пути в href-атрибутах
-  # - Убирает двойные слеши (кроме ://)
-  # - Исправляет кириллические варианты /shiny/ (shiиy, shiпy, шины, cxины и т.д.)
-  # - Заменяет /ya/ на /ua/
-  # - Исправляет кириллические параметры: в- → w-, н- → h-, р- → r-
-  # - Удаляет ссылки с полностью кириллическими brand-слагами
-  def fix_cyrillic_in_urls(text)
-    return text if text.blank?
-
-    text.gsub(/<a\s+href="([^"]*)"[^>]*>(.*?)<\/a>/im) do |match|
-      href = $1
-      anchor = $2
-      fixed = href.dup
-
-      # Убираем двойные слеши (кроме ://)
-      fixed = fixed.gsub(/(?<!:)\/{2,}/, '/')
-
-      # Заменяем /ya/ на /ua/ (LLM путает украинский префикс)
-      fixed = fixed.gsub(/\/ya(?=\/)/i, '/ua')
-      fixed = fixed.gsub(/\/я(?=\/)/i, '/ua')
-
-      # Нормализуем /shiny/ (различные LLM-опечатки с кириллицей: /shiиy/, /shiпy/)
-      fixed = fixed.gsub(/\/sh[a-zA-Zа-яА-ЯіІїЇєЄґҐ]{1,4}y(?=\/)/i, '/shiny')
-
-      # Полностью кириллические варианты "шины"/"шини" → /shiny/
-      fixed = fixed.gsub(/\/(?:шин[иыі]|cxин[иыі])(?=\/)/i, '/shiny')
-
-      # Кириллические параметры размеров: в-205 → w-205, н-55 → h-55, р-16 → r-16
-      fixed = fixed.gsub(/\/[вВ][-‐‑–—](\d)/, '/w-\1')
-      fixed = fixed.gsub(/\/[нН][-‐‑–—](\d)/, '/h-\1')
-      fixed = fixed.gsub(/\/[рР][-‐‑–—](\d)/, '/r-\1')
-
-      # Нормализуем Unicode-дефисы в URL (‐ ‑ – — → -)
-      fixed = fixed.gsub(/[‐‑–—]/, '-')
-
-      # Исправляем дубли /shiny/shiny → /shiny/ и /shiny/shiny-brand/ → /shiny/brand/
-      fixed = fixed.gsub(/\/shiny\/shiny-/, '/shiny/')
-      fixed = fixed.gsub(/\/shiny\/shiny\//, '/shiny/')
-
-      # Исправляем кириллические сезоны в URL
-      fixed = fixed.gsub(/\/(?:зимов[іі]|зимн[іиіе]{1,2})(?=\/)/i, '/zimnie')
-      fixed = fixed.gsub(/\/(?:літн[іі]|летн[іиіе]{1,2})(?=\/)/i, '/letnie')
-      fixed = fixed.gsub(/\/всесезонн[іиіе]{1,2}(?=\/)/i, '/vsesezonie')
-
-      # Проверяем: если после всех фиксов в URL остались кириллические символы — удаляем ссылку, оставляем анкор
-      if fixed.match?(/[а-яА-ЯіІїЇєЄґҐёЁ]/)
-        Rails.logger.warn "Removed link with Cyrillic URL: #{href} (anchor: #{anchor})"
-        anchor
-      else
-        if fixed != href
-          Rails.logger.info "Fixed URL path: #{href} → #{fixed}"
-        end
-        "<a href=\"#{fixed}\">#{anchor}</a>"
-      end
-    end
-  end
-
-  # Восстанавливает сломанные <a> теги от DeepSeek
-  # DeepSeek иногда разбивает href на отдельные символы-атрибуты:
-  # <a e="" f="URL" h="" r=""> → <a href="URL">
-  # <a ef="URL" hr=""> → <a href="URL">
-  # Любой <a ...> без href= но с атрибутом, содержащим "/" — восстанавливаем
-  def fix_broken_a_tags(text)
-    return text if text.blank?
-
-    text.gsub(/<a\s+([^>]*?)>/i) do |match|
-      attrs = $1.strip
-      # Пропускаем нормальные теги с href=
-      next match if attrs.match?(/\bhref\s*=/i)
-
-      # Ищем URL среди значений атрибутов (самое длинное значение с /)
-      urls = attrs.scan(/(?:\w+)="([^"]*)"/).flatten.select { |v| v.include?('/') }
-      if urls.any?
-        url = urls.max_by(&:length)
-        Rails.logger.info "Fixed broken <a> tag: #{match[0..80]} → <a href=\"#{url}\">"
-        "<a href=\"#{url}\">"
-      else
-        match
-      end
-    end
-  end
-
-  # Комплексное исправление пробелов во ВСЕХ href="..." значениях
-  # URL-адреса никогда не должны содержать пробелов
-  # Заменяет fix_spaces_in_tire_urls — покрывает все случаи, а не только w/h/r
-  def fix_all_href_spaces(text)
-    return text if text.blank?
-
-    text.gsub(/href="([^"]*)"/) do |match|
-      href = $1
-      original_href = href.dup
-
-      # 1. Убираем пробелы вокруг слешей: / ua / shiny / → /ua/shiny/
-      href = href.gsub(/\s*\/\s*/, '/')
-
-      # 2. Исправляем паттерны типоразмеров: w 245 или w245 → w-245 (буква + цифры без дефиса)
-      href = href.gsub(/([whr])\s+(\d+)/, '\1-\2')
-      href = href.gsub(/\/([whr])(\d+)(?=\/)/, '/\1-\2')
-
-      # 3. Убираем все оставшиеся пробелы из URL
-      href = href.gsub(/\s+/, '')
-
-      if href != original_href
-        Rails.logger.info "Fixed spaces in href: #{original_href} -> #{href}"
-      end
-      "href=\"#{href}\""
-    end
-  end
-
-  # Обнаруживает и удаляет абзацы с посимвольным выводом LLM (DeepSeek issue)
-  # Если >50% слов в абзаце — одиночные символы, абзац считается "рассыпанным" и удаляется
-  # Также обнаруживает частично "рассыпанный" текст по низкой средней длине слов
-  # Это позволяет completion-механизму добавить нормальный текст вместо мусора
-  def fix_garbled_character_sequences(text)
-    return text if text.blank?
-
-    text.gsub(/<p[^>]*>([^<]*)<\/p>/i) do |match|
-      content = $1.strip
-      words = content.split(/\s+/)
-
-      if words.length >= 8
-        single_char_count = words.count { |w| w.length == 1 }
-        ratio = single_char_count.to_f / words.length
-
-        if ratio > 0.5
-          Rails.logger.warn "Removed garbled paragraph (#{(ratio * 100).round}% single-char tokens): #{content[0..80]}..."
-          ''
-        else
-          # Пробуем починить: склеиваем последовательности из 3+ одиночных кириллических символов
-          fixed_content = content.gsub(/(?<=[а-яА-ЯіІїЇєЄґҐ])\s+(?=[а-яА-ЯіІїЇєЄґҐ]\s+[а-яА-ЯіІїЇєЄґҐ](?:\s|$))/) { '' }
-          # Дополнительная склейка: два одиночных кириллических символа подряд
-          fixed_content = fixed_content.gsub(/\b([а-яА-ЯіІїЇєЄґҐ])\s+([а-яА-ЯіІїЇєЄґҐ])\b/, '\1\2')
-
-          if fixed_content != content
-            Rails.logger.info "Repaired spaced-out text in paragraph: #{content[0..60]} → #{fixed_content[0..60]}"
-          end
-
-          # Проверяем среднюю длину слов после починки (частично рассыпанный текст)
-          repaired_words = fixed_content.split(/\s+/)
-          if repaired_words.length > 15
-            avg_length = repaired_words.sum(&:length).to_f / repaired_words.length
-            if avg_length < 3.0
-              Rails.logger.warn "Removed paragraph with abnormally low avg word length (#{avg_length.round(1)}): #{fixed_content[0..80]}..."
-              next ''
-            end
-          end
-
-          if fixed_content != content
-            match.sub(content, fixed_content)
-          else
-            match
-          end
-        end
-      else
-        match
-      end
-    end
-  end
-
-  # Нормализует написание "інтернет-магазин" / "интернет-магазин"
-  # Исправляет: інтернет1магазин, інтернет+магазин, інтернет - магазин, інтернет&магазин, інтернет магазин
-  def fix_internet_magazin(text)
-    return text if text.blank?
-
-    # Украинский: інтернет-магазин (все варианты разделителей)
-    text = text.gsub(/інтернет\s*[1+&\s-]+\s*магазин/i, 'інтернет-магазин')
-
-    # Русский: интернет-магазин (все варианты разделителей)
-    text = text.gsub(/интернет\s*[1+&\s-]+\s*магазин/i, 'интернет-магазин')
-
-    text
-  end
-
-  # Удаляет иероглифы и символы восточноазиатских языков (китайский, японский, корейский)
-  def remove_asian_characters(text)
-    # Паттерн для китайских, японских и корейских символов:
-    # \p{Han} - китайские иероглифы (CJK Unified Ideographs)
-    # \p{Hiragana} - японская хирагана
-    # \p{Katakana} - японская катакана
-    # \p{Hangul} - корейские символы
-    asian_pattern = /[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]+/
-
-    if text.match?(asian_pattern)
-      Rails.logger.warn "Found Asian characters in generated car SEO text, removing them..."
-      # Удаляем иероглифы
-      text = text.gsub(asian_pattern, '')
-      # Убираем двойные пробелы, которые могли образоваться
-      text = text.gsub(/\s{2,}/, ' ')
-      Rails.logger.info "Asian characters removed successfully"
-    end
-
-    text
-  end
-
   # Удаляет циклические ссылки на текущую модель автомобиля
   # Например: /shiny/auto/acura/cl-type-s/ или /shiny/auto/acura/cl type-s/ (с пробелами)
   def remove_self_referencing_links(text)
@@ -1648,92 +1204,27 @@ class CarSeoTextGenerator
       r >= 12 && r <= 24
   end
 
-  # Очищает ссылки: удаляет безанкорные и нормализует домены prokoleso.*
-  # 1. Безанкорные ссылки (<a href="..."></a> или <a href="..."> </a>) - удаляются полностью
-  # 2. Абсолютные ссылки prokoleso.* преобразуются в относительные:
-  #    https://prokoleso.com/shiny/ -> /shiny/
-  #    https://prokoleso.ua/ua/shiny/ -> /ua/shiny/
-  def sanitize_links(text)
-    return text if text.blank?
-
-    # 1. Удаляем безанкорные ссылки (пустой или только пробелы анкор)
-    text = text.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>\s*<\/a>/i, '')
-
-    # 2. Преобразуем абсолютные ссылки prokoleso.* в относительные
-    # Поддерживаем: prokoleso.ua, prokoleso.com, prokoleso.ru и т.д.
-    text = text.gsub(/href="https?:\/\/prokoleso\.[a-z]+(\.[a-z]+)?/i, 'href="')
-
-    text
-  end
-
-  # Дедупликация ссылок: оставляет первое вхождение каждого href,
-  # последующие разворачивает в plain text (оставляет только анкор).
-  def deduplicate_links(text)
-    return text if text.blank?
-
-    seen_hrefs = Set.new
-
-    text.gsub(/<a\s+[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/im) do
-      href = $1
-      anchor = $2
-      normalized = href.downcase.chomp('/')
-
-      if seen_hrefs.include?(normalized)
-        Rails.logger.info "Deduplicate links: removing duplicate href=\"#{href}\", keeping anchor \"#{anchor}\""
-        anchor
-      else
-        seen_hrefs.add(normalized)
-        $& # возвращаем оригинальное совпадение
-      end
-    end
-  end
-
   # Исправляет CTA-параграф: если в последнем <p> есть ссылка с анкором-предложением
   # (>60 символов), разворачивает её в plain text.
   def fix_cta_link_wrapping(text)
     return text if text.blank?
 
-    # Находим последний <p>...</p>
     last_p_match = text.match(/.*(<p>.*?<\/p>)\s*\z/im)
     return text unless last_p_match
 
     last_p = last_p_match[1]
     fixed_p = last_p.gsub(/<a\s+[^>]*href="[^"]*"[^>]*>(.*?)<\/a>/im) do
       anchor = $1
-      plain_anchor = anchor.gsub(/<[^>]+>/, '') # убираем вложенные теги для подсчёта длины
+      plain_anchor = anchor.gsub(/<[^>]+>/, '')
       if plain_anchor.length > 60
         Rails.logger.info "Fix CTA wrapping: unwrapped long anchor (#{plain_anchor.length} chars): \"#{plain_anchor.truncate(80)}\""
         anchor
       else
-        $& # короткий анкор — оставляем ссылку
+        $&
       end
     end
 
     text.sub(last_p, fixed_p)
-  end
-
-  # Удаляет все <img> теги из текста
-  def remove_images(text)
-    return text if text.blank?
-
-    cleaned = text.gsub(/<img\s[^>]*>/i, '')
-    # Удаляем пустые параграфы, оставшиеся после удаления изображений
-    cleaned = cleaned.gsub(/<p>\s*<\/p>/i, '')
-    cleaned
-  end
-
-  # Капитализирует первую букву текста в заголовках h1-h6
-  def capitalize_headings(text)
-    return text if text.blank?
-
-    text.gsub(/<(h[1-6])([^>]*)>(.*?)<\/\1>/im) do
-      tag = $1
-      attrs = $2
-      content = $3
-      # Капитализируем первую букву текстового содержимого (пропускаем теги)
-      capitalized = content.sub(/\A(\s*(?:<[^>]+>)*)(\p{L})/i) { "#{$1}#{$2.upcase}" }
-      "<#{tag}#{attrs}>#{capitalized}</#{tag}>"
-    end
   end
 
   def build_geographic_restrictions
