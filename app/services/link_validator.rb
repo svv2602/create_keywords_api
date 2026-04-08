@@ -2,7 +2,7 @@ require 'net/http'
 require 'json'
 
 class LinkValidator
-  API_URL = "https://prokoleso.com/api/link-check/listings"
+  API_URL = "https://prokoleso.ua/api/link-check/listings"
   AUTH_HEADER = "Basic YWRtaW46MTIzNDU1NDMyMQ=="
   TIMEOUT = 10 # секунд
 

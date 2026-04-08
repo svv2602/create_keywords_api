@@ -30,15 +30,16 @@ class PopularQueriesGenerator
     queries = []
     queries.concat(build_combinations)
     queries.concat(build_current_brand_queries) if @brand_slug && !has_full_size
-    queries.concat(build_brand_variations)
+    # Другие бренды — только если в URL нет бренда
+    queries.concat(build_brand_variations) unless @brand_slug
     queries.concat(build_general_queries)
     queries.concat(build_season_variations) unless @season
     queries.concat(build_popular_size_queries) if @radius && !@width
     queries.concat(build_radius_queries) unless @radius
 
-    # Исключить запросы с URL, совпадающим с входным
-    normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
-    queries.reject! { |q| q[:url] == normalized_input }
+    # Исключить запросы с URL, совпадающим с входным (циклическая ссылка)
+    normalized_input = normalize_url(@url)
+    queries.reject! { |q| normalize_url(q[:url]) == normalized_input }
 
     # Убрать дубли по URL (оставить первый вариант текста)
     queries.uniq! { |q| q[:url] }
@@ -66,6 +67,12 @@ class PopularQueriesGenerator
   end
 
   private
+
+  def normalize_url(url)
+    u = url.to_s.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
+    u = "/#{u}" unless u.start_with?('/')
+    u
+  end
 
   def parse_url
     parts = @url.split('/').reject(&:empty?)
@@ -137,10 +144,9 @@ class PopularQueriesGenerator
       templates << { parts: [:radius], url: "/shiny/#{rp}/" }
     end
 
-    # Normalize input URL for comparison
-    normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
+    normalized_input = normalize_url(@url)
 
-    templates.reject { |t| t[:url] == normalized_input }.map do |t|
+    templates.reject { |t| normalize_url(t[:url]) == normalized_input }.map do |t|
       text = build_text_from_parts(t[:parts])
       { text: text, url: t[:url] }
     end
@@ -251,8 +257,8 @@ class PopularQueriesGenerator
     end
 
     # Исключить дубли с входным URL
-    normalized_input = @url.gsub(%r{/+}, '/').sub(%r{/*\z}, '/')
-    queries.reject { |q| q[:url] == normalized_input }
+    normalized_input = normalize_url(@url)
+    queries.reject { |q| normalize_url(q[:url]) == normalized_input }
   end
 
   # --- Block 2: Other brands (~10-15) ---
