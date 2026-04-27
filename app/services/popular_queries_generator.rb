@@ -193,7 +193,8 @@ class PopularQueriesGenerator
       end
     end
 
-    # бренд + популярные размеры
+    # бренд + популярные размеры — БЕЗ сезона (страница бренда: /shiny/{brand}/w-../h-../r-../)
+    used_sizes = Set.new
     if @radius && !@width
       # Есть диаметр, но нет размера — только размеры текущего диаметра
       all_sizes = popular_sizes_for_radius
@@ -202,21 +203,14 @@ class PopularQueriesGenerator
       selected_sizes.each do |size_str|
         w, h, parsed_r, size_c = parse_size_string(size_str)
         next unless w && h && parsed_r
+        size_key = [w, h, parsed_r, size_c]
+        next if used_sizes.include?(size_key)
+        used_sizes << size_key
         srp = radius_url_part(parsed_r, commercial: size_c)
-        # Каждый размер — со случайным сезоном
-        season = seasons_to_use.sample
         queries << {
-          text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r, size_c]),
-          url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
+          text: build_text_from_parts([:brand, :size], size_override: size_key),
+          url: "/shiny/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
         }
-        # Дополнительно: тот же размер с другим сезоном (~40%)
-        if rand < 0.4
-          other_season = (SEASONS - [season]).sample
-          queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: other_season, size_override: [w, h, parsed_r, size_c]),
-            url: "/shiny/#{other_season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
-          }
-        end
       end
     elsif !@radius
       # Нет диаметра — размеры из случайных диаметров
@@ -234,15 +228,17 @@ class PopularQueriesGenerator
         selected_sizes.each do |size_str|
           w, h, parsed_r, size_c = parse_size_string(size_str)
           next unless w && h && parsed_r
+          size_key = [w, h, parsed_r, size_c]
+          next if used_sizes.include?(size_key)
+          used_sizes << size_key
           srp = radius_url_part(parsed_r, commercial: size_c)
-          season = seasons_to_use.sample
           queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, parsed_r, size_c]),
-            url: "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
+            text: build_text_from_parts([:brand, :size], size_override: size_key),
+            url: "/shiny/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
           }
         end
 
-        # бренд + сезон + диаметр
+        # бренд + сезон + диаметр (диаметр оставляем как ссылки на категорию по сезонности)
         rp = radius_url_part(r)
         season = seasons_to_use.sample
         queries << {
@@ -383,20 +379,12 @@ class PopularQueriesGenerator
       url = "/shiny/#{season}/w-#{w}/h-#{h}/#{srp}/"
 
       if @brand_slug
-        # Есть бренд — чаще генерируем с текущим брендом
-        if rand < 0.7
-          brand_url = "/shiny/#{season}/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
-          queries << {
-            text: build_text_from_parts([:season, :brand, :size], season_override: season, size_override: [w, h, r, size_c]),
-            url: brand_url
-          }
-        else
-          # Без бренда
-          queries << {
-            text: build_text_from_parts([:season, :size], season_override: season, size_override: [w, h, r, size_c]),
-            url: url
-          }
-        end
+        # На странице бренда — ссылки на размеры с брендом, БЕЗ сезона
+        brand_url = "/shiny/#{@brand_slug}/w-#{w}/h-#{h}/#{srp}/"
+        queries << {
+          text: build_text_from_parts([:brand, :size], size_override: [w, h, r, size_c]),
+          url: brand_url
+        }
       else
         # Нет бренда — сезон + размер, иногда со случайным брендом
         queries << {
