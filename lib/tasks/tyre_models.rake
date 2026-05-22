@@ -2,9 +2,9 @@ require "csv"
 require "json"
 
 namespace :tyre_models do
-  desc "Import tyre models from CSV to JSON. Usage: rake tyre_models:import_csv[lib/model2026-02.csv]"
+  desc "Import tyre models from CSV to JSON. Usage: rake tyre_models:import_csv[lib/model-22-05-2026.csv]"
   task :import_csv, [:path] => :environment do |_t, args|
-    csv_path = args[:path] || "lib/model2026-02.csv"
+    csv_path = args[:path] || "lib/model-22-05-2026.csv"
 
     unless File.exist?(csv_path)
       puts "File not found: #{csv_path}"
