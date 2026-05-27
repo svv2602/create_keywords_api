@@ -3,9 +3,11 @@ FROM ruby:3.3.8
 ARG OPENAI_API_KEY
 ARG DEEPSEEK_API_KEY
 ARG GEMINI_API_KEY
+ARG PROKOLESO_API_TOKEN
 ENV OPENAI_API_KEY=$OPENAI_API_KEY
 ENV DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
 ENV GEMINI_API_KEY=$GEMINI_API_KEY
+ENV PROKOLESO_API_TOKEN=$PROKOLESO_API_TOKEN
 
 RUN apt-get update && apt-get install -y build-essential
 
@@ -38,10 +40,17 @@ CMD ["rails", "server", "-b", "0.0.0.0"]
 # Вариант 1: Только OpenAI (без DeepSeek)
 # sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
 #
-# Вариант 2: С DeepSeek и Gemini (рекомендуется)
-# sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key --build-arg DEEPSEEK_API_KEY=your_deepseek_api_key --build-arg GEMINI_API_KEY=your_gemini_api_key -t my-rails-app .
+# Вариант 2: С DeepSeek, Gemini и Prokoleso API (рекомендуется)
+# sudo docker build \
+#   --build-arg OPENAI_API_KEY=your_openai_api_key \
+#   --build-arg DEEPSEEK_API_KEY=your_deepseek_api_key \
+#   --build-arg GEMINI_API_KEY=your_gemini_api_key \
+#   --build-arg PROKOLESO_API_TOKEN=your_prokoleso_api_token \
+#   -t my-rails-app .
 #
-# где your_openai_api_key, your_deepseek_api_key, your_gemini_api_key - реальные ключи
+# где your_openai_api_key, your_deepseek_api_key, your_gemini_api_key - реальные ключи,
+# your_prokoleso_api_token - токен для https://prokoleso.ua/api/v1/catalog/top-models
+# (нужен для lazy-sync моделей шин в TyreModelsSync)
 #
 # sudo docker run --rm -p 3000:3000 my-rails-app
 #

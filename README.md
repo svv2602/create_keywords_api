@@ -11,11 +11,13 @@
 
 ## 🐳 Docker запуск
 
-### Вариант 1: С DeepSeek (рекомендуется, экономия 90%)
+### Вариант 1: С DeepSeek и Prokoleso API (рекомендуется)
 ```bash
 sudo docker build \
   --build-arg OPENAI_API_KEY=your_openai_api_key \
   --build-arg DEEPSEEK_API_KEY=your_deepseek_api_key \
+  --build-arg GEMINI_API_KEY=your_gemini_api_key \
+  --build-arg PROKOLESO_API_TOKEN=your_prokoleso_api_token \
   -t my-rails-app .
 ```
 
@@ -24,6 +26,18 @@ sudo docker build \
 sudo docker build --build-arg OPENAI_API_KEY=your_openai_api_key -t my-rails-app .
 ```
 **⚠️ Внимание:** Без DeepSeek затраты будут на 90% выше!
+
+### Build args
+| Переменная | Назначение |
+|------------|------------|
+| `OPENAI_API_KEY` | OpenAI (fallback для генерации) |
+| `DEEPSEEK_API_KEY` | DeepSeek (основной провайдер для большинства задач) |
+| `GEMINI_API_KEY` | Gemini (используется по умолчанию для ряда сценариев) |
+| `PROKOLESO_API_TOKEN` | Bearer-токен для `https://prokoleso.ua/api/v1/...` — нужен `LinkValidator` и `TyreModelsSync` (lazy-sync моделей шин для блоков «Популярные модели»/«Популярные запросы»). Без него первый запрос дня к `/api/v1/show_models` или `/api/v1/popular_queries` ляжет в `Rails.logger.error` и API будет работать на старом `lib/tyre_models.json`. |
+
+> Если при сборке Docker выдаёт `Warning: One or more build-args [X] were not consumed` —
+> значит в `Dockerfile` нет соответствующего `ARG X`. Переданное значение игнорируется,
+> внутри контейнера переменной не будет.
 
 ### Запуск контейнера:
 ```bash
@@ -38,7 +52,7 @@ sudo docker run --rm -p 3000:3000 my-rails-app
 ```bash
 # 1. Создайте .env файл
 cp .env.example .env
-# Добавьте OPENAI_API_KEY и DEEPSEEK_API_KEY
+# Добавьте OPENAI_API_KEY, DEEPSEEK_API_KEY, GEMINI_API_KEY, PROKOLESO_API_TOKEN
 
 # 2. Запустите
 docker-compose up
@@ -509,12 +523,41 @@ curl "http://localhost:3000/api/v1/popular_queries?url=/shiny/r-14/&language=ru"
 
 ===================
 ### Блок ТОП-модели («Популярные модели»)
-Модели хранятся в `lib/tyre_models.json` (не в БД).
+Модели хранятся в `lib/tyre_models.json` (не в БД). Источник истины — API `prokoleso.ua`:
+`https://prokoleso.ua/api/v1/catalog/top-models` (Bearer-авторизация, токен в
+`PROKOLESO_API_TOKEN`).
 
-#### Обновление моделей:
+#### Lazy-sync (автоматически)
+Сервис `TyreModelsSync` (`app/services/tyre_models_sync.rb`) подключён через
+`before_action :refresh_tyre_models_if_stale, only: [:show_models, :popular_queries]`
+в `Api::V1::KeysController`. При первом запросе дня к `/api/v1/show_models` или
+`/api/v1/popular_queries`:
+
+1. Проверяется `File.mtime(lib/tyre_models.json).to_date == Date.current`.
+2. Если файл «вчерашний» — дёргается API, JSON перезаписывается атомарно (`tmp + rename`).
+3. После успешного синка сбрасывается in-memory кэш `PopularQueriesGenerator`.
+
+Failure policy: при ошибке/таймауте API → `Rails.logger.error` и работаем на старом
+JSON, endpoint **не ломается**. JSON меняется только при успешном получении непустого
+списка. Запись с брендом `"Тест"` фильтруется в `normalize_row`.
+
+**На проде обязателен `PROKOLESO_API_TOKEN` в окружении** (`dotenv-rails` грузит `.env`
+только в dev/test). Для Docker — передать через `--build-arg` (см. раздел Docker выше).
+
+#### Ручной синк из API
+```bash
+# Полный синк
+bundle exec rake tyre_models:sync_from_api
+
+# Превью (ничего не пишется в JSON)
+DRY_RUN=1 bundle exec rake tyre_models:sync_from_api
+```
+
+#### CSV-импорт (fallback)
+Если API недоступно длительно, можно залить модели из CSV:
 1. Положить CSV-файл в `lib/` (формат: `URL,сезон,бренд,название модели`)
 2. Запустить: `rake tyre_models:import_csv[lib/filename.csv]`
-   * без аргумента используется `lib/model2026-02.csv`
+   * без аргумента используется `lib/model-22-05-2026.csv`
 3. Закоммитить обновлённый `lib/tyre_models.json`
 
 #### Получение данных:
