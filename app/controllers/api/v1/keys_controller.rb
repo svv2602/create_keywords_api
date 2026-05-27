@@ -5,6 +5,8 @@ class Api::V1::KeysController < ApplicationController
   include ServiceTable
   include TyreConstants
 
+  before_action :refresh_tyre_models_if_stale, only: [:show_models, :popular_queries]
+
   def show
     #  curl http://localhost:3000/api/v1/show
     i = 0
@@ -129,6 +131,10 @@ class Api::V1::KeysController < ApplicationController
   end
 
   private
+
+  def refresh_tyre_models_if_stale
+    TyreModelsSync.refresh_if_stale!
+  end
 
   def pick_random_copies_sorted(limit = 9)
     result = []
