@@ -3,13 +3,19 @@ require 'json'
 
 class LinkValidator
   API_URL = "https://prokoleso.ua/api/link-check/listings"
-  AUTH_HEADER = "Basic YWRtaW46MTIzNDU1NDMyMQ=="
   TIMEOUT = 10 # секунд
 
   # Принимает массив queries [{text: "...", url: "/shiny/..."}, ...]
   # Возвращает { queries: [...], error: nil } или { queries: [], error: "сообщение" }
   def self.validate(queries)
     return { queries: [], error: nil } if queries.empty?
+
+    token = ENV['PROKOLESO_API_TOKEN']
+    if token.nil? || token.empty?
+      error_msg = "PROKOLESO_API_TOKEN is not set"
+      Rails.logger.error "[LinkValidator] #{error_msg}"
+      return { queries: [], error: error_msg }
+    end
 
     # Собираем URL без ведущего /
     urls = queries.map { |q| q[:url].sub(%r{\A/}, '') }
@@ -20,7 +26,7 @@ class LinkValidator
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: TIMEOUT, read_timeout: TIMEOUT) do |http|
       request = Net::HTTP::Post.new(uri)
       request['Content-Type'] = 'application/json'
-      request['Authorization'] = AUTH_HEADER
+      request['Authorization'] = "Bearer #{token}"
       request.body = body
       http.request(request)
     end
