@@ -1040,8 +1040,8 @@ class SeoTextGenerator
     normalized = anchor_text.gsub(/\s+/, '').downcase
 
     # Паттерн: ширина/профиль R радиус (опционально C для коммерческих)
-    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})c?/i
-      width, height, radius = $1, $2, $3
+    if normalized =~ /(\d{3})\/(\d{2})r(\d{2})(c?)/i
+      width, height, radius, commercial = $1, $2, $3, $4
 
       return nil unless valid_tire_dimensions?(width, height, radius)
 
@@ -1054,7 +1054,7 @@ class SeoTextGenerator
                       ''
                     end
 
-      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}/"
+      "#{lang_prefix}/shiny/w-#{width}/h-#{height}/r-#{radius}#{commercial.downcase}/"
     else
       nil
     end
