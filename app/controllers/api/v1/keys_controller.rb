@@ -345,20 +345,15 @@ class Api::V1::KeysController < ApplicationController
   def render_popular_queries_html(queries)
     lang_path = params[:language].to_s == 'ua' ? '/ua' : ''
 
-    title = params[:language].to_s == 'ua' ? 'Популярні запити' : 'Популярные запросы'
-
-    html = "<div class='popular-queries'>\n"
-    html << "  <p>#{title}</p>\n"
-    html << "  <ul>\n"
+    html = "<ul>\n"
 
     queries.each do |q|
       url = "#{lang_path}#{q[:url]}"
       text = capitalize_first_letter(q[:text])
-      html << "    <li><a href='#{url}' title='#{text}'>#{text}</a></li>\n"
+      html << "  <li><a href='#{url}' title='#{text}'>#{text}</a></li>\n"
     end
 
-    html << "  </ul>\n"
-    html << "</div>\n"
+    html << "</ul>\n"
     html
   end
 
